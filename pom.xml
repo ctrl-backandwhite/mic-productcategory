@@ -37,7 +37,7 @@
             </snapshots>
         </repository>
     </repositories>
-    
+
     <dependencies>
         <dependency>
             <groupId>com.backandwhite.core</groupId>
@@ -73,6 +73,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>com.backandwhite.MicProductcategoryApplication</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
