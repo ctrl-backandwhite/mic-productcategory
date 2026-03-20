@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: postgres-mic-productcategory
+    restart: no
+    env_file:
+      - .env
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - spring-net
+
+  redis:
+    image: redis:8.4-alpine
+    container_name: redis-mic-productcategory
+    restart: no
+    ports:
+      - "6379:6379"
+    command: [ "redis-server", "--appendonly", "yes" ] # Habilita persistencia de datos
+    volumes:
+      - redis_data:/data
+    networks:
+      - spring-net
+
+networks:
+  spring-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
