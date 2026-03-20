@@ -7,7 +7,7 @@ import org.springframework.boot.SpringApplication;
 
 @EnableCoreApplication
 @OpenAPIDefinition(servers = {
-        //@Server(url = "", description = "Production Server."),
+        @Server(url = "https://product-category.up.railway.app", description = "Production Server."),
         @Server(url = "https://localhost:6001", description = "Local Server.")
 })
 public class MicProductcategoryApplication {
