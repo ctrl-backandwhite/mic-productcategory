@@ -16,3 +16,26 @@ spring:
 cj-dropshipping:
   base-url: https://developers.cjdropshipping.com/api2.0/v1
   api-key: ${CJ_API_KEY:CJ5236391@api@1dfb48a4f5834860a21e24f39493580b}
+
+resilience4j:
+  retry:
+    instances:
+      cjApi:
+        max-attempts: 3
+        wait-duration: 2s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.web.reactive.function.client.WebClientException
+          - java.io.IOException
+        ignore-exceptions:
+          - com.backandwhite.domain.exception.ExternalServiceException
+  circuitbreaker:
+    instances:
+      cjApi:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 3
+        register-health-indicator: true

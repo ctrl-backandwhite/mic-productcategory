@@ -40,7 +40,7 @@ public class CjTokenManager {
     /** Margen para refresh proactivo: 30 minutos antes del vencimiento */
     private static final long PROACTIVE_REFRESH_MINUTES = 30;
 
-    private final CjDropshippingClient cjClient;
+    private final CjAuthClient cjAuthClient;
     private final CjTokenJpaRepository tokenRepository;
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -52,10 +52,8 @@ public class CjTokenManager {
     private Instant lastTokenRequestTime;
     private boolean loadedFromDb = false;
 
-    public CjTokenManager(
-            @org.springframework.context.annotation.Lazy CjDropshippingClient cjClient,
-            CjTokenJpaRepository tokenRepository) {
-        this.cjClient = cjClient;
+    public CjTokenManager(CjAuthClient cjAuthClient, CjTokenJpaRepository tokenRepository) {
+        this.cjAuthClient = cjAuthClient;
         this.tokenRepository = tokenRepository;
     }
 
@@ -207,7 +205,7 @@ public class CjTokenManager {
     // ── Métodos internos ────────────────────────────────────────
 
     private String doRefresh() {
-        CjAccessTokenDataDto data = cjClient.refreshAccessToken(cachedRefreshToken);
+        CjAccessTokenDataDto data = cjAuthClient.refreshAccessToken(cachedRefreshToken);
         storeTokenData(data);
         return cachedAccessToken;
     }
@@ -229,7 +227,7 @@ public class CjTokenManager {
             }
         }
         lastTokenRequestTime = Instant.now();
-        CjAccessTokenDataDto data = cjClient.requestNewToken();
+        CjAccessTokenDataDto data = cjAuthClient.requestNewToken();
         storeTokenData(data);
         return cachedAccessToken;
     }

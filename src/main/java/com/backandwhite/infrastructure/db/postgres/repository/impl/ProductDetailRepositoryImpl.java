@@ -1,9 +1,15 @@
 package com.backandwhite.infrastructure.db.postgres.repository.impl;
 
-import com.backandwhite.domain.model.*;
+import com.backandwhite.domain.model.ProductDetail;
+import com.backandwhite.domain.model.ProductDetailVariant;
+import com.backandwhite.domain.model.ProductDetailVariantInventory;
+import com.backandwhite.domain.model.ProductDetailVariantTranslation;
 import com.backandwhite.domain.repository.ProductDetailRepository;
 import com.backandwhite.domain.valureobject.ProductStatus;
-import com.backandwhite.infrastructure.db.postgres.entity.*;
+import com.backandwhite.infrastructure.db.postgres.entity.ProductDetailEntity;
+import com.backandwhite.infrastructure.db.postgres.entity.ProductDetailVariantEntity;
+import com.backandwhite.infrastructure.db.postgres.entity.ProductDetailVariantInventoryEntity;
+import com.backandwhite.infrastructure.db.postgres.entity.ProductDetailVariantTranslationEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.ProductDetailInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.ProductDetailJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.repository.ProductDetailVariantJpaRepository;
@@ -11,6 +17,7 @@ import com.backandwhite.infrastructure.db.postgres.specification.ProductDetailVa
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -38,11 +45,10 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
     @Override
     public ProductDetail save(ProductDetail detail) {
         ProductDetailEntity entity = productDetailInfraMapper.toEntityWithChildren(detail);
-        ProductDetailEntity saved = productDetailJpaRepository.save(entity);
-        return productDetailInfraMapper.toDomain(saved);
+        return productDetailInfraMapper.toDomain(productDetailJpaRepository.save(entity));
     }
 
-    // ── Variant CRUD ─────────────────────────────────────────────────────────
+    // ── Variant queries ───────────────────────────────────────────────────────
 
     @Override
     public Page<ProductDetailVariant> findAllVariantsPaged(Pageable pageable) {
@@ -58,9 +64,10 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
     }
 
     @Override
-    public Page<ProductDetailVariant> findVariantsFiltered(String search, ProductStatus status, Pageable pageable) {
-        org.springframework.data.jpa.domain.Specification<ProductDetailVariantEntity> spec = (root, query, cb) -> cb
-                .conjunction();
+    public Page<ProductDetailVariant> findVariantsFiltered(String locale, String search, ProductStatus status,
+            String pid, Pageable pageable) {
+        Specification<ProductDetailVariantEntity> spec =
+                Specification.where((Specification<ProductDetailVariantEntity>) null);
 
         if (search != null && !search.isBlank()) {
             spec = spec.and(ProductDetailVariantSpecification.searchByTerm(search.trim()));
@@ -68,47 +75,47 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
         if (status != null) {
             spec = spec.and(ProductDetailVariantSpecification.hasStatus(status));
         }
+        if (pid != null && !pid.isBlank()) {
+            spec = spec.and(ProductDetailVariantSpecification.hasPid(pid));
+        }
 
         return productDetailVariantJpaRepository.findAll(spec, pageable)
-                .map(productDetailInfraMapper::toVariantDomain);
+                .map(e -> filterVariantTranslations(productDetailInfraMapper.toVariantDomain(e), locale));
     }
 
     @Override
-    public List<ProductDetailVariant> findVariantsByPid(String pid) {
-        List<ProductDetailVariantEntity> entities = productDetailVariantJpaRepository.findByPid(pid);
-        return entities.stream()
-                .map(productDetailInfraMapper::toVariantDomain)
+    public List<ProductDetailVariant> findVariantsByPid(String pid, String locale) {
+        return productDetailVariantJpaRepository.findByPid(pid).stream()
+                .map(e -> filterVariantTranslations(productDetailInfraMapper.toVariantDomain(e), locale))
                 .toList();
     }
 
     @Override
-    public Optional<ProductDetailVariant> findVariantByVid(String vid) {
+    public Optional<ProductDetailVariant> findVariantByVid(String vid, String locale) {
         return productDetailVariantJpaRepository.findById(vid)
-                .map(productDetailInfraMapper::toVariantDomain);
+                .map(e -> filterVariantTranslations(productDetailInfraMapper.toVariantDomain(e), locale));
     }
+
+    // ── Variant mutations ─────────────────────────────────────────────────────
 
     @Override
     public ProductDetailVariant saveVariant(ProductDetailVariant variant) {
-        // Load parent reference
-        ProductDetailEntity parent = productDetailJpaRepository.findById(variant.getPid())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "ProductDetail with pid=" + variant.getPid() + " not found"));
+        // Use getReferenceById to avoid an extra SELECT; existence is validated upstream
+        ProductDetailEntity parent = productDetailJpaRepository.getReferenceById(variant.getPid());
 
         ProductDetailVariantEntity entity = productDetailInfraMapper.toVariantEntity(variant);
         entity.setProductDetail(parent);
 
-        // Wire translations
         if (variant.getTranslations() != null) {
             entity.getTranslations().clear();
             for (ProductDetailVariantTranslation vt : variant.getTranslations()) {
-                ProductDetailVariantTranslationEntity vte = productDetailInfraMapper.toVariantTranslationEntity(vt,
-                        variant.getVid());
+                ProductDetailVariantTranslationEntity vte =
+                        productDetailInfraMapper.toVariantTranslationEntity(vt, variant.getVid());
                 vte.setVariant(entity);
                 entity.getTranslations().add(vte);
             }
         }
 
-        // Wire inventories
         if (variant.getInventories() != null) {
             entity.getInventories().clear();
             for (ProductDetailVariantInventory inv : variant.getInventories()) {
@@ -118,20 +125,15 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
             }
         }
 
-        ProductDetailVariantEntity saved = productDetailVariantJpaRepository.save(entity);
-        ProductDetailVariant result = productDetailInfraMapper.toVariantDomain(saved);
-        // Ensure pid is populated from the parent relationship
-        if (result.getPid() == null) {
-            result = result.withPid(variant.getPid());
-        }
-        return result;
+        ProductDetailVariant result = productDetailInfraMapper.toVariantDomain(
+                productDetailVariantJpaRepository.save(entity));
+        return result.getPid() == null ? result.withPid(variant.getPid()) : result;
     }
 
     @Override
     public void updateVariantStatus(String vid, ProductStatus status) {
         ProductDetailVariantEntity entity = productDetailVariantJpaRepository.findById(vid)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "ProductDetailVariant with vid=" + vid + " not found"));
+                .orElseThrow(() -> new IllegalArgumentException("ProductDetailVariant with vid=" + vid + " not found"));
         entity.setStatus(status);
         productDetailVariantJpaRepository.save(entity);
     }
@@ -143,11 +145,30 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
 
     @Override
     public void deleteVariants(List<String> vids) {
-        productDetailVariantJpaRepository.deleteAllByIdInBatch(vids);
+        // findAll + deleteAll ensures JPA cascade fires for translations and inventories
+        List<ProductDetailVariantEntity> entities = productDetailVariantJpaRepository.findAllById(vids);
+        productDetailVariantJpaRepository.deleteAll(entities);
     }
 
     @Override
     public void bulkUpdateVariantStatus(List<String> vids, ProductStatus status) {
         productDetailVariantJpaRepository.bulkUpdateStatus(vids, status);
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    /**
+     * Filters variant translations to the requested locale.
+     * Falls back to keeping all translations when the locale is not found.
+     */
+    private ProductDetailVariant filterVariantTranslations(ProductDetailVariant variant, String locale) {
+        if (locale == null || locale.isBlank()
+                || variant.getTranslations() == null || variant.getTranslations().isEmpty()) {
+            return variant;
+        }
+        List<ProductDetailVariantTranslation> filtered = variant.getTranslations().stream()
+                .filter(t -> locale.equals(t.getLocale()))
+                .toList();
+        return variant.withTranslations(filtered.isEmpty() ? variant.getTranslations() : filtered);
     }
 }

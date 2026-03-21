@@ -25,6 +25,16 @@ public final class ProductDetailVariantSpecification {
     }
 
     /**
+     * Filtra variantes que pertenezcan exactamente al PID indicado.
+     */
+    public static Specification<ProductDetailVariantEntity> hasPid(String pid) {
+        return (root, query, cb) -> {
+            if (pid == null || pid.isBlank()) return cb.conjunction();
+            return cb.equal(root.get("pid"), pid);
+        };
+    }
+
+    /**
      * Busca variantes cuyo VID, PID, nombre de variante, SKU, key o nombre
      * del producto padre contengan el término (case-insensitive).
      */

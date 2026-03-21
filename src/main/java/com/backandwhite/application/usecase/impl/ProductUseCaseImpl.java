@@ -1,7 +1,7 @@
 package com.backandwhite.application.usecase.impl;
 
 import com.backandwhite.application.usecase.ProductUseCase;
-import com.backandwhite.domain.exception.Message;
+import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.repository.ProductRepository;

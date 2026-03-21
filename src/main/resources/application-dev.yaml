@@ -20,9 +20,8 @@ spring:
       timeout: 60000
 
 cj-dropshipping:
-  api:
-    url: ${CJ_BASE_URL}
-    key: ${CJ_API_KEY}
+  base-url: ${CJ_BASE_URL}
+  api-key: ${CJ_API_KEY}
 
 logging:
   level:

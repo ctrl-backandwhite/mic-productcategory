@@ -1,6 +1,6 @@
 package com.backandwhite.infrastructure.db.postgres.repository.impl;
 
-import com.backandwhite.domain.exception.Message;
+import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategoryTranslation;
 import com.backandwhite.domain.repository.CategoryRepository;
@@ -39,52 +39,14 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     public Page<Category> findCategoriesPaged(String locale, CategoryStatus status, Boolean active, String name,
             Integer level, Pageable pageable) {
         return categoryJpaRepository
-                .findAll(CategorySpecification.withPagedFilters(locale, status, active, name, level),
-                        pageable)
+                .findAll(CategorySpecification.withPagedFilters(locale, status, active, name, level), pageable)
                 .map(categoryInfraMapper::toDomain);
     }
 
     @Override
     public Optional<Category> findById(String categoryId, String locale) {
         return categoryJpaRepository.findById(categoryId)
-                .map(entity -> {
-                    Category category = categoryInfraMapper.toDomain(entity);
-                    applyLocaleName(category, locale);
-                    // Build children tree recursively
-                    List<CategoryEntity> allEntities = categoryJpaRepository.findAll();
-                    Map<String, List<CategoryEntity>> childrenMap = allEntities.stream()
-                            .filter(e -> e.getParentId() != null)
-                            .collect(Collectors.groupingBy(CategoryEntity::getParentId));
-                    buildSubCategories(category, childrenMap, locale);
-                    return category;
-                });
-    }
-
-    /**
-     * Sets the category name from the translation matching the requested locale.
-     * Falls back to the first available translation if the locale is not found.
-     */
-    private void applyLocaleName(Category category, String locale) {
-        if (locale == null || category.getTranslations() == null || category.getTranslations().isEmpty()) {
-            return;
-        }
-        category.getTranslations().stream()
-                .filter(t -> locale.equals(t.getLocale()))
-                .findFirst()
-                .ifPresent(t -> category.setName(t.getName()));
-    }
-
-    /**
-     * Recursively builds the subCategories tree for a given category.
-     */
-    private void buildSubCategories(Category parent, Map<String, List<CategoryEntity>> childrenMap, String locale) {
-        List<CategoryEntity> childEntities = childrenMap.getOrDefault(parent.getId(), List.of());
-        for (CategoryEntity childEntity : childEntities) {
-            Category child = categoryInfraMapper.toDomain(childEntity);
-            applyLocaleName(child, locale);
-            buildSubCategories(child, childrenMap, locale);
-            parent.getSubCategories().add(child);
-        }
+                .map(entity -> enrichWithTree(categoryInfraMapper.toDomain(entity), locale));
     }
 
     @Override
@@ -94,8 +56,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
         category.setStatus(CategoryStatus.DRAFT);
         category.setActive(true);
 
-        CategoryEntity entity = categoryInfraMapper.toEntityWithChildren(category);
-        categoryJpaRepository.save(entity);
+        categoryJpaRepository.save(categoryInfraMapper.toEntityWithChildren(category));
 
         String locale = resolveLocale(category);
         return findById(newId, locale)
@@ -104,25 +65,11 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public Category update(String categoryId, Category category) {
-        CategoryEntity entity = categoryJpaRepository.findById(categoryId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", categoryId));
+        CategoryEntity entity = findOrThrow(categoryId);
 
         entity.setParentId(category.getParentId());
         entity.setLevel(category.getLevel());
-
-        if (category.getTranslations() != null) {
-            category.getTranslations().forEach(t -> entity.getTranslations().stream()
-                    .filter(existing -> existing.getId().getLocale().equals(t.getLocale()))
-                    .findFirst()
-                    .ifPresentOrElse(
-                            existing -> existing.setName(t.getName()),
-                            () -> {
-                                CategoryTranslationEntity te = categoryInfraMapper.toTranslationEntity(t, categoryId);
-                                te.setCategory(entity);
-                                entity.getTranslations().add(te);
-                            }));
-        }
-
+        upsertTranslations(entity, category.getTranslations());
         categoryJpaRepository.save(entity);
 
         String locale = resolveLocale(category);
@@ -132,31 +79,26 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public void delete(String categoryId) {
-        CategoryEntity entity = categoryJpaRepository.findById(categoryId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", categoryId));
-        categoryJpaRepository.delete(entity);
+        categoryJpaRepository.delete(findOrThrow(categoryId));
     }
 
     @Override
     public void updateStatus(String categoryId, CategoryStatus status) {
-        CategoryEntity entity = categoryJpaRepository.findById(categoryId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", categoryId));
+        CategoryEntity entity = findOrThrow(categoryId);
         entity.setStatus(status);
         categoryJpaRepository.save(entity);
     }
 
     @Override
     public void toggleActive(String categoryId, boolean active) {
-        CategoryEntity entity = categoryJpaRepository.findById(categoryId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", categoryId));
+        CategoryEntity entity = findOrThrow(categoryId);
         entity.setActive(active);
         categoryJpaRepository.save(entity);
     }
 
     @Override
     public void toggleFeatured(String categoryId, boolean featured) {
-        CategoryEntity entity = categoryJpaRepository.findById(categoryId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", categoryId));
+        CategoryEntity entity = findOrThrow(categoryId);
         entity.setFeatured(featured);
         categoryJpaRepository.save(entity);
     }
@@ -173,19 +115,9 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public List<Category> findFeatured(String locale) {
-        // Load all entities once to build the children map
-        List<CategoryEntity> allEntities = categoryJpaRepository.findAll();
-        Map<String, List<CategoryEntity>> childrenMap = allEntities.stream()
-                .filter(e -> e.getParentId() != null)
-                .collect(Collectors.groupingBy(CategoryEntity::getParentId));
-
+        Map<String, List<CategoryEntity>> childrenMap = loadAllChildrenMap();
         return categoryJpaRepository.findAll(CategorySpecification.withFeatured(locale)).stream()
-                .map(entity -> {
-                    Category category = categoryInfraMapper.toDomain(entity);
-                    applyLocaleName(category, locale);
-                    buildSubCategories(category, childrenMap, locale);
-                    return category;
-                })
+                .map(entity -> enrichWithTree(categoryInfraMapper.toDomain(entity), locale, childrenMap))
                 .toList();
     }
 
@@ -193,29 +125,22 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     public Optional<String> findCategoryIdByNameAndLocaleAndLevelAndParent(String name, String locale, int level,
             String parentId) {
         List<CategoryEntity> results = categoryJpaRepository
-                .findAll(CategorySpecification.byTranslationNameAndLocaleAndLevelAndParent(name, locale, level,
-                        parentId));
+                .findAll(CategorySpecification.byTranslationNameAndLocaleAndLevelAndParent(name, locale, level, parentId));
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst().getId());
     }
 
     @Override
     public Optional<String> findCategoryIdById(String categoryId) {
-        return categoryJpaRepository.findById(categoryId)
-                .map(CategoryEntity::getId);
+        return categoryJpaRepository.findById(categoryId).map(CategoryEntity::getId);
     }
 
     @Override
     public String upsertCategory(String id, String parentId, int level, String name, String locale) {
-        Optional<CategoryEntity> existingOpt;
-        if (id != null) {
-            existingOpt = categoryJpaRepository.findById(id);
-        } else {
-            // Look up by name+locale+level+parent to avoid creating duplicates
-            List<CategoryEntity> found = categoryJpaRepository
-                    .findAll(CategorySpecification.byTranslationNameAndLocaleAndLevelAndParent(name, locale, level,
-                            parentId));
-            existingOpt = found.isEmpty() ? Optional.empty() : Optional.of(found.getFirst());
-        }
+        Optional<CategoryEntity> existingOpt = id != null
+                ? categoryJpaRepository.findById(id)
+                : categoryJpaRepository
+                        .findAll(CategorySpecification.byTranslationNameAndLocaleAndLevelAndParent(name, locale, level, parentId))
+                        .stream().findFirst();
 
         CategoryTranslation ct = CategoryTranslation.builder().locale(locale).name(name).build();
 
@@ -223,37 +148,22 @@ public class CategoryRepositoryImpl implements CategoryRepository {
             CategoryEntity existing = existingOpt.get();
             existing.setParentId(parentId);
             existing.setLevel(level);
-
-            existing.getTranslations().stream()
-                    .filter(t -> locale.equals(t.getId().getLocale()))
-                    .findFirst()
-                    .ifPresentOrElse(
-                            t -> t.setName(name),
-                            () -> {
-                                CategoryTranslationEntity te = categoryInfraMapper.toTranslationEntity(ct,
-                                        existing.getId());
-                                te.setCategory(existing);
-                                existing.getTranslations().add(te);
-                            });
-
+            upsertTranslations(existing, List.of(ct));
             categoryJpaRepository.save(existing);
             return existing.getId();
-        } else {
-            String newId = (id != null) ? id : UUID.randomUUID().toString();
-
-            Category category = Category.builder()
-                    .id(newId)
-                    .parentId(parentId)
-                    .level(level)
-                    .status(CategoryStatus.DRAFT)
-                    .active(true)
-                    .translations(List.of(ct))
-                    .build();
-
-            CategoryEntity entity = categoryInfraMapper.toEntityWithChildren(category);
-            categoryJpaRepository.save(entity);
-            return newId;
         }
+
+        String newId = id != null ? id : UUID.randomUUID().toString();
+        Category category = Category.builder()
+                .id(newId)
+                .parentId(parentId)
+                .level(level)
+                .status(CategoryStatus.DRAFT)
+                .active(true)
+                .translations(List.of(ct))
+                .build();
+        categoryJpaRepository.save(categoryInfraMapper.toEntityWithChildren(category));
+        return newId;
     }
 
     @Override
@@ -262,20 +172,80 @@ public class CategoryRepositoryImpl implements CategoryRepository {
         category.setId(newId);
         category.setStatus(CategoryStatus.DRAFT);
         category.setActive(true);
-
-        CategoryEntity entity = categoryInfraMapper.toEntityWithChildren(category);
-        categoryJpaRepository.save(entity);
+        categoryJpaRepository.save(categoryInfraMapper.toEntityWithChildren(category));
         return newId;
     }
 
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private CategoryEntity findOrThrow(String id) {
+        return categoryJpaRepository.findById(id)
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", id));
+    }
+
+    /** Loads the entity, builds the children tree and applies locale name. */
+    private Category enrichWithTree(Category category, String locale) {
+        Map<String, List<CategoryEntity>> childrenMap = loadAllChildrenMap();
+        return enrichWithTree(category, locale, childrenMap);
+    }
+
+    /** Applies locale name and builds the children tree using a pre-loaded map. */
+    private Category enrichWithTree(Category category, String locale,
+            Map<String, List<CategoryEntity>> childrenMap) {
+        applyLocaleName(category, locale);
+        buildSubCategories(category, childrenMap, locale);
+        return category;
+    }
+
+    /** Single query that groups all categories by their parentId. */
+    private Map<String, List<CategoryEntity>> loadAllChildrenMap() {
+        return categoryJpaRepository.findAll().stream()
+                .filter(e -> e.getParentId() != null)
+                .collect(Collectors.groupingBy(CategoryEntity::getParentId));
+    }
+
     /**
-     * Resolves the locale from the category's translations (uses the first one).
-     * Falls back to "es" if no translations are available.
+     * Sets the category name from the translation matching the requested locale.
+     * No-op if the locale is not found (keeps the existing name).
      */
+    private void applyLocaleName(Category category, String locale) {
+        if (locale == null || category.getTranslations() == null || category.getTranslations().isEmpty()) return;
+        category.getTranslations().stream()
+                .filter(t -> locale.equals(t.getLocale()))
+                .findFirst()
+                .ifPresent(t -> category.setName(t.getName()));
+    }
+
+    /** Recursively builds the subCategories tree for a given category. */
+    private void buildSubCategories(Category parent, Map<String, List<CategoryEntity>> childrenMap, String locale) {
+        for (CategoryEntity childEntity : childrenMap.getOrDefault(parent.getId(), List.of())) {
+            Category child = categoryInfraMapper.toDomain(childEntity);
+            applyLocaleName(child, locale);
+            buildSubCategories(child, childrenMap, locale);
+            parent.getSubCategories().add(child);
+        }
+    }
+
+    /** Upserts the given translations into the entity (add or update by locale). */
+    private void upsertTranslations(CategoryEntity entity, List<CategoryTranslation> translations) {
+        if (translations == null) return;
+        translations.forEach(t -> entity.getTranslations().stream()
+                .filter(existing -> existing.getId().getLocale().equals(t.getLocale()))
+                .findFirst()
+                .ifPresentOrElse(
+                        existing -> existing.setName(t.getName()),
+                        () -> {
+                            CategoryTranslationEntity te = categoryInfraMapper.toTranslationEntity(t, entity.getId());
+                            te.setCategory(entity);
+                            entity.getTranslations().add(te);
+                        }));
+    }
+
+    /** Returns the locale of the first translation, falling back to "en". */
     private String resolveLocale(Category category) {
         if (category.getTranslations() != null && !category.getTranslations().isEmpty()) {
             return category.getTranslations().getFirst().getLocale();
         }
-        return "es";
+        return "en";
     }
 }

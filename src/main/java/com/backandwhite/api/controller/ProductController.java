@@ -1,18 +1,22 @@
 package com.backandwhite.api.controller;
 
+import com.backandwhite.api.dto.PageFilterRequest;
+import com.backandwhite.api.dto.PaginationDtoOut;
 import com.backandwhite.api.dto.in.BulkProductDtoIn;
+import com.backandwhite.api.dto.in.BulkStatusUpdateDtoIn;
 import com.backandwhite.api.dto.in.BulkVariantDtoIn;
-import com.backandwhite.api.dto.in.ProductDtoIn;
 import com.backandwhite.api.dto.in.ProductDetailVariantDtoIn;
+import com.backandwhite.api.dto.in.ProductDtoIn;
+import com.backandwhite.api.dto.in.ProductFilterDto;
+import com.backandwhite.api.dto.in.VariantFilterDto;
 import com.backandwhite.api.dto.out.BulkImportResultDtoOut;
-import com.backandwhite.api.dto.out.PagedProductDtoOut;
-import com.backandwhite.api.dto.out.PagedVariantDtoOut;
 import com.backandwhite.api.dto.out.ProductDetailDtoOut;
 import com.backandwhite.api.dto.out.ProductDetailVariantDtoOut;
 import com.backandwhite.api.dto.out.ProductDtoOut;
 import com.backandwhite.api.dto.out.ProductSyncResultDtoOut;
 import com.backandwhite.api.mapper.ProductApiMapper;
 import com.backandwhite.api.mapper.ProductDetailApiMapper;
+import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.ProductDetailUseCase;
 import com.backandwhite.application.usecase.ProductSyncUseCase;
 import com.backandwhite.application.usecase.ProductUseCase;
@@ -27,6 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,7 +54,7 @@ public class ProductController {
         @Operation(summary = "Listar productos por categoría", description = "Devuelve todos los productos de una categoría con sus traducciones y variantes")
         public ResponseEntity<List<ProductDtoOut>> findByCategoryId(
                         @Parameter(description = "ID de la categoría") @PathVariable String categoryId,
-                        @Parameter(description = "Código de idioma (ej: es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "es") String locale,
+                        @Parameter(description = "Código de idioma (ej: es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "en") String locale,
                         @Parameter(description = "Filtrar por estado (DRAFT, PUBLISHED). Si no se envía, muestra todos.") @RequestParam(required = false) String status) {
 
                 List<Product> products = productUseCase.findByCategoryId(categoryId, locale, status);
@@ -59,8 +64,8 @@ public class ProductController {
 
         @GetMapping
         @Operation(summary = "Listar productos paginados", description = "Devuelve todos los productos de forma paginada, filtrando por locale. Opcionalmente filtra por categoría.")
-        public ResponseEntity<PagedProductDtoOut> findAllPaged(
-                        @Parameter(description = "Código de idioma (ej: es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "es") String locale,
+        public ResponseEntity<PaginationDtoOut<ProductDtoOut>> findAllPaged(
+                        @Parameter(description = "Código de idioma (ej: es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "en") String locale,
                         @Parameter(description = "ID de la categoría (opcional, si no se envía lista todos)") @RequestParam(required = false) String categoryId,
                         @Parameter(description = "Filtrar por estado (DRAFT, PUBLISHED). Si no se envía, muestra todos.") @RequestParam(required = false) String status,
                         @Parameter(description = "Buscar por nombre del producto (coincidencia parcial, case-insensitive)") @RequestParam(required = false) String name,
@@ -69,25 +74,51 @@ public class ProductController {
                         @Parameter(description = "Campo de ordenamiento", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
                         @Parameter(description = "Orden ascendente", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
 
-                Page<Product> pagedResult = productUseCase.findAllPaged(locale, categoryId, status, name, page, size,
-                                sortBy, ascending);
+                Pageable pageable = PageableUtils.toPageable(page, size, sortBy, ascending);
+                Page<Product> pagedResult = productUseCase.findAllPaged(locale, categoryId, status, name,
+                                pageable.getPageNumber(), pageable.getPageSize(), sortBy, ascending);
 
-                PagedProductDtoOut response = PagedProductDtoOut.builder()
-                                .content(productApiMapper.toDtoList(pagedResult.getContent()))
-                                .page(pagedResult.getNumber())
-                                .size(pagedResult.getSize())
-                                .totalElements(pagedResult.getTotalElements())
-                                .totalPages(pagedResult.getTotalPages())
-                                .build();
+                return ResponseEntity.ok(PageableUtils.toResponse(pagedResult.map(productApiMapper::toDto)));
+        }
 
-                return ResponseEntity.ok(response);
+        @PostMapping("/search")
+        @Operation(
+                        summary = "Búsqueda paginada de productos con filtros dinámicos",
+                        description = """
+                                        Listado paginado de productos con filtros dinámicos vía reflexión.
+                                        Solo los campos no nulos del objeto `filters` se aplican como predicados.
+
+                                        Ejemplo de body:
+                                        ```json
+                                        {
+                                          "page": 0, "size": 20, "sortBy": "createdAt", "ascending": true,
+                                          "locale": "es",
+                                          "filters": { "status": "PUBLISHED", "categoryId": "abc123" }
+                                        }
+                                        ```
+                                        """)
+        public ResponseEntity<PaginationDtoOut<ProductDtoOut>> search(
+                        @Valid @RequestBody PageFilterRequest<ProductFilterDto> request) {
+
+                Pageable pageable = PageableUtils.toPageable(request);
+                Page<Product> result = productUseCase.findAllPaged(
+                                request.getLocale(),
+                                request.getFilters() != null ? request.getFilters().getCategoryId() : null,
+                                request.getFilters() != null && request.getFilters().getStatus() != null
+                                                ? request.getFilters().getStatus().name()
+                                                : null,
+                                null,
+                                pageable.getPageNumber(), pageable.getPageSize(),
+                                request.getSortBy(), request.isAscending());
+
+                return ResponseEntity.ok(PageableUtils.toResponse(result.map(productApiMapper::toDto)));
         }
 
         @GetMapping("/{id}")
         @Operation(summary = "Obtener producto por ID", description = "Devuelve un producto con todas sus traducciones y variantes")
         public ResponseEntity<ProductDtoOut> getById(
                         @Parameter(description = "ID del producto") @PathVariable String id,
-                        @Parameter(description = "Código de idioma", example = "es") @RequestParam(defaultValue = "es") String locale) {
+                        @Parameter(description = "Código de idioma", example = "es") @RequestParam(defaultValue = "en") String locale) {
 
                 Product product = productUseCase.findById(id, locale);
                 return ResponseEntity.ok(productApiMapper.toDto(product));
@@ -133,11 +164,8 @@ public class ProductController {
         @PatchMapping("/bulk-status")
         @Operation(summary = "Cambiar estado masivo", description = "Cambia el estado de múltiples productos a DRAFT o PUBLISHED")
         public ResponseEntity<Void> bulkUpdateStatus(
-                        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "IDs y estado destino") @RequestBody java.util.Map<String, Object> body) {
-                @SuppressWarnings("unchecked")
-                List<String> ids = (List<String>) body.get("ids");
-                String status = (String) body.get("status");
-                productUseCase.bulkUpdateStatus(ids, status);
+                        @Valid @RequestBody BulkStatusUpdateDtoIn body) {
+                productUseCase.bulkUpdateStatus(body.getIds(), body.getStatus());
                 return ResponseEntity.noContent().build();
         }
 
@@ -154,44 +182,73 @@ public class ProductController {
         // ── Variant CRUD ─────────────────────────────────────────────────────────
 
         @GetMapping("/detail/variants")
-        @Operation(summary = "Listar todas las variantes (paginado)", description = "Devuelve todas las variantes de todos los productos de forma paginada. Soporta búsqueda, filtro por estado, ordenamiento.")
-        public ResponseEntity<PagedVariantDtoOut> findAllVariantsPaged(
+        @Operation(summary = "Listar todas las variantes (paginado)", description = "Devuelve todas las variantes de todos los productos de forma paginada. Soporta búsqueda, filtro por estado, filtro por PID y ordenamiento.")
+        public ResponseEntity<PaginationDtoOut<ProductDetailVariantDtoOut>> findAllVariantsPaged(
+                        @Parameter(description = "Código de idioma (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale,
                         @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
                         @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
                         @Parameter(description = "Texto de búsqueda (nombre, SKU, VID, PID)") @RequestParam(required = false) String search,
                         @Parameter(description = "Filtro por estado (DRAFT / PUBLISHED)") @RequestParam(required = false) String status,
+                        @Parameter(description = "Filtrar por PID del producto padre") @RequestParam(required = false) String pid,
                         @Parameter(description = "Campo de ordenamiento") @RequestParam(required = false) String sortBy,
                         @Parameter(description = "Orden ascendente") @RequestParam(defaultValue = "false") boolean ascending) {
 
-                Page<ProductDetailVariant> pagedResult = productDetailUseCase.findAllVariantsPaged(page, size, search,
-                                status, sortBy, ascending);
+                Pageable pageable = PageableUtils.toPageable(page, size, sortBy, ascending);
+                Page<ProductDetailVariant> pagedResult = productDetailUseCase.findAllVariantsPaged(
+                                pageable.getPageNumber(), pageable.getPageSize(), locale, search, status, pid, sortBy, ascending);
 
-                PagedVariantDtoOut response = PagedVariantDtoOut.builder()
-                                .content(productDetailApiMapper.toVariantDtoList(pagedResult.getContent()))
-                                .page(pagedResult.getNumber())
-                                .size(pagedResult.getSize())
-                                .totalElements(pagedResult.getTotalElements())
-                                .totalPages(pagedResult.getTotalPages())
-                                .build();
+                return ResponseEntity.ok(PageableUtils.toResponse(pagedResult.map(productDetailApiMapper::toVariantDto)));
+        }
 
-                return ResponseEntity.ok(response);
+        @PostMapping("/detail/variants/search")
+        @Operation(
+                        summary = "Búsqueda paginada de variantes con filtros dinámicos",
+                        description = """
+                                        Listado paginado de variantes con filtros dinámicos.
+
+                                        Ejemplo de body:
+                                        ```json
+                                        {
+                                          "page": 0, "size": 20, "sortBy": "createdAt", "ascending": false,
+                                          "filters": { "status": "PUBLISHED", "pid": "PROD-001" }
+                                        }
+                                        ```
+                                        """)
+        public ResponseEntity<PaginationDtoOut<ProductDetailVariantDtoOut>> searchVariants(
+                        @Valid @RequestBody PageFilterRequest<VariantFilterDto> request) {
+
+                Pageable pageable = PageableUtils.toPageable(request);
+                String localeReq = request.getLocale() != null ? request.getLocale() : "en";
+                Page<ProductDetailVariant> result = productDetailUseCase.findAllVariantsPaged(
+                                pageable.getPageNumber(), pageable.getPageSize(),
+                                localeReq,
+                                request.getFilters() != null ? request.getFilters().getSearch() : null,
+                                request.getFilters() != null && request.getFilters().getStatus() != null
+                                                ? request.getFilters().getStatus().name()
+                                                : null,
+                                request.getFilters() != null ? request.getFilters().getPid() : null,
+                                request.getSortBy(), request.isAscending());
+
+                return ResponseEntity.ok(PageableUtils.toResponse(result.map(productDetailApiMapper::toVariantDto)));
         }
 
         @GetMapping("/detail/{pid}/variants")
         @Operation(summary = "Listar variantes de un producto", description = "Devuelve todas las variantes de un producto con sus traducciones e inventarios")
         public ResponseEntity<List<ProductDetailVariantDtoOut>> findVariantsByPid(
-                        @Parameter(description = "CJ Product ID (pid)") @PathVariable String pid) {
+                        @Parameter(description = "CJ Product ID (pid)") @PathVariable String pid,
+                        @Parameter(description = "Código de idioma (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale) {
 
-                List<ProductDetailVariant> variants = productDetailUseCase.findVariantsByPid(pid);
+                List<ProductDetailVariant> variants = productDetailUseCase.findVariantsByPid(pid, locale);
                 return ResponseEntity.ok(productDetailApiMapper.toVariantDtoList(variants));
         }
 
         @GetMapping("/detail/variants/{vid}")
         @Operation(summary = "Obtener variante por VID", description = "Devuelve una variante específica con sus traducciones e inventarios")
         public ResponseEntity<ProductDetailVariantDtoOut> findVariantByVid(
-                        @Parameter(description = "Variant ID (vid)") @PathVariable String vid) {
+                        @Parameter(description = "Variant ID (vid)") @PathVariable String vid,
+                        @Parameter(description = "Código de idioma (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale) {
 
-                ProductDetailVariant variant = productDetailUseCase.findVariantByVid(vid);
+                ProductDetailVariant variant = productDetailUseCase.findVariantByVid(vid, locale);
                 return ResponseEntity.ok(productDetailApiMapper.toVariantDto(variant));
         }
 
@@ -243,11 +300,8 @@ public class ProductController {
         @PatchMapping("/detail/variants/bulk-status")
         @Operation(summary = "Cambiar estado masivo de variantes", description = "Cambia el estado de múltiples variantes a DRAFT o PUBLISHED")
         public ResponseEntity<Void> bulkUpdateVariantStatus(
-                        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "VIDs y estado destino") @RequestBody java.util.Map<String, Object> body) {
-                @SuppressWarnings("unchecked")
-                List<String> vids = (List<String>) body.get("ids");
-                String status = (String) body.get("status");
-                productDetailUseCase.bulkUpdateVariantStatus(vids, status);
+                        @Valid @RequestBody BulkStatusUpdateDtoIn body) {
+                productDetailUseCase.bulkUpdateVariantStatus(body.getIds(), body.getStatus());
                 return ResponseEntity.noContent().build();
         }
 

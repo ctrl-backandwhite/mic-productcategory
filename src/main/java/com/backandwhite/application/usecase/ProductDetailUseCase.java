@@ -33,20 +33,20 @@ public interface ProductDetailUseCase {
     // ── Variant CRUD ─────────────────────────────────────────────────────────
 
     /**
-     * Lista todas las variantes de forma paginada, con búsqueda opcional.
+     * Lista todas las variantes de forma paginada, con búsqueda y filtros opcionales.
      */
-    Page<ProductDetailVariant> findAllVariantsPaged(int page, int size, String search,
-            String status, String sortBy, boolean ascending);
+    Page<ProductDetailVariant> findAllVariantsPaged(int page, int size, String locale, String search,
+            String status, String pid, String sortBy, boolean ascending);
 
     /**
      * Lista todas las variantes de un producto.
      */
-    List<ProductDetailVariant> findVariantsByPid(String pid);
+    List<ProductDetailVariant> findVariantsByPid(String pid, String locale);
 
     /**
      * Obtiene una variante por su vid.
      */
-    ProductDetailVariant findVariantByVid(String vid);
+    ProductDetailVariant findVariantByVid(String vid, String locale);
 
     /**
      * Crea una nueva variante manualmente.

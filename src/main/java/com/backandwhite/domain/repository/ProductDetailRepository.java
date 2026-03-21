@@ -24,11 +24,11 @@ public interface ProductDetailRepository {
 
     Page<ProductDetailVariant> searchVariantsPaged(String search, Pageable pageable);
 
-    Page<ProductDetailVariant> findVariantsFiltered(String search, ProductStatus status, Pageable pageable);
+    Page<ProductDetailVariant> findVariantsFiltered(String locale, String search, ProductStatus status, String pid, Pageable pageable);
 
-    List<ProductDetailVariant> findVariantsByPid(String pid);
+    List<ProductDetailVariant> findVariantsByPid(String pid, String locale);
 
-    Optional<ProductDetailVariant> findVariantByVid(String vid);
+    Optional<ProductDetailVariant> findVariantByVid(String vid, String locale);
 
     ProductDetailVariant saveVariant(ProductDetailVariant variant);
 

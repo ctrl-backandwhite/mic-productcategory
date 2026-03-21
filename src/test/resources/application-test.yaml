@@ -1,0 +1,37 @@
+test:
+  postgres:
+    username: test_user
+    password: test_password
+    database: test_db
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    enabled: false
+  cache:
+    type: none
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+cj-dropshipping:
+  base-url: http://localhost:9999
+  api-key: test-api-key
+
+logging:
+  level:
+    root: WARN
+    com.backandwhite: WARN
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

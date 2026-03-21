@@ -17,7 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import java.util.Optional;
+import java.util.UUID;
 
 @Log4j2
 @Service
@@ -71,7 +74,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
     @Override
     @Transactional
     public void publishVariant(String vid) {
-        ProductDetailVariant variant = productDetailRepository.findVariantByVid(vid)
+        ProductDetailVariant variant = productDetailRepository.findVariantByVid(vid, null)
                 .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid));
         ProductStatus newStatus = variant.getStatus() == ProductStatus.PUBLISHED
                 ? ProductStatus.DRAFT
@@ -83,36 +86,31 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductDetailVariant> findAllVariantsPaged(int page, int size, String search,
-            String status, String sortBy, boolean ascending) {
+    public Page<ProductDetailVariant> findAllVariantsPaged(int page, int size, String locale, String search,
+            String status, String pid, String sortBy, boolean ascending) {
 
-        // Sort
         String sortField = (sortBy != null && !sortBy.isBlank()) ? sortBy.trim() : "createdAt";
-        var direction = ascending
-                ? org.springframework.data.domain.Sort.Direction.ASC
-                : org.springframework.data.domain.Sort.Direction.DESC;
-        var pageable = org.springframework.data.domain.PageRequest.of(page, size,
-                org.springframework.data.domain.Sort.by(direction, sortField));
+        Sort.Direction direction = ascending ? Sort.Direction.ASC : Sort.Direction.DESC;
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
-        // Status
-        com.backandwhite.domain.valureobject.ProductStatus statusEnum = null;
+        ProductStatus statusEnum = null;
         if (status != null && !status.isBlank()) {
-            statusEnum = com.backandwhite.domain.valureobject.ProductStatus.valueOf(status.toUpperCase());
+            statusEnum = ProductStatus.valueOf(status.toUpperCase());
         }
 
-        return productDetailRepository.findVariantsFiltered(search, statusEnum, pageable);
+        return productDetailRepository.findVariantsFiltered(locale, search, statusEnum, pid, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductDetailVariant> findVariantsByPid(String pid) {
-        return productDetailRepository.findVariantsByPid(pid);
+    public List<ProductDetailVariant> findVariantsByPid(String pid, String locale) {
+        return productDetailRepository.findVariantsByPid(pid, locale);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ProductDetailVariant findVariantByVid(String vid) {
-        return productDetailRepository.findVariantByVid(vid)
+    public ProductDetailVariant findVariantByVid(String vid, String locale) {
+        return productDetailRepository.findVariantByVid(vid, locale)
                 .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid));
     }
 
@@ -125,7 +123,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
         }
 
         // Generate a new UUID for the variant
-        String vid = java.util.UUID.randomUUID().toString().toUpperCase();
+        String vid = UUID.randomUUID().toString().toUpperCase();
         variant = variant.withVid(vid);
 
         log.info("Creating new variant vid={} for pid={}", vid, variant.getPid());
@@ -136,7 +134,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
     @Transactional
     public ProductDetailVariant updateVariant(String vid, ProductDetailVariant variant) {
         // Verify variant exists
-        ProductDetailVariant existing = productDetailRepository.findVariantByVid(vid)
+        ProductDetailVariant existing = productDetailRepository.findVariantByVid(vid, null)
                 .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid));
 
         // Preserve immutable fields
@@ -152,7 +150,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
     @Override
     @Transactional
     public void deleteVariant(String vid) {
-        if (productDetailRepository.findVariantByVid(vid).isEmpty()) {
+        if (productDetailRepository.findVariantByVid(vid, null).isEmpty()) {
             throw Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid);
         }
         log.info("Deleting variant vid={}", vid);
@@ -189,7 +187,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
                             "ProductDetail pid=" + v.getPid() + " no existe");
                 }
 
-                String vid = java.util.UUID.randomUUID().toString().toUpperCase();
+                String vid = UUID.randomUUID().toString().toUpperCase();
                 v = v.withVid(vid);
 
                 productDetailRepository.saveVariant(v);

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn test:*)",
+      "Read(//home/nexaplaform/.m2/repository/org/springframework/boot/spring-boot-starter-aop/4.0.3/**)",
+      "Read(//home/nexaplaform/.m2/repository/org/springframework/boot/spring-boot-starter-aop/**)",
+      "Bash(curl -s \"https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-aop/4.0.3/spring-boot-starter-aop-4.0.3.pom\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(mvn help:effective-pom -q)",
+      "Read(//home/nexaplaform/.m2/repository/com/backandwhite/core/app-common/0.0.1-SNAPSHOT/**)",
+      "Read(//home/nexaplaform/.m2/repository/com/backandwhite/core/**)",
+      "Read(//home/nexaplaform/.m2/repository/org/springframework/boot/spring-boot-dependencies/**)",
+      "Bash(find ~/.m2/repository/org/springframework/boot/spring-boot-starter-aop -name *.pom)",
+      "Bash(find ~/.m2/repository/com/backandwhite/core/app-api -name *.jar)",
+      "Bash(jar tf:*)",
+      "Bash(mvn install:*)",
+      "Read(//tmp/**)",
+      "Bash(jar xf:*)",
+      "Bash(javap com/backandwhite/common/exception/Message.class)",
+      "Bash(mvn dependency:build-classpath -q --no-transfer-progress)",
+      "Bash(mvn dependency:build-classpath --no-transfer-progress)",
+      "Bash(cat /home/nexaplaform/Documentos/ecomerce/back/mic-productcategory/target/failsafe-reports/*.txt)"
+    ]
+  }
+}

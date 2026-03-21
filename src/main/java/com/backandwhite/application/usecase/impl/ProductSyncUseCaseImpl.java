@@ -12,8 +12,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Log4j2
 @Service
@@ -22,6 +25,12 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
 
     private static final int PAGE_SIZE = 100;
     private static final long DELAY_BETWEEN_PAGES_MS = 10_000;
+    /** Máximo de requests paralelos a CJ para no saturar el rate limit */
+    private static final int PARALLEL_FETCH_THREADS = 5;
+
+    private final ExecutorService fetchExecutor = Executors.newFixedThreadPool(
+            PARALLEL_FETCH_THREADS,
+            r -> { Thread t = Thread.ofVirtual().unstarted(r); t.setDaemon(true); return t; });
 
     private final CjDropshippingClient cjClient;
     private final ProductRepository productRepository;
@@ -45,25 +54,32 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
                 break;
             }
 
-            log.info("Processing page {} with {} local products...", page, productIds.size());
+            log.info("Processing page {} with {} local products (parallel={})...",
+                    page, productIds.size(), PARALLEL_FETCH_THREADS);
 
-            // Fetch all CJ details for this page
-            List<Product> productsToSync = new ArrayList<>();
-            int skipped = 0;
+            // Fetch en paralelo — máx PARALLEL_FETCH_THREADS requests concurrentes a CJ
+            List<CompletableFuture<Optional<Product>>> futures = productIds.stream()
+                    .map(pid -> CompletableFuture.supplyAsync(() -> {
+                        try {
+                            CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
+                            return Optional.of(cjProductDetailMapper.toProduct(cjProduct));
+                        } catch (ExternalServiceException e) {
+                            log.warn("CJ API error for pid={}: {}", pid, e.getMessage());
+                            return Optional.<Product>empty();
+                        } catch (Exception e) {
+                            log.warn("Failed to fetch product pid={}: {}", pid, e.getMessage());
+                            return Optional.<Product>empty();
+                        }
+                    }, fetchExecutor))
+                    .toList();
 
-            for (String pid : productIds) {
-                try {
-                    CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
-                    Product product = cjProductDetailMapper.toProduct(cjProduct);
-                    productsToSync.add(product);
-                } catch (ExternalServiceException e) {
-                    log.warn("CJ API error for pid={}: {}", pid, e.getMessage());
-                    skipped++;
-                } catch (Exception e) {
-                    log.warn("Failed to fetch product pid={}: {}", pid, e.getMessage());
-                    skipped++;
-                }
-            }
+            List<Product> productsToSync = futures.stream()
+                    .map(CompletableFuture::join)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .toList();
+
+            int skipped = productIds.size() - productsToSync.size();
 
             // Bulk save/update all fetched products at once
             if (!productsToSync.isEmpty()) {
@@ -124,26 +140,32 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
                     .build();
         }
 
-        log.info("Processing {} local products (page {})...", productIds.size(), page);
+        log.info("Processing {} local products (page {}, parallel={})...",
+                productIds.size(), page, PARALLEL_FETCH_THREADS);
 
-        // Fetch all CJ details for this page
-        List<Product> productsToSync = new ArrayList<>();
-        int skipped = 0;
+        // Fetch en paralelo — máx PARALLEL_FETCH_THREADS requests concurrentes a CJ
+        List<CompletableFuture<Optional<Product>>> futures = productIds.stream()
+                .map(pid -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
+                        return Optional.of(cjProductDetailMapper.toProduct(cjProduct));
+                    } catch (ExternalServiceException e) {
+                        log.warn("CJ API error for pid={}: {}", pid, e.getMessage());
+                        return Optional.<Product>empty();
+                    } catch (Exception e) {
+                        log.warn("Failed to fetch product pid={}: {}", pid, e.getMessage());
+                        return Optional.<Product>empty();
+                    }
+                }, fetchExecutor))
+                .toList();
 
-        for (String pid : productIds) {
-            try {
-                CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
-                Product product = cjProductDetailMapper.toProduct(cjProduct);
-                productsToSync.add(product);
-            } catch (ExternalServiceException e) {
-                log.warn("CJ API error for pid={}: {}", pid, e.getMessage());
-                skipped++;
-            } catch (Exception e) {
-                log.warn("Failed to fetch product pid={}: {}", pid, e.getMessage());
-                skipped++;
-            }
-        }
+        List<Product> productsToSync = futures.stream()
+                .map(CompletableFuture::join)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
 
+        int skipped = productIds.size() - productsToSync.size();
         int created = 0;
         int updated = 0;
 

@@ -3,6 +3,7 @@ package com.backandwhite.api.controller;
 import com.backandwhite.api.dto.OperationResponseDtoOut;
 import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.domain.exception.ExternalServiceException;
+import com.backandwhite.domain.exception.Message;
 import jakarta.validation.UnexpectedTypeException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,9 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<OperationResponseDtoOut> externalServiceHandlerException(ExternalServiceException ex) {
-        HttpStatus status = ex.getCode().equals("ES003") ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.BAD_GATEWAY;
+        HttpStatus status = Message.EXTERNAL_SERVICE_RATE_LIMIT.getCode().equals(ex.getCode())
+                ? HttpStatus.TOO_MANY_REQUESTS
+                : HttpStatus.BAD_GATEWAY;
         return new ResponseEntity<>(OperationResponseDtoOut.builder()
                 .code(ex.getCode())
                 .message(ex.getMessage())

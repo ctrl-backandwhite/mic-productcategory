@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["jdk21", "maven"]
+
+[phases.build]
+cmds = [
+    "echo \"$MAVEN_SETTINGS_XML\" > settings.xml",
+    "mvn -s settings.xml -DskipTests clean install"
+]
+
+[start]
+cmd = "java -jar -Dserver.port=$PORT -Dspring.profiles.active=${PROFILE:-pro} target/mic-productcategory-0.0.1-SNAPSHOT.jar"
