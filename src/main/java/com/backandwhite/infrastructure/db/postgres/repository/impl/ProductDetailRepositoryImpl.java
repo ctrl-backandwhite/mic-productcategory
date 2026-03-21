@@ -66,8 +66,7 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
     @Override
     public Page<ProductDetailVariant> findVariantsFiltered(String locale, String search, ProductStatus status,
             String pid, Pageable pageable) {
-        Specification<ProductDetailVariantEntity> spec =
-                Specification.where((Specification<ProductDetailVariantEntity>) null);
+        Specification<ProductDetailVariantEntity> spec = (root, query, cb) -> cb.conjunction();
 
         if (search != null && !search.isBlank()) {
             spec = spec.and(ProductDetailVariantSpecification.searchByTerm(search.trim()));
