@@ -7,7 +7,7 @@ spring:
   banner:
     charset: UTF-8
   profiles:
-    active: ${PROFILE:local}
+    active: ${PROFILE}
   cache:
     type: caffeine
     caffeine:
@@ -15,7 +15,7 @@ spring:
 
 cj-dropshipping:
   base-url: https://developers.cjdropshipping.com/api2.0/v1
-  api-key: ${CJ_API_KEY:CJ5236391@api@1dfb48a4f5834860a21e24f39493580b}
+  api-key: ${CJ_API_KEY}
 
 resilience4j:
   retry:
