@@ -45,6 +45,11 @@ src/main/resources/compose/.env
 .DS_Store
 Thumbs.db
 
+### Docker (local only) ###
+docker-compose.yml
+Dockerfile
+.dockerignore
+
 ### Misc ###
 HELP.md
 *.log

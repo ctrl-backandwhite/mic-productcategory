@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://postgres.railway.internal:5432/railway
+    url: ${PGDATABASE_URL}
     username: ${PGUSER}
     password: ${PGPASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -15,9 +15,15 @@ spring:
     enabled: true
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:redis.railway.internal}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:2}
       timeout: 60000
+
+server:
+  port: 8080
+  ssl:
+    enabled: false
 
 cj-dropshipping:
   base-url: ${CJ_BASE_URL}
