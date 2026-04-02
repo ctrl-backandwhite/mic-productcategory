@@ -38,6 +38,32 @@
         </repository>
     </repositories>
 
+    <dependencyManagement>
+        <dependencies>
+            <!--
+                Override Spring Boot BOM to 4.0.5:
+                - mic-core parent imports spring-boot-dependencies:4.0.3 (Spring Framework 7.0.5)
+                - spring-security-web:7.0.4 calls StreamUtils.nonFlushing() added in spring-core:7.0.6
+                - spring-boot-dependencies:4.0.5 manages Spring Framework 7.0.6, fixing the NoSuchMethodError.
+                - Also manages jackson-2-bom:2.21.2 → jackson-annotations:2.21.x, fixing JsonSerializeAs.
+                Child dependencyManagement takes precedence over parent, so this overrides the 4.0.3 BOM.
+            -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>4.0.5</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Explicit pin as safety net in case BOM import ordering varies -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.21</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>com.backandwhite.core</groupId>
@@ -60,6 +86,10 @@
             <artifactId>app-common</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.backandwhite.core</groupId>
+            <artifactId>app-kafka</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-liquibase</artifactId>
         </dependency>
@@ -79,11 +109,11 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Resilience4j: retry + circuit breaker -->
+        <!-- Resilience4j: retry + circuit breaker (spring-boot4 = Spring Boot 4.x / Spring Framework 7.x compatible) -->
         <dependency>
             <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-spring-boot3</artifactId>
-            <version>2.2.0</version>
+            <artifactId>resilience4j-spring-boot4</artifactId>
+            <version>2.4.0</version>
         </dependency>
 
         <!-- AOP requerido para las anotaciones @Retry / @CircuitBreaker -->
