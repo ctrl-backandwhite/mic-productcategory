@@ -1,169 +1,193 @@
-packagecom.backandwhite.api.controller;importcom.backandwhite.common.constants.AppConstants;importcom.backandwhite.common.security.annotation.NxPublic;importcom.backandwhite.api.dto.PaginationDtoOut;importcom.backandwhite.api.dto.out.*;importcom.backandwhite.api.mapper.BrandApiMapper;importcom.backandwhite.api.mapper.CategoryApiMapper;importcom.backandwhite.api.mapper.ProductApiMapper;importcom.backandwhite.api.mapper.ProductDetailApiMapper;importcom.backandwhite.api.mapper.ReviewApiMapper;importcom.backandwhite.application.usecase.*;importcom.backandwhite.application.usecase.impl.InventoryUseCaseImpl;importcom.backandwhite.domain.model.*;importcom.backandwhite.domain.valureobject.BrandStatus;importio.swagger.v3.oas.annotations.Operation;importio.swagger.v3.oas.annotations.tags.Tag;importlombok.RequiredArgsConstructor;importorg.springframework.data.domain.Page;importorg.springframework.http.ResponseEntity;importorg.springframework.web.bind.annotation.*;importjava.util.List;
+package com.backandwhite.api.controller;
+
+import com.backandwhite.common.constants.AppConstants;
+import com.backandwhite.common.security.annotation.NxPublic;
+import com.backandwhite.api.dto.PaginationDtoOut;
+import com.backandwhite.api.dto.out.*;
+import com.backandwhite.api.mapper.BrandApiMapper;
+import com.backandwhite.api.mapper.CategoryApiMapper;
+import com.backandwhite.api.mapper.ProductApiMapper;
+import com.backandwhite.api.mapper.ProductDetailApiMapper;
+import com.backandwhite.api.mapper.ReviewApiMapper;
+import com.backandwhite.api.util.PageableUtils;
+import com.backandwhite.application.usecase.*;
+import com.backandwhite.domain.model.*;
+import com.backandwhite.domain.valureobject.BrandStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+import java.util.List;
 
 /**
- *Publiccatalogendpoints —noauthenticationrequired.
- *Allpathsunder /api/v1/public/**areconfiguredwithoutJWTinthegateway.
+ * Public catalog endpoints — no authentication required.
+ * All paths under /api/v1/public/** are configured without JWT in the gateway.
  */
-@Tag(name = "PublicCatalog",description = "PubliccatalogAPIsforthestorefront (noauth)")
+@Tag(name = "Public Catalog", description = "Public catalog APIs for the storefront (no auth)")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/public")publicclassPublicProductController {privatefinalProductUseCaseproductUseCase;privatefinalProductDetailUseCaseproductDetailUseCase;privatefinalCategoryUseCasecategoryUseCase;privatefinalBrandUseCasebrandUseCase;privatefinalReviewUseCasereviewUseCase;privatefinalInventoryUseCaseinventoryUseCase;privatefinalProductApiMapperproductApiMapper;privatefinalProductDetailApiMapperproductDetailApiMapper;privatefinalCategoryApiMappercategoryApiMapper;privatefinalBrandApiMapperbrandApiMapper;privatefinalReviewApiMapperreviewApiMapper;
+@RequestMapping("/api/v1/public")
+public class PublicProductController {
 
-    // ──Products ─────────────────────────────────────────────────────────────
+        private final ProductUseCase productUseCase;
+        private final ProductDetailUseCase productDetailUseCase;
+        private final CategoryUseCase categoryUseCase;
+        private final BrandUseCase brandUseCase;
+        private final ReviewUseCase reviewUseCase;
+        private final InventoryUseCase inventoryUseCase;
+        private final ProductApiMapper productApiMapper;
+        private final ProductDetailApiMapper productDetailApiMapper;
+        private final CategoryApiMapper categoryApiMapper;
+        private final BrandApiMapper brandApiMapper;
+        private final ReviewApiMapper reviewApiMapper;
 
-    @Operation(summary = "Listpublishedproductswithfacetedfilters (public)")
-    @GetMapping("/products")publicResponseEntity<PaginationDtoOut<ProductDtoOut>>listProducts(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @RequestParam(defaultValue = "en")Stringlocale,
-            @RequestParam(required =false)StringcategoryId,
-            @RequestParam(required =false)StringbrandId,
-            @RequestParam(required =false)Stringname,
-            @RequestParam(required =false)DoubleminPrice,
-            @RequestParam(required =false)DoublemaxPrice,
-            @RequestParam(required =false,defaultValue = "false")booleanfeatured,
-            @RequestParam(defaultValue = "0")intpage,
-            @RequestParam(defaultValue = "20")intsize,
-            @RequestParam(defaultValue = "createdAt")StringsortBy,
-            @RequestParam(defaultValue = "false")booleanascending) {Page<Product>products =productUseCase.findAllPagedWithFacets(locale,categoryId, "PUBLISHED",name,brandId,minPrice,maxPrice,page,size,sortBy,ascending);List<ProductDtoOut>content =products.getContent().stream()
-                .map(productApiMapper::toDto)
-                .toList();returnResponseEntity.ok(PaginationDtoOut.<ProductDtoOut>builder()
-                .content(content)
-                .currentPage(products.getNumber())
-                .pageSize(products.getSize())
-                .totalElements(products.getTotalElements())
-                .totalPages(products.getTotalPages())
-                .hasNext(products.hasNext())
-                .hasPrevious(products.hasPrevious())
-                .build());
-    }
+        // ── Products ─────────────────────────────────────────────────────────────
 
-    @Operation(summary = "GetproductdetailbyID (public)")
-    @GetMapping("/products/{id}")publicResponseEntity<ProductDtoOut>getProduct(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringid,
-            @RequestParam(defaultValue = "en")Stringlocale) {Productproduct =productUseCase.findById(id,locale);returnResponseEntity.ok(productApiMapper.toDto(product));
-    }
+        @Operation(summary = "List published products with filters (public)")
+        @GetMapping("/products")
+        public ResponseEntity<PaginationDtoOut<ProductDtoOut>> listProducts(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @RequestParam(defaultValue = "en") String locale,
+                        @RequestParam(required = false) String categoryId,
+                        @RequestParam(required = false) String name,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size,
+                        @RequestParam(defaultValue = "createdAt") String sortBy,
+                        @RequestParam(defaultValue = "false") boolean ascending) {
+                Page<Product> products = productUseCase.findAllPaged(locale, categoryId, "PUBLISHED", name, page, size,
+                                sortBy, ascending);
+                return ResponseEntity.ok(PageableUtils.toResponse(products.map(productApiMapper::toDto)));
+        }
 
-    @Operation(summary = "Getproductvariants (public)")
-    @GetMapping("/products/{pid}/variants")publicResponseEntity<List<ProductDetailVariantDtoOut>>getProductVariants(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringpid,
-            @RequestParam(defaultValue = "en")Stringlocale) {List<ProductDetailVariant>variants =productDetailUseCase.findVariantsByPid(pid,locale);returnResponseEntity.ok(variants.stream()
-                .map(productDetailApiMapper::toVariantDto)
-                .toList());
-    }
+        @Operation(summary = "Get product detail by ID (public)")
+        @GetMapping("/products/{id}")
+        public ResponseEntity<ProductDtoOut> getProduct(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String id,
+                        @RequestParam(defaultValue = "en") String locale) {
+                Product product = productUseCase.findById(id, locale);
+                return ResponseEntity.ok(productApiMapper.toDto(product));
+        }
 
-    @Operation(summary = "Checkstockavailabilityforavariant (public)")
-    @GetMapping("/products/variants/{vid}/stock")publicResponseEntity<StockDtoOut>checkStock(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringvid) {intavailable =inventoryUseCase.getAvailableStock(vid);returnResponseEntity.ok(StockDtoOut.builder()
-                .variantId(vid)
-                .available(available)
-                .inStock(available >0)
-                .build());
-    }
+        @Operation(summary = "Get product variants (public)")
+        @GetMapping("/products/{pid}/variants")
+        public ResponseEntity<List<ProductDetailVariantDtoOut>> getProductVariants(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String pid,
+                        @RequestParam(defaultValue = "en") String locale) {
+                List<ProductDetailVariant> variants = productDetailUseCase.findVariantsByPid(pid, locale);
+                return ResponseEntity.ok(variants.stream()
+                                .map(productDetailApiMapper::toVariantDto)
+                                .toList());
+        }
 
-    @Operation(summary = "Getfacetsforacategory (public)")
-    @GetMapping("/products/facets")publicResponseEntity<ProductFacetsDtoOut>getFacets(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @RequestParam(required =false)StringcategoryId) {ProductFacetsfacets =productUseCase.getFacets(categoryId);List<ProductFacetsDtoOut.FacetBrandDto>brandDtos =facets.getBrands().stream()
-                .map(b ->ProductFacetsDtoOut.FacetBrandDto.builder()
-                        .id(b.getId())
-                        .name(b.getName())
-                        .count(b.getCount())
-                        .build())
-                .toList();returnResponseEntity.ok(ProductFacetsDtoOut.builder()
-                .brands(brandDtos)
-                .priceMin(facets.getPriceMin())
-                .priceMax(facets.getPriceMax())
-                .build());
-    }
+        @Operation(summary = "Check stock availability for a variant (public)")
+        @GetMapping("/products/variants/{vid}/stock")
+        public ResponseEntity<StockDtoOut> checkStock(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String vid) {
+                int available = inventoryUseCase.getAvailableStock(vid);
+                return ResponseEntity.ok(StockDtoOut.builder()
+                                .variantId(vid)
+                                .available(available)
+                                .inStock(available > 0)
+                                .build());
+        }
 
-    // ──Categories ───────────────────────────────────────────────────────────
+        // ── Categories ───────────────────────────────────────────────────────────
 
-    @Operation(summary = "Listactivecategories (public)")
-    @GetMapping("/categories")publicResponseEntity<List<CategoryDtoOut>>listCategories(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @RequestParam(defaultValue = "en")Stringlocale,
-            @RequestParam(required =false,defaultValue = "false")booleanfeatured) {List<Category>categories;if (featured) {categories =categoryUseCase.findFeatured(locale);
-        }else {categories =categoryUseCase.findCategories(locale,null,true);
-        }returnResponseEntity.ok(categories.stream()
-                .map(categoryApiMapper::toDto)
-                .toList());
-    }
+        @Operation(summary = "List active categories (public)")
+        @GetMapping("/categories")
+        public ResponseEntity<List<CategoryDtoOut>> listCategories(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @RequestParam(defaultValue = "en") String locale,
+                        @RequestParam(required = false, defaultValue = "false") boolean featured) {
+                List<Category> categories;
+                if (featured) {
+                        categories = categoryUseCase.findFeatured(locale);
+                } else {
+                        categories = categoryUseCase.findCategories(locale, null, true);
+                }
+                return ResponseEntity.ok(categories.stream()
+                                .map(categoryApiMapper::toDto)
+                                .toList());
+        }
 
-    @Operation(summary = "GetcategorybyID (public)")
-    @GetMapping("/categories/{id}")publicResponseEntity<CategoryDtoOut>getCategory(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringid,
-            @RequestParam(defaultValue = "en")Stringlocale) {Categorycategory =categoryUseCase.findById(id,locale);returnResponseEntity.ok(categoryApiMapper.toDto(category));
-    }
+        @Operation(summary = "Get category by ID (public)")
+        @GetMapping("/categories/{id}")
+        public ResponseEntity<CategoryDtoOut> getCategory(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String id,
+                        @RequestParam(defaultValue = "en") String locale) {
+                Category category = categoryUseCase.findById(id, locale);
+                return ResponseEntity.ok(categoryApiMapper.toDto(category));
+        }
 
-    // ──Brands ───────────────────────────────────────────────────────────────
+        // ── Brands ───────────────────────────────────────────────────────────────
 
-    @Operation(summary = "Listactivebrands (public)")
-    @GetMapping("/brands")publicResponseEntity<PaginationDtoOut<BrandDtoOut>>listBrands(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @RequestParam(required =false)Stringname,
-            @RequestParam(defaultValue = "0")intpage,
-            @RequestParam(defaultValue = "50")intsize) {Page<Brand>brands =brandUseCase.findAll(BrandStatus.ACTIVE,name,page,size, "name",true);List<BrandDtoOut>content =brands.getContent().stream()
-                .map(brandApiMapper::toDto)
-                .toList();returnResponseEntity.ok(PaginationDtoOut.<BrandDtoOut>builder()
-                .content(content)
-                .currentPage(brands.getNumber())
-                .pageSize(brands.getSize())
-                .totalElements(brands.getTotalElements())
-                .totalPages(brands.getTotalPages())
-                .hasNext(brands.hasNext())
-                .hasPrevious(brands.hasPrevious())
-                .build());
-    }
+        @Operation(summary = "List active brands (public)")
+        @GetMapping("/brands")
+        public ResponseEntity<PaginationDtoOut<BrandDtoOut>> listBrands(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @RequestParam(required = false) String name,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "50") int size) {
+                Page<Brand> brands = brandUseCase.findAll(BrandStatus.ACTIVE, name, page, size, "name", true);
+                List<BrandDtoOut> content = brands.getContent().stream()
+                                .map(brandApiMapper::toDto)
+                                .toList();
+                return ResponseEntity.ok(PaginationDtoOut.<BrandDtoOut>builder()
+                                .content(content)
+                                .currentPage(brands.getNumber())
+                                .pageSize(brands.getSize())
+                                .totalElements(brands.getTotalElements())
+                                .totalPages(brands.getTotalPages())
+                                .hasNext(brands.hasNext())
+                                .hasPrevious(brands.hasPrevious())
+                                .build());
+        }
 
-    @Operation(summary = "Getproductsbybrandslug (public)")
-    @GetMapping("/brands/{slug}/products")publicResponseEntity<PaginationDtoOut<ProductDtoOut>>getProductsByBrand(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringslug,
-            @RequestParam(defaultValue = "en")Stringlocale,
-            @RequestParam(defaultValue = "0")intpage,
-            @RequestParam(defaultValue = "20")intsize,
-            @RequestParam(defaultValue = "createdAt")StringsortBy,
-            @RequestParam(defaultValue = "false")booleanascending) {
-        //GetbrandbyslugtofindbrandIdBrandbrand =brandUseCase.findBySlug(slug);Page<Product>products =productUseCase.findAllPagedWithFacets(locale,null, "PUBLISHED",null,brand.getId(),null,null,page,size,sortBy,ascending);List<ProductDtoOut>content =products.getContent().stream()
-                .map(productApiMapper::toDto)
-                .toList();returnResponseEntity.ok(PaginationDtoOut.<ProductDtoOut>builder()
-                .content(content)
-                .currentPage(products.getNumber())
-                .pageSize(products.getSize())
-                .totalElements(products.getTotalElements())
-                .totalPages(products.getTotalPages())
-                .hasNext(products.hasNext())
-                .hasPrevious(products.hasPrevious())
-                .build());
-    }
+        @Operation(summary = "Get products by brand slug (public)")
+        @GetMapping("/brands/{slug}/products")
+        public ResponseEntity<PaginationDtoOut<ProductDtoOut>> getProductsByBrand(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String slug,
+                        @RequestParam(defaultValue = "en") String locale,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size,
+                        @RequestParam(defaultValue = "createdAt") String sortBy,
+                        @RequestParam(defaultValue = "false") boolean ascending) {
+                // Get brand by slug to verify it exists
+                Brand brand = brandUseCase.findBySlug(slug);
+                Page<Product> products = productUseCase.findAllPaged(locale, null, "PUBLISHED", null, page, size,
+                                sortBy, ascending);
+                return ResponseEntity.ok(PageableUtils.toResponse(products.map(productApiMapper::toDto)));
+        }
 
-    // ──Reviews ──────────────────────────────────────────────────────────────
+        // ── Reviews ──────────────────────────────────────────────────────────────
 
-    @Operation(summary = "Getreviewsforaproduct (public)")
-    @GetMapping("/products/{productId}/reviews")publicResponseEntity<PaginationDtoOut<ReviewDtoOut>>getProductReviews(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringproductId,
-            @RequestParam(defaultValue = "0")intpage,
-            @RequestParam(defaultValue = "10")intsize) {Page<Review>reviews =reviewUseCase.findByProductId(productId,page,size, "createdAt",false);List<ReviewDtoOut>content =reviews.getContent().stream()
-                .map(reviewApiMapper::toDto)
-                .toList();returnResponseEntity.ok(PaginationDtoOut.<ReviewDtoOut>builder()
-                .content(content)
-                .currentPage(reviews.getNumber())
-                .pageSize(reviews.getSize())
-                .totalElements(reviews.getTotalElements())
-                .totalPages(reviews.getTotalPages())
-                .hasNext(reviews.hasNext())
-                .hasPrevious(reviews.hasPrevious())
-                .build());
-    }
+        @Operation(summary = "Get reviews for a product (public)")
+        @GetMapping("/products/{productId}/reviews")
+        public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> getProductReviews(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String productId,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
+                Page<Review> reviews = reviewUseCase.findByProductId(productId, page, size, "createdAt", false);
+                return ResponseEntity.ok(PageableUtils.toResponse(reviews.map(reviewApiMapper::toDto)));
+        }
 
-    @Operation(summary = "Getreviewstatsforaproduct (public)")
-    @GetMapping("/products/{productId}/reviews/stats")publicResponseEntity<ReviewStatsDtoOut>getReviewStats(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringproductId) {ReviewStatsstats =reviewUseCase.getStatsByProductId(productId);returnResponseEntity.ok(reviewApiMapper.toStatsDto(stats));
-    }
+        @Operation(summary = "Get review stats for a product (public)")
+        @GetMapping("/products/{productId}/reviews/stats")
+        public ResponseEntity<ReviewStatsDtoOut> getReviewStats(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String productId) {
+                ReviewStats stats = reviewUseCase.getStatsByProductId(productId);
+                return ResponseEntity.ok(reviewApiMapper.toStatsDto(stats));
+        }
 }

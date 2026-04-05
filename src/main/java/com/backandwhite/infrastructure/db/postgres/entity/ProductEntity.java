@@ -32,6 +32,12 @@ public class ProductEntity extends AuditableEntity {
     @Column(name = "category_id", length = 64)
     private String categoryId;
 
+    @Column(name = "brand_id", length = 64)
+    private String brandId;
+
+    @Column(name = "warranty_id", length = 64)
+    private String warrantyId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
     @Builder.Default

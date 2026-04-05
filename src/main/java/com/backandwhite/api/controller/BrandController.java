@@ -1,61 +1,105 @@
-packagecom.backandwhite.api.controller;importcom.backandwhite.common.constants.AppConstants;importcom.backandwhite.common.security.annotation.NxAdmin;importcom.backandwhite.common.security.annotation.NxPublic;importcom.backandwhite.api.dto.PaginationDtoOut;importcom.backandwhite.api.dto.in.BrandDtoIn;importcom.backandwhite.api.dto.out.BrandDtoOut;importcom.backandwhite.api.mapper.BrandApiMapper;importcom.backandwhite.api.util.PageableUtils;importcom.backandwhite.application.usecase.BrandUseCase;importcom.backandwhite.domain.model.Brand;importcom.backandwhite.domain.valureobject.BrandStatus;importio.swagger.v3.oas.annotations.Operation;importio.swagger.v3.oas.annotations.Parameter;importio.swagger.v3.oas.annotations.tags.Tag;importjakarta.validation.Valid;importlombok.RequiredArgsConstructor;importorg.springframework.data.domain.Page;importorg.springframework.http.HttpStatus;importorg.springframework.http.ResponseEntity;importorg.springframework.web.bind.annotation.*;
+package com.backandwhite.api.controller;
+
+import com.backandwhite.common.constants.AppConstants;
+import com.backandwhite.common.security.annotation.NxAdmin;
+import com.backandwhite.common.security.annotation.NxPublic;
+import com.backandwhite.api.dto.PaginationDtoOut;
+import com.backandwhite.api.dto.in.BrandDtoIn;
+import com.backandwhite.api.dto.out.BrandDtoOut;
+import com.backandwhite.api.mapper.BrandApiMapper;
+import com.backandwhite.api.util.PageableUtils;
+import com.backandwhite.application.usecase.BrandUseCase;
+import com.backandwhite.domain.model.Brand;
+import com.backandwhite.domain.valureobject.BrandStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/brands")
-@Tag(name = "Brands",description = "Endpointsparagestióndemarcas")publicclassBrandController {privatefinalBrandUseCasebrandUseCase;privatefinalBrandApiMapperbrandApiMapper;
+@Tag(name = "Brands", description = "Endpoints para gestión de marcas")
+public class BrandController {
 
-    // ──Listados ─────────────────────────────────────────────────────────────
+        private final BrandUseCase brandUseCase;
+        private final BrandApiMapper brandApiMapper;
 
-    @GetMapping
-    @Operation(summary = "Listarmarcaspaginadas",description = "Devuelvemarcaspaginadasconfiltrosopcionalesporestadoynombre")publicResponseEntity<PaginationDtoOut<BrandDtoOut>>findAll(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @Parameter(description = "Filtrarporestado (ACTIVE,INACTIVE)") @RequestParam(required =false)BrandStatusstatus,
-            @Parameter(description = "Buscarpornombre (parcial,case-insensitive)") @RequestParam(required =false)Stringname,
-            @Parameter(description = "Númerodepágina (0-based)",example = "0") @RequestParam(defaultValue = "0")intpage,
-            @Parameter(description = "Tamañodepágina",example = "20") @RequestParam(defaultValue = "20")intsize,
-            @Parameter(description = "Campodeordenamiento",example = "name") @RequestParam(defaultValue = "name")StringsortBy,
-            @Parameter(description = "Ordenascendente",example = "true") @RequestParam(defaultValue = "true")booleanascending) {Page<Brand>result =brandUseCase.findAll(status,name,page,size,sortBy,ascending);returnResponseEntity.ok(PageableUtils.toResponse(result.map(brandApiMapper::toDto)));
-    }
+        // ── Listados ─────────────────────────────────────────────────────────────
 
-    // ──CRUD ─────────────────────────────────────────────────────────────────
+        @GetMapping
+        @Operation(summary = "Listar marcas paginadas", description = "Devuelve marcas paginadas con filtros opcionales por estado y nombre")
+        public ResponseEntity<PaginationDtoOut<BrandDtoOut>> findAll(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @Parameter(description = "Filtrar por estado (ACTIVE, INACTIVE)") @RequestParam(required = false) BrandStatus status,
+                        @Parameter(description = "Buscar por nombre (parcial, case-insensitive)") @RequestParam(required = false) String name,
+                        @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
+                        @Parameter(description = "Campo de ordenamiento", example = "name") @RequestParam(defaultValue = "name") String sortBy,
+                        @Parameter(description = "Orden ascendente", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+                Page<Brand> result = brandUseCase.findAll(status, name, page, size, sortBy, ascending);
+                return ResponseEntity.ok(PageableUtils.toResponse(result.map(brandApiMapper::toDto)));
+        }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "ObtenermarcaporID")publicResponseEntity<BrandDtoOut>getById(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @Parameter(description = "IDdelamarca") @PathVariableStringid) {returnResponseEntity.ok(brandApiMapper.toDto(brandUseCase.findById(id)));
-    }
+        // ── CRUD ─────────────────────────────────────────────────────────────────
 
-    @GetMapping("/slug/{slug}")
-    @Operation(summary = "Obtenermarcaporslug",description = "BuscaunamarcaporsuslugURL-friendly")publicResponseEntity<BrandDtoOut>getBySlug(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @Parameter(description = "Slugdelamarca",example = "nike") @PathVariableStringslug) {returnResponseEntity.ok(brandApiMapper.toDto(brandUseCase.findBySlug(slug)));
-    }
+        @GetMapping("/{id}")
+        @Operation(summary = "Obtener marca por ID")
+        public ResponseEntity<BrandDtoOut> getById(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @Parameter(description = "ID de la marca") @PathVariable String id) {
+                return ResponseEntity.ok(brandApiMapper.toDto(brandUseCase.findById(id)));
+        }
 
-    @PostMapping
-    @Operation(summary = "Crearmarca")publicResponseEntity<BrandDtoOut>create(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @Valid @RequestBodyBrandDtoIndto) {Brandcreated =brandUseCase.create(brandApiMapper.toDomain(dto));returnResponseEntity.status(HttpStatus.CREATED).body(brandApiMapper.toDto(created));
-    }
+        @GetMapping("/slug/{slug}")
+        @Operation(summary = "Obtener marca por slug", description = "Busca una marca por su slug URL-friendly")
+        public ResponseEntity<BrandDtoOut> getBySlug(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @Parameter(description = "Slug de la marca", example = "nike") @PathVariable String slug) {
+                return ResponseEntity.ok(brandApiMapper.toDto(brandUseCase.findBySlug(slug)));
+        }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Actualizarmarca")publicResponseEntity<BrandDtoOut>update(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringid,
-            @Valid @RequestBodyBrandDtoIndto) {Brandupdated =brandUseCase.update(id,brandApiMapper.toDomain(dto));returnResponseEntity.ok(brandApiMapper.toDto(updated));
-    }
+        @PostMapping
+        @Operation(summary = "Crear marca")
+        public ResponseEntity<BrandDtoOut> create(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @Valid @RequestBody BrandDtoIn dto) {
+                Brand created = brandUseCase.create(brandApiMapper.toDomain(dto));
+                return ResponseEntity.status(HttpStatus.CREATED).body(brandApiMapper.toDto(created));
+        }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminarmarca")publicResponseEntity<Void>delete(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringid) {brandUseCase.delete(id);returnResponseEntity.noContent().build();
-    }
+        @PutMapping("/{id}")
+        @Operation(summary = "Actualizar marca")
+        public ResponseEntity<BrandDtoOut> update(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String id,
+                        @Valid @RequestBody BrandDtoIn dto) {
+                Brand updated = brandUseCase.update(id, brandApiMapper.toDomain(dto));
+                return ResponseEntity.ok(brandApiMapper.toDto(updated));
+        }
 
-    // ──Estado ───────────────────────────────────────────────────────────────
+        @DeleteMapping("/{id}")
+        @Operation(summary = "Eliminar marca")
+        public ResponseEntity<Void> delete(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String id) {
+                brandUseCase.delete(id);
+                return ResponseEntity.noContent().build();
+        }
 
-    @PatchMapping("/{id}/status")
-    @Operation(summary = "Cambiarestadodemarca (ACTIVE ↔INACTIVE)")publicResponseEntity<Void>toggleStatus(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH)StringnxAuth,
-            @PathVariableStringid) {brandUseCase.toggleStatus(id);returnResponseEntity.noContent().build();
-    }
+        // ── Estado ───────────────────────────────────────────────────────────────
+
+        @PatchMapping("/{id}/status")
+        @Operation(summary = "Cambiar estado de marca (ACTIVE ↔ INACTIVE)")
+        public ResponseEntity<Void> toggleStatus(
+                        @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+                        @PathVariable String id) {
+                brandUseCase.toggleStatus(id);
+                return ResponseEntity.noContent().build();
+        }
 }
