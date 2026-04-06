@@ -3,7 +3,7 @@ package com.backandwhite.application.usecase.impl;
 import com.backandwhite.application.usecase.CategorySyncUseCase;
 import com.backandwhite.domain.model.CategorySyncResult;
 import com.backandwhite.domain.repository.CategoryRepository;
-import com.backandwhite.infrastructure.client.cj.client.CjDropshippingClient;
+import com.backandwhite.application.port.out.DropshippingPort;
 import com.backandwhite.infrastructure.client.cj.dto.CjCategoryFirstLevelDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjCategorySecondLevelDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjCategoryThirdLevelDto;
@@ -21,7 +21,7 @@ public class CategorySyncUseCaseImpl implements CategorySyncUseCase {
 
     private static final String LOCALE_EN = "en";
 
-    private final CjDropshippingClient cjClient;
+    private final DropshippingPort cjClient;
     private final CategoryRepository categoryRepository;
 
     @Override

@@ -2,7 +2,7 @@ package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.ProductDetail;
 import com.backandwhite.domain.model.ProductDetailVariant;
-import com.backandwhite.domain.valureobject.ProductStatus;
+import com.backandwhite.domain.valueobject.ProductStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +16,8 @@ public interface ProductDetailRepository {
 
     boolean existsByPid(String pid);
 
+    boolean existsVariantByVid(String vid);
+
     ProductDetail save(ProductDetail productDetail);
 
     // ── Variant CRUD ─────────────────────────────────────────────────────────
@@ -24,7 +26,8 @@ public interface ProductDetailRepository {
 
     Page<ProductDetailVariant> searchVariantsPaged(String search, Pageable pageable);
 
-    Page<ProductDetailVariant> findVariantsFiltered(String locale, String search, ProductStatus status, String pid, Pageable pageable);
+    Page<ProductDetailVariant> findVariantsFiltered(String locale, String search, ProductStatus status, String pid,
+            Pageable pageable);
 
     List<ProductDetailVariant> findVariantsByPid(String pid, String locale);
 

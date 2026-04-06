@@ -6,7 +6,7 @@ import com.backandwhite.api.dto.out.ProductDtoOut;
 import com.backandwhite.api.dto.out.ProductTranslationDtoOut;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.model.ProductTranslation;
-import com.backandwhite.domain.valureobject.ProductStatus;
+import com.backandwhite.domain.valueobject.ProductStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductEntity;
 
 import java.util.List;

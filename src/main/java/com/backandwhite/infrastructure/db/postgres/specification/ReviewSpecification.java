@@ -1,6 +1,6 @@
 package com.backandwhite.infrastructure.db.postgres.specification;
 
-import com.backandwhite.domain.valureobject.ReviewStatus;
+import com.backandwhite.domain.valueobject.ReviewStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.ReviewEntity;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;

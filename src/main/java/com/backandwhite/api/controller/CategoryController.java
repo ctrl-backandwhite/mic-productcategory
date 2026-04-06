@@ -17,7 +17,7 @@ import com.backandwhite.domain.model.BulkCategoryResult;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategorySyncResult;
 import com.backandwhite.domain.model.CategoryTranslation;
-import com.backandwhite.domain.valureobject.CategoryStatus;
+import com.backandwhite.domain.valueobject.CategoryStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

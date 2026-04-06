@@ -1,6 +1,6 @@
 package com.backandwhite.infrastructure.db.postgres.specification;
 
-import com.backandwhite.domain.valureobject.WarrantyType;
+import com.backandwhite.domain.valueobject.WarrantyType;
 import com.backandwhite.infrastructure.db.postgres.entity.WarrantyEntity;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;

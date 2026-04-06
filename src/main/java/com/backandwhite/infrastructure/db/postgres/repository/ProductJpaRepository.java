@@ -1,6 +1,6 @@
 package com.backandwhite.infrastructure.db.postgres.repository;
 
-import com.backandwhite.domain.valureobject.ProductStatus;
+import com.backandwhite.domain.valueobject.ProductStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

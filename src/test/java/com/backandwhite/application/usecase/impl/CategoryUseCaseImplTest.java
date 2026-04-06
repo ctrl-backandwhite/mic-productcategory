@@ -3,7 +3,7 @@ package com.backandwhite.application.usecase.impl;
 import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.repository.CategoryRepository;
-import com.backandwhite.domain.valureobject.CategoryStatus;
+import com.backandwhite.domain.valueobject.CategoryStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

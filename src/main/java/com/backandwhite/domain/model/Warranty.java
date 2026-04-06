@@ -1,6 +1,6 @@
 package com.backandwhite.domain.model;
 
-import com.backandwhite.domain.valureobject.WarrantyType;
+import com.backandwhite.domain.valueobject.WarrantyType;
 import lombok.*;
 
 import java.time.Instant;

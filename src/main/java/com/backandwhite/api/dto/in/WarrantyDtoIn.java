@@ -1,6 +1,6 @@
 package com.backandwhite.api.dto.in;
 
-import com.backandwhite.domain.valureobject.WarrantyType;
+import com.backandwhite.domain.valueobject.WarrantyType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;

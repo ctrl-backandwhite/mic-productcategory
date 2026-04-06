@@ -6,7 +6,7 @@ import com.backandwhite.api.dto.out.CategoryDtoOut;
 import com.backandwhite.api.dto.out.CategoryTranslationDtoOut;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategoryTranslation;
-import com.backandwhite.domain.valureobject.CategoryStatus;
+import com.backandwhite.domain.valueobject.CategoryStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryTranslationEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryTranslationId;

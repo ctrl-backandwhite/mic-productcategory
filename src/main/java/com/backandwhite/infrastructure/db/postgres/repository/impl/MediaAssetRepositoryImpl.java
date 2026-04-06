@@ -3,7 +3,7 @@ package com.backandwhite.infrastructure.db.postgres.repository.impl;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.MediaAsset;
 import com.backandwhite.domain.repository.MediaAssetRepository;
-import com.backandwhite.domain.valureobject.MediaCategory;
+import com.backandwhite.domain.valueobject.MediaCategory;
 import com.backandwhite.infrastructure.db.postgres.entity.MediaAssetEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.MediaAssetInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.MediaAssetJpaRepository;

@@ -5,7 +5,7 @@ import com.backandwhite.domain.model.ProductDetailVariant;
 import com.backandwhite.domain.model.ProductDetailVariantInventory;
 import com.backandwhite.domain.model.ProductDetailVariantTranslation;
 import com.backandwhite.domain.repository.ProductDetailRepository;
-import com.backandwhite.domain.valureobject.ProductStatus;
+import com.backandwhite.domain.valueobject.ProductStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductDetailEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductDetailVariantEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductDetailVariantInventoryEntity;
@@ -40,6 +40,11 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
     @Override
     public boolean existsByPid(String pid) {
         return productDetailJpaRepository.existsById(pid);
+    }
+
+    @Override
+    public boolean existsVariantByVid(String vid) {
+        return productDetailVariantJpaRepository.existsById(vid);
     }
 
     @Override
@@ -99,7 +104,8 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
 
     @Override
     public ProductDetailVariant saveVariant(ProductDetailVariant variant) {
-        // Use getReferenceById to avoid an extra SELECT; existence is validated upstream
+        // Use getReferenceById to avoid an extra SELECT; existence is validated
+        // upstream
         ProductDetailEntity parent = productDetailJpaRepository.getReferenceById(variant.getPid());
 
         ProductDetailVariantEntity entity = productDetailInfraMapper.toVariantEntity(variant);
@@ -108,8 +114,8 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
         if (variant.getTranslations() != null) {
             entity.getTranslations().clear();
             for (ProductDetailVariantTranslation vt : variant.getTranslations()) {
-                ProductDetailVariantTranslationEntity vte =
-                        productDetailInfraMapper.toVariantTranslationEntity(vt, variant.getVid());
+                ProductDetailVariantTranslationEntity vte = productDetailInfraMapper.toVariantTranslationEntity(vt,
+                        variant.getVid());
                 vte.setVariant(entity);
                 entity.getTranslations().add(vte);
             }
@@ -144,7 +150,8 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
 
     @Override
     public void deleteVariants(List<String> vids) {
-        // findAll + deleteAll ensures JPA cascade fires for translations and inventories
+        // findAll + deleteAll ensures JPA cascade fires for translations and
+        // inventories
         List<ProductDetailVariantEntity> entities = productDetailVariantJpaRepository.findAllById(vids);
         productDetailVariantJpaRepository.deleteAll(entities);
     }

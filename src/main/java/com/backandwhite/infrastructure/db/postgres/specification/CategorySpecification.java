@@ -1,6 +1,6 @@
 package com.backandwhite.infrastructure.db.postgres.specification;
 
-import com.backandwhite.domain.valureobject.CategoryStatus;
+import com.backandwhite.domain.valueobject.CategoryStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryTranslationEntity;
 import jakarta.persistence.criteria.Join;

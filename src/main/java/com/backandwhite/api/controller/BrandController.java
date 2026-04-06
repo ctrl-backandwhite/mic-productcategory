@@ -10,7 +10,7 @@ import com.backandwhite.api.mapper.BrandApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.BrandUseCase;
 import com.backandwhite.domain.model.Brand;
-import com.backandwhite.domain.valureobject.BrandStatus;
+import com.backandwhite.domain.valueobject.BrandStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

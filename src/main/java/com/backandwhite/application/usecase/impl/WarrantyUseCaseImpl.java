@@ -4,7 +4,7 @@ import com.backandwhite.application.usecase.WarrantyUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.Warranty;
 import com.backandwhite.domain.repository.WarrantyRepository;
-import com.backandwhite.domain.valureobject.WarrantyType;
+import com.backandwhite.domain.valueobject.WarrantyType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;

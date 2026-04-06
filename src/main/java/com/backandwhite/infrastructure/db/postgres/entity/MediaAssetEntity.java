@@ -1,7 +1,7 @@
 package com.backandwhite.infrastructure.db.postgres.entity;
 
 import com.backandwhite.common.infrastructure.entity.AuditableEntity;
-import com.backandwhite.domain.valureobject.MediaCategory;
+import com.backandwhite.domain.valueobject.MediaCategory;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;

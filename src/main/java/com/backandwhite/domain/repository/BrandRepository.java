@@ -1,7 +1,7 @@
 package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.Brand;
-import com.backandwhite.domain.valureobject.BrandStatus;
+import com.backandwhite.domain.valueobject.BrandStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

@@ -3,7 +3,7 @@ package com.backandwhite.infrastructure.db.postgres.repository.impl;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.Warranty;
 import com.backandwhite.domain.repository.WarrantyRepository;
-import com.backandwhite.domain.valureobject.WarrantyType;
+import com.backandwhite.domain.valueobject.WarrantyType;
 import com.backandwhite.infrastructure.db.postgres.entity.WarrantyEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.WarrantyInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.WarrantyJpaRepository;

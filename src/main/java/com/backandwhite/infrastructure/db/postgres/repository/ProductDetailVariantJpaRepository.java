@@ -21,5 +21,5 @@ public interface ProductDetailVariantJpaRepository extends JpaRepository<Product
     @Modifying
     @Query("UPDATE ProductDetailVariantEntity v SET v.status = :status WHERE v.vid IN :vids")
     int bulkUpdateStatus(@Param("vids") List<String> vids,
-            @Param("status") com.backandwhite.domain.valureobject.ProductStatus status);
+            @Param("status") com.backandwhite.domain.valueobject.ProductStatus status);
 }

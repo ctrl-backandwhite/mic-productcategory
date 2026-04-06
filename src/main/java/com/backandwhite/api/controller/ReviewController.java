@@ -14,7 +14,7 @@ import com.backandwhite.api.mapper.ReviewApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.ReviewUseCase;
 import com.backandwhite.domain.model.Review;
-import com.backandwhite.domain.valureobject.ReviewStatus;
+import com.backandwhite.domain.valueobject.ReviewStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

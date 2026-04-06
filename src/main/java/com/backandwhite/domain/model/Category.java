@@ -1,6 +1,6 @@
 package com.backandwhite.domain.model;
 
-import com.backandwhite.domain.valureobject.CategoryStatus;
+import com.backandwhite.domain.valueobject.CategoryStatus;
 import lombok.*;
 
 import java.time.Instant;

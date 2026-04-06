@@ -2,7 +2,7 @@ package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.Review;
 import com.backandwhite.domain.model.ReviewStats;
-import com.backandwhite.domain.valureobject.ReviewStatus;
+import com.backandwhite.domain.valueobject.ReviewStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

@@ -3,7 +3,7 @@ package com.backandwhite.infrastructure.db.postgres.repository.impl;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.Brand;
 import com.backandwhite.domain.repository.BrandRepository;
-import com.backandwhite.domain.valureobject.BrandStatus;
+import com.backandwhite.domain.valueobject.BrandStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.BrandEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.BrandInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.BrandJpaRepository;

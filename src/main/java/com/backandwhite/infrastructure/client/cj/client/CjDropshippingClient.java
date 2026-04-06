@@ -1,5 +1,6 @@
 package com.backandwhite.infrastructure.client.cj.client;
 
+import com.backandwhite.application.port.out.DropshippingPort;
 import com.backandwhite.infrastructure.client.cj.dto.CjApiResponseDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjCategoryFirstLevelDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductDetailDto;
@@ -22,7 +23,7 @@ import static com.backandwhite.domain.exception.Message.EXTERNAL_SERVICE_DATA_ER
 @Log4j2
 @Component
 @RequiredArgsConstructor
-public class CjDropshippingClient {
+public class CjDropshippingClient implements DropshippingPort {
 
     private static final Duration DATA_TIMEOUT = Duration.ofSeconds(30);
     private static final String RESILIENCE4J_INSTANCE = "cjApi";
@@ -34,6 +35,7 @@ public class CjDropshippingClient {
      * Obtiene las categorías de CJ.
      * El token se resuelve automáticamente desde CjTokenManager.
      */
+    @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public List<CjCategoryFirstLevelDto> getCategories() {
@@ -46,7 +48,8 @@ public class CjDropshippingClient {
                     .uri("/product/getCategory")
                     .header("CJ-Access-Token", accessToken)
                     .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<List<CjCategoryFirstLevelDto>>>() {})
+                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<List<CjCategoryFirstLevelDto>>>() {
+                    })
                     .timeout(DATA_TIMEOUT)
                     .block();
 
@@ -74,6 +77,7 @@ public class CjDropshippingClient {
      * Obtiene el detalle de un producto por su pid.
      * El token se resuelve automáticamente desde CjTokenManager.
      */
+    @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductDetailDto getProductDetail(String pid) {
@@ -89,7 +93,8 @@ public class CjDropshippingClient {
                             .build())
                     .header("CJ-Access-Token", accessToken)
                     .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductDetailDto>>() {})
+                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductDetailDto>>() {
+                    })
                     .timeout(DATA_TIMEOUT)
                     .block();
 
@@ -118,6 +123,7 @@ public class CjDropshippingClient {
      * Obtiene una página de productos de CJ usando el endpoint listV2.
      * El token se resuelve automáticamente desde CjTokenManager.
      */
+    @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductListPageDto getProductList(int page, int size) {
@@ -134,7 +140,8 @@ public class CjDropshippingClient {
                             .build())
                     .header("CJ-Access-Token", accessToken)
                     .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductListPageDto>>() {})
+                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductListPageDto>>() {
+                    })
                     .timeout(DATA_TIMEOUT)
                     .block();
 

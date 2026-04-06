@@ -1,6 +1,6 @@
 package com.backandwhite.infrastructure.db.postgres.specification;
 
-import com.backandwhite.domain.valureobject.MediaCategory;
+import com.backandwhite.domain.valueobject.MediaCategory;
 import com.backandwhite.infrastructure.db.postgres.entity.MediaAssetEntity;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;

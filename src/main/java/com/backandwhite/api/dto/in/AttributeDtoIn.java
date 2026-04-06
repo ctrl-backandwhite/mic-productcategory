@@ -1,6 +1,6 @@
 package com.backandwhite.api.dto.in;
 
-import com.backandwhite.domain.valureobject.AttributeType;
+import com.backandwhite.domain.valueobject.AttributeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

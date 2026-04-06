@@ -2,7 +2,7 @@ package com.backandwhite.application.usecase;
 
 import com.backandwhite.domain.model.Review;
 import com.backandwhite.domain.model.ReviewStats;
-import com.backandwhite.domain.valureobject.ReviewStatus;
+import com.backandwhite.domain.valueobject.ReviewStatus;
 import org.springframework.data.domain.Page;
 
 public interface ReviewUseCase {

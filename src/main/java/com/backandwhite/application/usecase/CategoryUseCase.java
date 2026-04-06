@@ -3,7 +3,7 @@ package com.backandwhite.application.usecase;
 import com.backandwhite.domain.model.BulkCategoryResult;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategoryTranslation;
-import com.backandwhite.domain.valureobject.CategoryStatus;
+import com.backandwhite.domain.valueobject.CategoryStatus;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

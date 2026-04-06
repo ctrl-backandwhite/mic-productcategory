@@ -16,7 +16,7 @@ public final class ProductDetailVariantSpecification {
      * Filtra variantes por estado (DRAFT / PUBLISHED).
      */
     public static Specification<ProductDetailVariantEntity> hasStatus(
-            com.backandwhite.domain.valureobject.ProductStatus status) {
+            com.backandwhite.domain.valueobject.ProductStatus status) {
         return (root, query, cb) -> {
             if (status == null)
                 return cb.conjunction();

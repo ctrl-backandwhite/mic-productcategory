@@ -1,6 +1,6 @@
 package com.backandwhite.domain.model;
 
-import com.backandwhite.domain.valureobject.ReviewStatus;
+import com.backandwhite.domain.valueobject.ReviewStatus;
 import lombok.*;
 
 import java.time.Instant;

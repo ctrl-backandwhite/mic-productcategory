@@ -10,7 +10,7 @@ import com.backandwhite.api.mapper.WarrantyApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.WarrantyUseCase;
 import com.backandwhite.domain.model.Warranty;
-import com.backandwhite.domain.valureobject.WarrantyType;
+import com.backandwhite.domain.valueobject.WarrantyType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

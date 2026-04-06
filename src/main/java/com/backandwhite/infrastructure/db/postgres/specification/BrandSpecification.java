@@ -1,6 +1,6 @@
 package com.backandwhite.infrastructure.db.postgres.specification;
 
-import com.backandwhite.domain.valureobject.BrandStatus;
+import com.backandwhite.domain.valueobject.BrandStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.BrandEntity;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;

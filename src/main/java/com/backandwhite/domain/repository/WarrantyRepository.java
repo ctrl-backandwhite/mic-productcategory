@@ -1,7 +1,7 @@
 package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.Warranty;
-import com.backandwhite.domain.valureobject.WarrantyType;
+import com.backandwhite.domain.valueobject.WarrantyType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

@@ -1,6 +1,6 @@
 package com.backandwhite.domain.model;
 
-import com.backandwhite.domain.valureobject.AttributeType;
+import com.backandwhite.domain.valueobject.AttributeType;
 import lombok.*;
 
 import java.time.Instant;

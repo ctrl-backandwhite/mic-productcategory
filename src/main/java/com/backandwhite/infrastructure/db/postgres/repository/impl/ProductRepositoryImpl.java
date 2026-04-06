@@ -4,7 +4,7 @@ import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.model.ProductTranslation;
 import com.backandwhite.domain.repository.ProductRepository;
-import com.backandwhite.domain.valureobject.ProductStatus;
+import com.backandwhite.domain.valueobject.ProductStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductTranslationEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductTranslationId;

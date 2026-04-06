@@ -4,7 +4,7 @@ import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.repository.ProductRepository;
-import com.backandwhite.domain.valureobject.ProductStatus;
+import com.backandwhite.domain.valueobject.ProductStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

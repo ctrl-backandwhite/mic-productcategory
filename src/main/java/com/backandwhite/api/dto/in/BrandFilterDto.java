@@ -1,6 +1,6 @@
 package com.backandwhite.api.dto.in;
 
-import com.backandwhite.domain.valureobject.BrandStatus;
+import com.backandwhite.domain.valueobject.BrandStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 

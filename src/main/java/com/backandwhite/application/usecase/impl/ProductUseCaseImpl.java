@@ -5,8 +5,8 @@ import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.repository.ProductRepository;
-import com.backandwhite.domain.valureobject.ProductStatus;
-import com.backandwhite.infrastructure.message.kafka.producer.CatalogEventProducerService;
+import com.backandwhite.domain.valueobject.ProductStatus;
+import com.backandwhite.application.port.out.CatalogEventPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Log4j2
 @Service
@@ -26,7 +25,7 @@ import java.util.Optional;
 public class ProductUseCaseImpl implements ProductUseCase {
 
     private final ProductRepository productRepository;
-    private final Optional<CatalogEventProducerService> catalogEventProducer;
+    private final CatalogEventPort catalogEventPort;
 
     @Override
     @Transactional(readOnly = true)
@@ -67,9 +66,9 @@ public class ProductUseCaseImpl implements ProductUseCase {
     public Product create(Product product) {
         Product saved = productRepository.save(product);
         // Publish product.created event (L-12)
-        catalogEventProducer.ifPresent(p -> p.publishProductCreated(
+        catalogEventPort.publishProductCreated(
                 saved.getId(), saved.getName(), saved.getSku(),
-                saved.getSellPrice(), saved.getCategoryId(), null));
+                saved.getSellPrice(), saved.getCategoryId(), null);
         return saved;
     }
 
@@ -78,10 +77,10 @@ public class ProductUseCaseImpl implements ProductUseCase {
     public Product update(String productId, Product product) {
         Product updated = productRepository.update(productId, product);
         // Publish product.updated event (L-12)
-        catalogEventProducer.ifPresent(p -> p.publishProductUpdated(
+        catalogEventPort.publishProductUpdated(
                 updated.getId(), updated.getName(), updated.getSellPrice(),
                 updated.getCategoryId(), null,
-                updated.getStatus() == ProductStatus.PUBLISHED));
+                updated.getStatus() == ProductStatus.PUBLISHED);
         return updated;
     }
 

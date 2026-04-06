@@ -1,7 +1,7 @@
 package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.Category;
-import com.backandwhite.domain.valureobject.CategoryStatus;
+import com.backandwhite.domain.valueobject.CategoryStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

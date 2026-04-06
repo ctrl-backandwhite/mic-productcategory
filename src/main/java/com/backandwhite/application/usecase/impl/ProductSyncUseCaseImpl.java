@@ -5,11 +5,12 @@ import com.backandwhite.domain.exception.ExternalServiceException;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.model.ProductSyncResult;
 import com.backandwhite.domain.repository.ProductRepository;
-import com.backandwhite.infrastructure.client.cj.client.CjDropshippingClient;
+import com.backandwhite.application.port.out.DropshippingPort;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductDetailDto;
 import com.backandwhite.infrastructure.client.cj.mapper.CjProductDetailMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,9 +31,13 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
 
     private final ExecutorService fetchExecutor = Executors.newFixedThreadPool(
             PARALLEL_FETCH_THREADS,
-            r -> { Thread t = Thread.ofVirtual().unstarted(r); t.setDaemon(true); return t; });
+            r -> {
+                Thread t = Thread.ofVirtual().unstarted(r);
+                t.setDaemon(true);
+                return t;
+            });
 
-    private final CjDropshippingClient cjClient;
+    private final DropshippingPort cjClient;
     private final ProductRepository productRepository;
     private final CjProductDetailMapper cjProductDetailMapper;
 
@@ -46,7 +51,7 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
         int page = 0;
 
         while (true) {
-            var idsPage = productRepository.findAllProductIds(page, PAGE_SIZE);
+            Page<String> idsPage = productRepository.findAllProductIds(page, PAGE_SIZE);
             List<String> productIds = idsPage.getContent();
 
             if (productIds.isEmpty()) {
@@ -129,7 +134,7 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
         int zeroBasedPage = page - 1;
         log.info("Syncing local products page {} (0-based={}, size={})...", page, zeroBasedPage, size);
 
-        var idsPage = productRepository.findAllProductIds(zeroBasedPage, size);
+        Page<String> idsPage = productRepository.findAllProductIds(zeroBasedPage, size);
         List<String> productIds = idsPage.getContent();
 
         if (productIds.isEmpty()) {

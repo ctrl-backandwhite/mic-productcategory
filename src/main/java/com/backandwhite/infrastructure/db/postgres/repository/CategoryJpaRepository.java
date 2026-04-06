@@ -32,5 +32,5 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, Str
     @Modifying
     @Query("UPDATE CategoryEntity c SET c.status = :status WHERE c.id IN :ids")
     int bulkUpdateStatus(@Param("ids") List<String> ids,
-            @Param("status") com.backandwhite.domain.valureobject.CategoryStatus status);
+            @Param("status") com.backandwhite.domain.valueobject.CategoryStatus status);
 }

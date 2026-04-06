@@ -1,6 +1,6 @@
 package com.backandwhite.domain.model;
 
-import com.backandwhite.domain.valureobject.BrandStatus;
+import com.backandwhite.domain.valueobject.BrandStatus;
 import lombok.*;
 
 import java.time.Instant;

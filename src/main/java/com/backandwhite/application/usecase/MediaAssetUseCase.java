@@ -1,7 +1,7 @@
 package com.backandwhite.application.usecase;
 
 import com.backandwhite.domain.model.MediaAsset;
-import com.backandwhite.domain.valureobject.MediaCategory;
+import com.backandwhite.domain.valueobject.MediaCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 

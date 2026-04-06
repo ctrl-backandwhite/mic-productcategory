@@ -4,7 +4,7 @@ import com.backandwhite.application.usecase.BrandUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.Brand;
 import com.backandwhite.domain.repository.BrandRepository;
-import com.backandwhite.domain.valureobject.BrandStatus;
+import com.backandwhite.domain.valueobject.BrandStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;

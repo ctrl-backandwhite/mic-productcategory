@@ -5,7 +5,7 @@ import com.backandwhite.application.usecase.MediaAssetUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.MediaAsset;
 import com.backandwhite.domain.repository.MediaAssetRepository;
-import com.backandwhite.domain.valureobject.MediaCategory;
+import com.backandwhite.domain.valueobject.MediaCategory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;

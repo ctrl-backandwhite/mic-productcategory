@@ -4,7 +4,7 @@ import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.Review;
 import com.backandwhite.domain.model.ReviewStats;
 import com.backandwhite.domain.repository.ReviewRepository;
-import com.backandwhite.domain.valureobject.ReviewStatus;
+import com.backandwhite.domain.valueobject.ReviewStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.ReviewEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.ReviewHelpfulVoteEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.ReviewInfraMapper;

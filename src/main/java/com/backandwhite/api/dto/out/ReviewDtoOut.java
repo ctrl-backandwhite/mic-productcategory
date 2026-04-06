@@ -1,6 +1,6 @@
 package com.backandwhite.api.dto.out;
 
-import com.backandwhite.domain.valureobject.ReviewStatus;
+import com.backandwhite.domain.valueobject.ReviewStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 

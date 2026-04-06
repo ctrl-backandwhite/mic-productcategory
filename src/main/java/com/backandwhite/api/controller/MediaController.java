@@ -10,7 +10,7 @@ import com.backandwhite.api.mapper.MediaAssetApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.MediaAssetUseCase;
 import com.backandwhite.domain.model.MediaAsset;
-import com.backandwhite.domain.valureobject.MediaCategory;
+import com.backandwhite.domain.valueobject.MediaCategory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

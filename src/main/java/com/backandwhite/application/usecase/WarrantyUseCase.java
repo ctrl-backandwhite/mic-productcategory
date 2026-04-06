@@ -1,7 +1,7 @@
 package com.backandwhite.application.usecase;
 
 import com.backandwhite.domain.model.Warranty;
-import com.backandwhite.domain.valureobject.WarrantyType;
+import com.backandwhite.domain.valueobject.WarrantyType;
 import org.springframework.data.domain.Page;
 
 public interface WarrantyUseCase {

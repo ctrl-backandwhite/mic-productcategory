@@ -4,8 +4,8 @@ import com.backandwhite.application.usecase.ProductDetailUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.*;
 import com.backandwhite.domain.repository.ProductDetailRepository;
-import com.backandwhite.domain.valureobject.ProductStatus;
-import com.backandwhite.infrastructure.client.cj.client.CjDropshippingClient;
+import com.backandwhite.domain.valueobject.ProductStatus;
+import com.backandwhite.application.port.out.DropshippingPort;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductDetailDto;
 import com.backandwhite.infrastructure.client.cj.mapper.CjProductDetailMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import java.util.UUID;
 public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
 
     private final ProductDetailRepository productDetailRepository;
-    private final CjDropshippingClient cjDropshippingClient;
+    private final DropshippingPort cjDropshippingClient;
     private final CjProductDetailMapper cjProductDetailMapper;
 
     @Override

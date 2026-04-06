@@ -4,7 +4,7 @@ import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategoryTranslation;
 import com.backandwhite.domain.repository.CategoryRepository;
-import com.backandwhite.domain.valureobject.CategoryStatus;
+import com.backandwhite.domain.valueobject.CategoryStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryTranslationEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.CategoryInfraMapper;
