@@ -6,6 +6,7 @@ import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valureobject.ProductStatus;
+import com.backandwhite.infrastructure.message.kafka.producer.CatalogEventProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Log4j2
 @Service
@@ -24,6 +26,7 @@ import java.util.List;
 public class ProductUseCaseImpl implements ProductUseCase {
 
     private final ProductRepository productRepository;
+    private final Optional<CatalogEventProducerService> catalogEventProducer;
 
     @Override
     @Transactional(readOnly = true)
@@ -62,13 +65,24 @@ public class ProductUseCaseImpl implements ProductUseCase {
     @Override
     @Transactional
     public Product create(Product product) {
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+        // Publish product.created event (L-12)
+        catalogEventProducer.ifPresent(p -> p.publishProductCreated(
+                saved.getId(), saved.getName(), saved.getSku(),
+                saved.getSellPrice(), saved.getCategoryId(), null));
+        return saved;
     }
 
     @Override
     @Transactional
     public Product update(String productId, Product product) {
-        return productRepository.update(productId, product);
+        Product updated = productRepository.update(productId, product);
+        // Publish product.updated event (L-12)
+        catalogEventProducer.ifPresent(p -> p.publishProductUpdated(
+                updated.getId(), updated.getName(), updated.getSellPrice(),
+                updated.getCategoryId(), null,
+                updated.getStatus() == ProductStatus.PUBLISHED));
+        return updated;
     }
 
     @Override

@@ -63,7 +63,10 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
         int remaining = inventoryJpaRepository.getTotalStockByVid(variantId);
         String pid = getProductIdForVariant(variantId);
 
-        catalogEventProducer.ifPresent(p -> p.publishStockDeducted(pid, variantId, orderId, quantity, remaining));
+        // Note: We do NOT re-publish stock.deducted here — the orderservice already
+        // published the command event. Re-publishing would create an infinite Kafka
+        // loop
+        // since StockEventConsumerService listens on the same topic.
         checkLowStock(pid, variantId, remaining);
 
         if (remaining == 0) {
@@ -83,9 +86,10 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
         inventoryJpaRepository.incrementStock(variantId, country, quantity);
         int remaining = inventoryJpaRepository.getTotalStockByVid(variantId);
-        String pid = getProductIdForVariant(variantId);
 
-        catalogEventProducer.ifPresent(p -> p.publishStockReleased(pid, variantId, orderId, quantity, remaining));
+        // Note: We do NOT re-publish stock.released — the orderservice already
+        // published the command event. Re-publishing would create an infinite Kafka
+        // loop.
 
         log.info("Stock released: vid={}, orderId={}, qty={}, remaining={}", variantId, orderId, quantity, remaining);
         return remaining;
@@ -99,9 +103,10 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
         inventoryJpaRepository.incrementStock(variantId, country, quantity);
         int remaining = inventoryJpaRepository.getTotalStockByVid(variantId);
-        String pid = getProductIdForVariant(variantId);
 
-        catalogEventProducer.ifPresent(p -> p.publishStockRestored(pid, variantId, orderId, quantity, remaining));
+        // Note: We do NOT re-publish stock.restored — the orderservice already
+        // published the command event. Re-publishing would create an infinite Kafka
+        // loop.
 
         log.info("Stock restored: vid={}, orderId={}, qty={}, remaining={}", variantId, orderId, quantity, remaining);
         return remaining;
