@@ -54,3 +54,9 @@ Dockerfile
 HELP.md
 *.log
 .vscode/
+### Misc extras ###
+*.code-workspace
+.gitattributes
+*.args
+*.bak
+*.tmp
