@@ -23,3 +23,7 @@ logging:
   level:
     root: INFO
 
+services:
+  cms:
+    url: ${SERVICES_CMS_URL:http://mic-cmsservice:8080}
+

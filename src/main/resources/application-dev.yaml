@@ -29,6 +29,10 @@ cj-dropshipping:
   base-url: ${CJ_BASE_URL}
   api-key: ${CJ_API_KEY}
 
+services:
+  cms:
+    url: ${SERVICES_CMS_URL:http://mic-cmsservice.railway.internal:8080}
+
 logging:
   level:
     root: INFO

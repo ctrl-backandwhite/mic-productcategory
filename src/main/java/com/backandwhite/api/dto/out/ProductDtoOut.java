@@ -4,6 +4,7 @@ import com.backandwhite.domain.valueobject.ProductStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -41,6 +42,18 @@ public class ProductDtoOut {
 
     @Schema(description = "Precio de costo del proveedor", example = "19.99")
     private String costPrice;
+
+    @Schema(description = "Código ISO 4217 de la moneda", example = "EUR")
+    private String currencyCode;
+
+    @Schema(description = "Símbolo de la moneda", example = "€")
+    private String currencySymbol;
+
+    @Schema(description = "Precio de venta numérico (mín. del rango, ya convertido)", example = "25.88")
+    private BigDecimal sellPriceRaw;
+
+    @Schema(description = "Precio de costo numérico (mín. del rango, ya convertido)", example = "0.78")
+    private BigDecimal costPriceRaw;
 
     @Schema(description = "Tipo de producto", example = "NORMAL")
     private String productType;

@@ -64,6 +64,9 @@ public class ProductDetailVariantDtoOut {
     @Schema(description = "Precio de venta al público (con margen aplicado)", example = "41.99")
     private BigDecimal retailPrice;
 
+    @Schema(description = "Código ISO 4217 de la moneda", example = "EUR")
+    private String currencyCode;
+
     @Schema(description = "Estándar de la variante")
     private String variantStandard;
 

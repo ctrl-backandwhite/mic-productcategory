@@ -1,5 +1,8 @@
 package com.backandwhite.application.service;
 
+import com.backandwhite.common.currency.CurrencyHolder;
+import com.backandwhite.common.currency.CurrencyRateCache;
+import com.backandwhite.common.domain.valueobject.Currency;
 import com.backandwhite.common.domain.valueobject.Money;
 import com.backandwhite.domain.model.PriceRule;
 import com.backandwhite.domain.model.Product;
@@ -30,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PricingService {
 
     private final PriceRuleRepository priceRuleRepository;
+    private final CurrencyRateCache currencyRateCache;
 
     // Simple in-memory cache (refreshed per request batch)
     private volatile List<PriceRule> cachedRules;
@@ -109,44 +113,46 @@ public class PricingService {
     /**
      * Apply margins to all variants of a product and recalculate the product-level
      * sellPrice range string based on the min/max retail prices.
+     * After margins, converts all prices to the currency from X-Currency header.
      */
     public void applyMarginsToProduct(Product product) {
         if (product.getVariants() == null || product.getVariants().isEmpty()) {
             // For products without loaded variants, apply margin to the sellPrice string
             applyMarginToSellPriceString(product);
-            return;
-        }
+        } else {
+            BigDecimal minRetail = null;
+            BigDecimal maxRetail = null;
 
-        BigDecimal minRetail = null;
-        BigDecimal maxRetail = null;
+            for (ProductDetailVariant variant : product.getVariants()) {
+                Money retailPrice = calculateRetailPrice(variant, product.getId(), product.getCategoryId());
+                if (retailPrice != null) {
+                    variant.setRetailPrice(retailPrice);
 
-        for (ProductDetailVariant variant : product.getVariants()) {
-            Money retailPrice = calculateRetailPrice(variant, product.getId(), product.getCategoryId());
-            if (retailPrice != null) {
-                // Store retail price in a transient field (we'll add this)
-                variant.setRetailPrice(retailPrice);
-
-                BigDecimal amount = retailPrice.getAmount();
-                if (minRetail == null || amount.compareTo(minRetail) < 0) {
-                    minRetail = amount;
+                    BigDecimal amount = retailPrice.getAmount();
+                    if (minRetail == null || amount.compareTo(minRetail) < 0) {
+                        minRetail = amount;
+                    }
+                    if (maxRetail == null || amount.compareTo(maxRetail) > 0) {
+                        maxRetail = amount;
+                    }
                 }
-                if (maxRetail == null || amount.compareTo(maxRetail) > 0) {
-                    maxRetail = amount;
+            }
+
+            // Recalculate product-level sellPrice as a range
+            if (minRetail != null) {
+                String costPrice = product.getSellPrice(); // keep original for reference
+                product.setCostPrice(costPrice);
+
+                if (maxRetail.compareTo(minRetail) == 0) {
+                    product.setSellPrice(minRetail.toPlainString());
+                } else {
+                    product.setSellPrice(minRetail.toPlainString() + " -- " + maxRetail.toPlainString());
                 }
             }
         }
 
-        // Recalculate product-level sellPrice as a range
-        if (minRetail != null) {
-            String costPrice = product.getSellPrice(); // keep original for reference
-            product.setCostPrice(costPrice);
-
-            if (maxRetail.compareTo(minRetail) == 0) {
-                product.setSellPrice(minRetail.toPlainString());
-            } else {
-                product.setSellPrice(minRetail.toPlainString() + " -- " + maxRetail.toPlainString());
-            }
-        }
+        // Convert to requested currency (X-Currency header)
+        convertProductToRequestCurrency(product);
     }
 
     /**
@@ -192,6 +198,107 @@ public class PricingService {
     public void invalidateCache() {
         cachedRules = null;
         cacheTimestamp = 0;
+    }
+
+    // ── Currency conversion ─────────────────────────────────────────────────
+
+    /**
+     * Convert all prices in a product to the currency requested via X-Currency header.
+     * If the header is absent or "USD", prices stay in USD (backward compatible).
+     */
+    private void convertProductToRequestCurrency(Product product) {
+        String currencyCode = CurrencyHolder.get();
+        Currency currency;
+        try {
+            currency = Currency.fromCode(currencyCode);
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown currency '{}', defaulting to USD", currencyCode);
+            currency = Currency.USD;
+            currencyCode = "USD";
+        }
+
+        product.setCurrencyCode(currencyCode);
+        product.setCurrencySymbol(currency.getSymbol());
+
+        if ("USD".equals(currencyCode)) {
+            // No conversion needed — set raw values from current prices
+            setRawPricesUsd(product);
+            return;
+        }
+
+        BigDecimal rate = currencyRateCache.getRate(currencyCode);
+
+        // Convert product-level price strings
+        product.setSellPrice(convertPriceString(product.getSellPrice(), rate));
+        product.setCostPrice(convertPriceString(product.getCostPrice(), rate));
+
+        // Set numeric raw values
+        product.setSellPriceRaw(parseMinPrice(product.getSellPrice()));
+        product.setCostPriceRaw(parseMinPrice(product.getCostPrice()));
+
+        // Convert variant-level prices
+        if (product.getVariants() != null) {
+            for (ProductDetailVariant variant : product.getVariants()) {
+                variant.setCurrencyCode(currencyCode);
+                if (variant.getVariantSellPrice() != null) {
+                    variant.setVariantSellPrice(variant.getVariantSellPrice().convertTo(currency, rate));
+                }
+                if (variant.getVariantSugSellPrice() != null) {
+                    variant.setVariantSugSellPrice(variant.getVariantSugSellPrice().convertTo(currency, rate));
+                }
+                if (variant.getRetailPrice() != null) {
+                    variant.setRetailPrice(variant.getRetailPrice().convertTo(currency, rate));
+                }
+            }
+        }
+    }
+
+    /**
+     * Set raw price BigDecimals from USD sellPrice/costPrice strings (no conversion).
+     */
+    private void setRawPricesUsd(Product product) {
+        product.setSellPriceRaw(parseMinPrice(product.getSellPrice()));
+        product.setCostPriceRaw(parseMinPrice(product.getCostPrice()));
+        if (product.getVariants() != null) {
+            for (ProductDetailVariant variant : product.getVariants()) {
+                variant.setCurrencyCode("USD");
+            }
+        }
+    }
+
+    /**
+     * Convert a price string like "12.50" or "12.50 -- 25.88" using the given rate.
+     */
+    private String convertPriceString(String priceString, BigDecimal rate) {
+        if (priceString == null || priceString.isBlank()) return priceString;
+
+        String[] parts = priceString.split("\\s*--\\s*|\\s*-\\s*");
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) result.append(" -- ");
+            try {
+                BigDecimal val = new BigDecimal(parts[i].trim());
+                BigDecimal converted = val.multiply(rate).setScale(2, RoundingMode.HALF_UP);
+                result.append(converted.toPlainString());
+            } catch (NumberFormatException e) {
+                result.append(parts[i].trim());
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Parse the minimum (first) price from a price string.
+     */
+    private BigDecimal parseMinPrice(String priceString) {
+        if (priceString == null || priceString.isBlank()) return null;
+        String[] parts = priceString.split("\\s*--\\s*|\\s*-\\s*");
+        try {
+            return new BigDecimal(parts[0].trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     // ── Private helpers ─────────────────────────────────────────────────────

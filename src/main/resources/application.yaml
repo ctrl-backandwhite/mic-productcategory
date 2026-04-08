@@ -17,6 +17,10 @@ cj-dropshipping:
   base-url: https://developers.cjdropshipping.com/api2.0/v1
   api-key: ${CJ_API_KEY}
 
+services:
+  cms:
+    url: ${SERVICES_CMS_URL:http://localhost:6006}
+
 resilience4j:
   retry:
     instances:

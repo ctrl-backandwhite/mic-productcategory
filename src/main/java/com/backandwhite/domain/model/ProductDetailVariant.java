@@ -33,6 +33,7 @@ public class ProductDetailVariant {
     private Money variantSellPrice;
     private Money variantSugSellPrice;
     private Money retailPrice;
+    private String currencyCode;
     private String variantStandard;
     private Instant createTime;
     private Instant createdAt;

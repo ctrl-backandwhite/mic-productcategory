@@ -3,6 +3,7 @@ package com.backandwhite.domain.model;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,12 @@ public class Product {
     private Boolean isVideo;
     private Instant createdAt;
     private Instant updatedAt;
+
+    // Currency metadata (set after margin + conversion)
+    private String currencyCode;
+    private String currencySymbol;
+    private BigDecimal sellPriceRaw;
+    private BigDecimal costPriceRaw;
 
     @Builder.Default
     private List<ProductTranslation> translations = new ArrayList<>();
