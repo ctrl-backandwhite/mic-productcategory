@@ -1,5 +1,6 @@
 package com.backandwhite.infrastructure.client.cj.mapper;
 
+import com.backandwhite.common.domain.valueobject.Money;
 import com.backandwhite.domain.model.*;
 import com.backandwhite.infrastructure.client.cj.dto.CjInventoryDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductDetailDto;
@@ -8,6 +9,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -42,6 +44,7 @@ public interface CjProductDetailMapper {
     @Mapping(target = "variants", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "costPrice", ignore = true)
     Product toProduct(CjProductDetailDto cj);
 
     @Mapping(target = "status", ignore = true)
@@ -49,6 +52,7 @@ public interface CjProductDetailMapper {
     @Mapping(target = "createTime", source = "createTime", qualifiedByName = "parseInstant")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "retailPrice", ignore = true)
     ProductDetailVariant toVariantDomain(CjVariantDetailDto v);
 
     List<ProductDetailVariant> toVariantDomainList(List<CjVariantDetailDto> variants);
@@ -113,5 +117,19 @@ public interface CjProductDetailMapper {
                 .name(name)
                 .build());
         return translations;
+    }
+
+    default Money stringToMoney(String value) {
+        if (value == null || value.isBlank())
+            return null;
+        try {
+            return Money.of(new BigDecimal(value.trim()));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    default Money bigDecimalToMoney(BigDecimal value) {
+        return value != null ? Money.of(value) : null;
     }
 }

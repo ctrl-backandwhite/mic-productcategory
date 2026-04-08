@@ -17,6 +17,7 @@ import com.backandwhite.api.dto.out.ProductSyncResultDtoOut;
 import com.backandwhite.api.mapper.ProductApiMapper;
 import com.backandwhite.api.mapper.ProductDetailApiMapper;
 import com.backandwhite.api.util.PageableUtils;
+import com.backandwhite.application.service.PricingService;
 import com.backandwhite.application.usecase.ProductDetailUseCase;
 import com.backandwhite.application.usecase.ProductSyncUseCase;
 import com.backandwhite.application.usecase.ProductUseCase;
@@ -49,6 +50,7 @@ public class ProductController {
         private final ProductSyncUseCase productSyncUseCase;
         private final ProductApiMapper productApiMapper;
         private final ProductDetailApiMapper productDetailApiMapper;
+        private final PricingService pricingService;
 
         @GetMapping("/category/{categoryId}")
         @Operation(summary = "Listar productos por categoría", description = "Devuelve todos los productos de una categoría con sus traducciones y variantes")
@@ -58,6 +60,7 @@ public class ProductController {
                         @Parameter(description = "Filtrar por estado (DRAFT, PUBLISHED). Si no se envía, muestra todos.") @RequestParam(required = false) String status) {
 
                 List<Product> products = productUseCase.findByCategoryId(categoryId, locale, status);
+                products.forEach(pricingService::applyMarginsToProduct);
                 List<ProductDtoOut> result = productApiMapper.toDtoList(products);
                 return ResponseEntity.ok(result);
         }
@@ -78,25 +81,26 @@ public class ProductController {
                 Page<Product> pagedResult = productUseCase.findAllPaged(locale, categoryId, status, name,
                                 pageable.getPageNumber(), pageable.getPageSize(), sortBy, ascending);
 
-                return ResponseEntity.ok(PageableUtils.toResponse(pagedResult.map(productApiMapper::toDto)));
+                return ResponseEntity.ok(PageableUtils.toResponse(pagedResult.map(p -> {
+                        pricingService.applyMarginsToProduct(p);
+                        return productApiMapper.toDto(p);
+                })));
         }
 
         @PostMapping("/search")
-        @Operation(
-                        summary = "Búsqueda paginada de productos con filtros dinámicos",
-                        description = """
-                                        Listado paginado de productos con filtros dinámicos vía reflexión.
-                                        Solo los campos no nulos del objeto `filters` se aplican como predicados.
+        @Operation(summary = "Búsqueda paginada de productos con filtros dinámicos", description = """
+                        Listado paginado de productos con filtros dinámicos vía reflexión.
+                        Solo los campos no nulos del objeto `filters` se aplican como predicados.
 
-                                        Ejemplo de body:
-                                        ```json
-                                        {
-                                          "page": 0, "size": 20, "sortBy": "createdAt", "ascending": true,
-                                          "locale": "es",
-                                          "filters": { "status": "PUBLISHED", "categoryId": "abc123" }
-                                        }
-                                        ```
-                                        """)
+                        Ejemplo de body:
+                        ```json
+                        {
+                          "page": 0, "size": 20, "sortBy": "createdAt", "ascending": true,
+                          "locale": "es",
+                          "filters": { "status": "PUBLISHED", "categoryId": "abc123" }
+                        }
+                        ```
+                        """)
         public ResponseEntity<PaginationDtoOut<ProductDtoOut>> search(
                         @Valid @RequestBody PageFilterRequest<ProductFilterDto> request) {
 
@@ -111,7 +115,10 @@ public class ProductController {
                                 pageable.getPageNumber(), pageable.getPageSize(),
                                 request.getSortBy(), request.isAscending());
 
-                return ResponseEntity.ok(PageableUtils.toResponse(result.map(productApiMapper::toDto)));
+                return ResponseEntity.ok(PageableUtils.toResponse(result.map(p -> {
+                        pricingService.applyMarginsToProduct(p);
+                        return productApiMapper.toDto(p);
+                })));
         }
 
         @GetMapping("/{id}")
@@ -121,6 +128,7 @@ public class ProductController {
                         @Parameter(description = "Código de idioma", example = "es") @RequestParam(defaultValue = "en") String locale) {
 
                 Product product = productUseCase.findById(id, locale);
+                pricingService.applyMarginsToProduct(product);
                 return ResponseEntity.ok(productApiMapper.toDto(product));
         }
 
@@ -195,25 +203,25 @@ public class ProductController {
 
                 Pageable pageable = PageableUtils.toPageable(page, size, sortBy, ascending);
                 Page<ProductDetailVariant> pagedResult = productDetailUseCase.findAllVariantsPaged(
-                                pageable.getPageNumber(), pageable.getPageSize(), locale, search, status, pid, sortBy, ascending);
+                                pageable.getPageNumber(), pageable.getPageSize(), locale, search, status, pid, sortBy,
+                                ascending);
 
-                return ResponseEntity.ok(PageableUtils.toResponse(pagedResult.map(productDetailApiMapper::toVariantDto)));
+                return ResponseEntity
+                                .ok(PageableUtils.toResponse(pagedResult.map(productDetailApiMapper::toVariantDto)));
         }
 
         @PostMapping("/detail/variants/search")
-        @Operation(
-                        summary = "Búsqueda paginada de variantes con filtros dinámicos",
-                        description = """
-                                        Listado paginado de variantes con filtros dinámicos.
+        @Operation(summary = "Búsqueda paginada de variantes con filtros dinámicos", description = """
+                        Listado paginado de variantes con filtros dinámicos.
 
-                                        Ejemplo de body:
-                                        ```json
-                                        {
-                                          "page": 0, "size": 20, "sortBy": "createdAt", "ascending": false,
-                                          "filters": { "status": "PUBLISHED", "pid": "PROD-001" }
-                                        }
-                                        ```
-                                        """)
+                        Ejemplo de body:
+                        ```json
+                        {
+                          "page": 0, "size": 20, "sortBy": "createdAt", "ascending": false,
+                          "filters": { "status": "PUBLISHED", "pid": "PROD-001" }
+                        }
+                        ```
+                        """)
         public ResponseEntity<PaginationDtoOut<ProductDetailVariantDtoOut>> searchVariants(
                         @Valid @RequestBody PageFilterRequest<VariantFilterDto> request) {
 

@@ -68,7 +68,8 @@ public class ProductUseCaseImpl implements ProductUseCase {
         // Publish product.created event (L-12)
         catalogEventPort.publishProductCreated(
                 saved.getId(), saved.getName(), saved.getSku(),
-                saved.getSellPrice(), saved.getCategoryId(), null);
+                saved.getSellPrice(),
+                saved.getCategoryId(), null);
         return saved;
     }
 
@@ -78,7 +79,8 @@ public class ProductUseCaseImpl implements ProductUseCase {
         Product updated = productRepository.update(productId, product);
         // Publish product.updated event (L-12)
         catalogEventPort.publishProductUpdated(
-                updated.getId(), updated.getName(), updated.getSellPrice(),
+                updated.getId(), updated.getName(),
+                updated.getSellPrice(),
                 updated.getCategoryId(), null,
                 updated.getStatus() == ProductStatus.PUBLISHED);
         return updated;

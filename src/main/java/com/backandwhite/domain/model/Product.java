@@ -23,6 +23,7 @@ public class Product {
     private String bigImage;
     private String productImageSet;
     private String sellPrice;
+    private String costPrice;
     private String productType;
     private String description;
     private Integer listedNum;

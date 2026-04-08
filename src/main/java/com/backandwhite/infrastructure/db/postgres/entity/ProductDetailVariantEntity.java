@@ -1,5 +1,7 @@
 package com.backandwhite.infrastructure.db.postgres.entity;
 
+import com.backandwhite.common.domain.valueobject.Money;
+import com.backandwhite.common.domain.valueobject.MoneyConverter;
 import com.backandwhite.common.infrastructure.entity.AuditableEntity;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import jakarta.persistence.*;
@@ -66,11 +68,13 @@ public class ProductDetailVariantEntity extends AuditableEntity {
     @Column(name = "variant_weight", precision = 10, scale = 2)
     private BigDecimal variantWeight;
 
+    @Convert(converter = MoneyConverter.class)
     @Column(name = "variant_sell_price", precision = 10, scale = 2)
-    private BigDecimal variantSellPrice;
+    private Money variantSellPrice;
 
+    @Convert(converter = MoneyConverter.class)
     @Column(name = "variant_sug_sell_price", precision = 10, scale = 2)
-    private BigDecimal variantSugSellPrice;
+    private Money variantSugSellPrice;
 
     @Column(name = "variant_standard", length = 255)
     private String variantStandard;

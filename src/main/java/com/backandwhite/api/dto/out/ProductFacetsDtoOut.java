@@ -3,6 +3,7 @@ package com.backandwhite.api.dto.out;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -17,10 +18,10 @@ public class ProductFacetsDtoOut {
     private List<FacetBrandDto> brands;
 
     @Schema(description = "Precio mínimo encontrado")
-    private Double priceMin;
+    private BigDecimal priceMin;
 
     @Schema(description = "Precio máximo encontrado")
-    private Double priceMax;
+    private BigDecimal priceMax;
 
     @Data
     @With

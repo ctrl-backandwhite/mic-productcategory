@@ -1,5 +1,6 @@
 package com.backandwhite.domain.model;
 
+import com.backandwhite.common.domain.valueobject.Money;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import lombok.*;
 
@@ -29,8 +30,9 @@ public class ProductDetailVariant {
     private BigDecimal variantHeight;
     private BigDecimal variantVolume;
     private BigDecimal variantWeight;
-    private BigDecimal variantSellPrice;
-    private BigDecimal variantSugSellPrice;
+    private Money variantSellPrice;
+    private Money variantSugSellPrice;
+    private Money retailPrice;
     private String variantStandard;
     private Instant createTime;
     private Instant createdAt;

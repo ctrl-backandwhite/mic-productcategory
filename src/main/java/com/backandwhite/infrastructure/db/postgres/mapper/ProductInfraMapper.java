@@ -12,6 +12,7 @@ public interface ProductInfraMapper {
     // ── Domain ← Entity ────────────────────────────────────────────────────
 
     @Mapping(target = "name", expression = "java(getFirstTranslationName(entity))")
+    @Mapping(target = "costPrice", ignore = true)
     Product toDomain(ProductEntity entity);
 
     List<Product> toDomainList(List<ProductEntity> entities);
@@ -20,6 +21,7 @@ public interface ProductInfraMapper {
     @Mapping(target = "name", source = "name")
     ProductTranslation toTranslationDomain(ProductTranslationEntity entity);
 
+    @Mapping(target = "retailPrice", ignore = true)
     ProductDetailVariant toVariantDomain(ProductDetailVariantEntity entity);
 
     @Mapping(target = "locale", source = "id.locale")

@@ -55,11 +55,14 @@ public class ProductDetailVariantDtoOut {
     @Schema(description = "Peso", example = "0.50")
     private BigDecimal variantWeight;
 
-    @Schema(description = "Precio de venta de la variante", example = "29.99")
+    @Schema(description = "Precio de costo del proveedor", example = "29.99")
     private BigDecimal variantSellPrice;
 
-    @Schema(description = "Precio sugerido de venta", example = "39.99")
+    @Schema(description = "Precio sugerido CJ", example = "39.99")
     private BigDecimal variantSugSellPrice;
+
+    @Schema(description = "Precio de venta al público (con margen aplicado)", example = "41.99")
+    private BigDecimal retailPrice;
 
     @Schema(description = "Estándar de la variante")
     private String variantStandard;

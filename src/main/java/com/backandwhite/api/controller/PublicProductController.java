@@ -10,6 +10,7 @@ import com.backandwhite.api.mapper.ProductApiMapper;
 import com.backandwhite.api.mapper.ProductDetailApiMapper;
 import com.backandwhite.api.mapper.ReviewApiMapper;
 import com.backandwhite.api.util.PageableUtils;
+import com.backandwhite.application.service.PricingService;
 import com.backandwhite.application.usecase.*;
 import com.backandwhite.domain.model.*;
 import com.backandwhite.domain.valueobject.BrandStatus;
@@ -40,6 +41,7 @@ public class PublicProductController {
         private final BrandUseCase brandUseCase;
         private final ReviewUseCase reviewUseCase;
         private final InventoryUseCase inventoryUseCase;
+        private final PricingService pricingService;
         private final ProductApiMapper productApiMapper;
         private final ProductDetailApiMapper productDetailApiMapper;
         private final CategoryApiMapper categoryApiMapper;
@@ -61,7 +63,10 @@ public class PublicProductController {
                         @RequestParam(defaultValue = "false") boolean ascending) {
                 Page<Product> products = productUseCase.findAllPaged(locale, categoryId, "PUBLISHED", name, page, size,
                                 sortBy, ascending);
-                return ResponseEntity.ok(PageableUtils.toResponse(products.map(productApiMapper::toDto)));
+                return ResponseEntity.ok(PageableUtils.toResponse(products.map(p -> {
+                        pricingService.applyMarginsToProduct(p);
+                        return productApiMapper.toDto(p);
+                })));
         }
 
         @Operation(summary = "Get product detail by ID (public)")
@@ -71,6 +76,7 @@ public class PublicProductController {
                         @PathVariable String id,
                         @RequestParam(defaultValue = "en") String locale) {
                 Product product = productUseCase.findById(id, locale);
+                pricingService.applyMarginsToProduct(product);
                 return ResponseEntity.ok(productApiMapper.toDto(product));
         }
 
@@ -166,7 +172,10 @@ public class PublicProductController {
                 Brand brand = brandUseCase.findBySlug(slug);
                 Page<Product> products = productUseCase.findAllPaged(locale, null, "PUBLISHED", null, page, size,
                                 sortBy, ascending);
-                return ResponseEntity.ok(PageableUtils.toResponse(products.map(productApiMapper::toDto)));
+                return ResponseEntity.ok(PageableUtils.toResponse(products.map(p -> {
+                        pricingService.applyMarginsToProduct(p);
+                        return productApiMapper.toDto(p);
+                })));
         }
 
         // ── Reviews ──────────────────────────────────────────────────────────────

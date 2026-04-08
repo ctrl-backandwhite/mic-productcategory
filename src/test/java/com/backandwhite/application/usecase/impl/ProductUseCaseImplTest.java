@@ -5,6 +5,7 @@ import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valueobject.ProductStatus;
+import com.backandwhite.application.port.out.CatalogEventPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,6 +33,9 @@ class ProductUseCaseImplTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private CatalogEventPort catalogEventPort;
 
     @InjectMocks
     private ProductUseCaseImpl productUseCase;

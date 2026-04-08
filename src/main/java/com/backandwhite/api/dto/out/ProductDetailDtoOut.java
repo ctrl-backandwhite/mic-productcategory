@@ -74,7 +74,7 @@ public class ProductDetailDtoOut {
     @Schema(description = "Propiedades del producto (EN)")
     private String productProEn;
 
-    @Schema(description = "Precio de venta", example = "0.84-2.94")
+    @Schema(description = "Precio de venta", example = "19.99")
     private String sellPrice;
 
     @Schema(description = "Descripción HTML del producto")

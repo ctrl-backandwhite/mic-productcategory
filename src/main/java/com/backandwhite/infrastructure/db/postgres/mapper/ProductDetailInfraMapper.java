@@ -18,6 +18,7 @@ public interface ProductDetailInfraMapper {
     @Mapping(target = "locale", source = "id.locale")
     ProductDetailTranslation toTranslationDomain(ProductDetailTranslationEntity entity);
 
+    @Mapping(target = "retailPrice", ignore = true)
     ProductDetailVariant toVariantDomain(ProductDetailVariantEntity entity);
 
     @Mapping(target = "locale", source = "id.locale")

@@ -36,8 +36,11 @@ public class ProductDtoOut {
     @Schema(description = "URLs de imágenes del producto (separadas por coma)")
     private String productImageSet;
 
-    @Schema(description = "Precio de venta", example = "19.99")
+    @Schema(description = "Precio de venta al público (con margen)", example = "27.99")
     private String sellPrice;
+
+    @Schema(description = "Precio de costo del proveedor", example = "19.99")
+    private String costPrice;
 
     @Schema(description = "Tipo de producto", example = "NORMAL")
     private String productType;

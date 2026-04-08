@@ -2,6 +2,7 @@ package com.backandwhite.domain.model;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,8 +16,8 @@ public class ProductFacets {
     @Builder.Default
     private List<FacetBrand> brands = new ArrayList<>();
 
-    private Double priceMin;
-    private Double priceMax;
+    private BigDecimal priceMin;
+    private BigDecimal priceMax;
 
     @Data
     @With

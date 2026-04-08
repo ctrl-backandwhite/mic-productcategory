@@ -159,3 +159,36 @@ databaseChangeLog:
                           - sqlFile:
                                     path: db.changelog-3.0.sql
                                     relativeToChangelogFile: "true"
+        # Disabled: sellPrice columns remain VARCHAR to support price ranges from CJ API (e.g. "0.78 -- 0.81")
+        #        - changeSet:
+        #                  id: 21
+        #                  author: Jesus.Finol
+        #                  context: local,develop
+        #                  changes:
+        #                          - sqlFile:
+        #                                    path: db.changelog-3.1.sql
+        #                                    relativeToChangelogFile: "true"
+        - changeSet:
+                  id: 22
+                  author: Jesus.Finol
+                  context: local,develop
+                  changes:
+                          - sqlFile:
+                                    path: db.changelog-3.2.sql
+                                    relativeToChangelogFile: "true"
+        - changeSet:
+                  id: 23
+                  author: Jesus.Finol
+                  context: local,develop
+                  changes:
+                          - sqlFile:
+                                    path: db.changelog-3.3.sql
+                                    relativeToChangelogFile: "true"
+        - changeSet:
+                  id: 24
+                  author: Jesus.Finol
+                  context: local,develop
+                  changes:
+                          - sqlFile:
+                                    path: db.changelog-3.4.sql
+                                    relativeToChangelogFile: "true"
