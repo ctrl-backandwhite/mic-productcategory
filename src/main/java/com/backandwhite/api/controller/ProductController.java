@@ -184,6 +184,7 @@ public class ProductController {
                         @Parameter(description = "Código de idioma", example = "en") @RequestParam(defaultValue = "en") String locale) {
 
                 ProductDetail detail = productDetailUseCase.getOrFetchFromCj(pid, locale);
+                pricingService.applyMarginsToProductDetail(detail);
                 return ResponseEntity.ok(productDetailApiMapper.toDto(detail));
         }
 

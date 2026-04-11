@@ -2,6 +2,7 @@ package com.backandwhite.domain.model;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,13 @@ public class ProductDetail {
     private Instant createrTime;
     private Instant createdAt;
     private Instant updatedAt;
+
+    // ── Currency fields (populated by PricingService after conversion) ──
+    private String currencyCode;
+    private String currencySymbol;
+    private BigDecimal sellPriceRaw;
+    private BigDecimal costPriceRaw;
+    private String costPrice;
 
     @Builder.Default
     private List<ProductDetailTranslation> translations = new ArrayList<>();

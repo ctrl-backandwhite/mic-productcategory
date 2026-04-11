@@ -3,6 +3,7 @@ package com.backandwhite.api.dto.out;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -103,6 +104,21 @@ public class ProductDetailDtoOut {
 
     @Schema(description = "Fecha de última actualización")
     private Instant updatedAt;
+
+    @Schema(description = "Código de moneda (ISO 4217)", example = "USD")
+    private String currencyCode;
+
+    @Schema(description = "Símbolo de la moneda", example = "$")
+    private String currencySymbol;
+
+    @Schema(description = "Precio de venta numérico (convertido a la moneda del usuario)")
+    private BigDecimal sellPriceRaw;
+
+    @Schema(description = "Precio de costo numérico (convertido a la moneda del usuario)")
+    private BigDecimal costPriceRaw;
+
+    @Schema(description = "Precio de costo (string, puede ser rango)")
+    private String costPrice;
 
     @Schema(description = "Traducciones del detalle")
     private List<ProductDetailTranslationDtoOut> translations;

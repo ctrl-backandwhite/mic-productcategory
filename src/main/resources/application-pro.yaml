@@ -26,4 +26,3 @@ logging:
 services:
   cms:
     url: ${SERVICES_CMS_URL:http://mic-cmsservice:8080}
-

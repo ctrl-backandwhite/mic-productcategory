@@ -16,10 +16,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * <p>
  * Registers:
  * <ul>
- *   <li>{@link CurrencyRequestFilter} — reads X-Currency header</li>
- *   <li>{@link CurrencyRateCache} — caches exchange rates from mic-cmsservice</li>
- *   <li>{@link PriceConversionService} — USD→target conversion</li>
- *   <li>{@link RestTemplate} — HTTP client for CMS rate fetching</li>
+ * <li>{@link CurrencyRequestFilter} — reads X-Currency header</li>
+ * <li>{@link CurrencyRateCache} — caches exchange rates from
+ * mic-cmsservice</li>
+ * <li>{@link PriceConversionService} — USD→target conversion</li>
+ * <li>{@link RestTemplate} — HTTP client for CMS rate fetching</li>
  * </ul>
  */
 @Configuration

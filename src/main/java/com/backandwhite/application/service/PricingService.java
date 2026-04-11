@@ -6,6 +6,7 @@ import com.backandwhite.common.domain.valueobject.Currency;
 import com.backandwhite.common.domain.valueobject.Money;
 import com.backandwhite.domain.model.PriceRule;
 import com.backandwhite.domain.model.Product;
+import com.backandwhite.domain.model.ProductDetail;
 import com.backandwhite.domain.model.ProductDetailVariant;
 import com.backandwhite.domain.repository.PriceRuleRepository;
 import com.backandwhite.domain.valueobject.MarginType;
@@ -156,6 +157,84 @@ public class PricingService {
     }
 
     /**
+     * Apply margins to a ProductDetail and convert to the currency from X-Currency
+     * header.
+     * Similar to {@link #applyMarginsToProduct(Product)} but for the full detail
+     * model.
+     */
+    public void applyMarginsToProductDetail(ProductDetail detail) {
+        if (detail.getVariants() == null || detail.getVariants().isEmpty()) {
+            // No variants: apply margin directly to the sellPrice string
+            applyMarginToSellPriceStringDetail(detail);
+        } else {
+            BigDecimal minRetail = null;
+            BigDecimal maxRetail = null;
+
+            for (ProductDetailVariant variant : detail.getVariants()) {
+                Money retailPrice = calculateRetailPrice(variant, detail.getPid(), detail.getCategoryId());
+                if (retailPrice != null) {
+                    variant.setRetailPrice(retailPrice);
+                    BigDecimal amount = retailPrice.getAmount();
+                    if (minRetail == null || amount.compareTo(minRetail) < 0)
+                        minRetail = amount;
+                    if (maxRetail == null || amount.compareTo(maxRetail) > 0)
+                        maxRetail = amount;
+                }
+            }
+
+            if (minRetail != null) {
+                String costPrice = detail.getSellPrice();
+                detail.setCostPrice(costPrice);
+
+                if (maxRetail.compareTo(minRetail) == 0) {
+                    detail.setSellPrice(minRetail.toPlainString());
+                } else {
+                    detail.setSellPrice(minRetail.toPlainString() + " -- " + maxRetail.toPlainString());
+                }
+            }
+        }
+
+        // Convert to requested currency (X-Currency header)
+        convertProductDetailToRequestCurrency(detail);
+    }
+
+    /**
+     * For ProductDetail without variants loaded, parse the range string and apply
+     * the matching margin rule to each part.
+     */
+    private void applyMarginToSellPriceStringDetail(ProductDetail detail) {
+        String raw = detail.getSellPrice();
+        if (raw == null || raw.isBlank())
+            return;
+
+        detail.setCostPrice(raw);
+
+        String[] parts = raw.split("\\s*--\\s*|\\s*-\\s*");
+        StringBuilder retailRange = new StringBuilder();
+
+        for (int i = 0; i < parts.length; i++) {
+            try {
+                BigDecimal cost = new BigDecimal(parts[i].trim());
+                Optional<PriceRule> rule = resolveRule(null, detail.getPid(), detail.getCategoryId(), cost);
+                if (i > 0)
+                    retailRange.append(" -- ");
+                if (rule.isPresent()) {
+                    Money retailMoney = applyMargin(Money.of(cost), rule.get());
+                    retailRange.append(retailMoney.toPlainString());
+                } else {
+                    retailRange.append(cost.toPlainString());
+                }
+            } catch (NumberFormatException e) {
+                if (i > 0)
+                    retailRange.append(" -- ");
+                retailRange.append(parts[i].trim());
+            }
+        }
+
+        detail.setSellPrice(retailRange.toString());
+    }
+
+    /**
      * For products without variants loaded, parse the range string and apply the
      * matching rule (considering price range) to each part.
      */
@@ -203,7 +282,8 @@ public class PricingService {
     // ── Currency conversion ─────────────────────────────────────────────────
 
     /**
-     * Convert all prices in a product to the currency requested via X-Currency header.
+     * Convert all prices in a product to the currency requested via X-Currency
+     * header.
      * If the header is absent or "USD", prices stay in USD (backward compatible).
      */
     private void convertProductToRequestCurrency(Product product) {
@@ -254,7 +334,8 @@ public class PricingService {
     }
 
     /**
-     * Set raw price BigDecimals from USD sellPrice/costPrice strings (no conversion).
+     * Set raw price BigDecimals from USD sellPrice/costPrice strings (no
+     * conversion).
      */
     private void setRawPricesUsd(Product product) {
         product.setSellPriceRaw(parseMinPrice(product.getSellPrice()));
@@ -267,16 +348,71 @@ public class PricingService {
     }
 
     /**
+     * Convert all prices in a ProductDetail to the currency requested via
+     * X-Currency header.
+     */
+    private void convertProductDetailToRequestCurrency(ProductDetail detail) {
+        String currencyCode = CurrencyHolder.get();
+        Currency currency;
+        try {
+            currency = Currency.fromCode(currencyCode);
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown currency '{}', defaulting to USD", currencyCode);
+            currency = Currency.USD;
+            currencyCode = "USD";
+        }
+
+        detail.setCurrencyCode(currencyCode);
+        detail.setCurrencySymbol(currency.getSymbol());
+
+        if ("USD".equals(currencyCode)) {
+            detail.setSellPriceRaw(parseMinPrice(detail.getSellPrice()));
+            detail.setCostPriceRaw(parseMinPrice(detail.getCostPrice()));
+            if (detail.getVariants() != null) {
+                for (ProductDetailVariant variant : detail.getVariants()) {
+                    variant.setCurrencyCode("USD");
+                }
+            }
+            return;
+        }
+
+        BigDecimal rate = currencyRateCache.getRate(currencyCode);
+
+        detail.setSellPrice(convertPriceString(detail.getSellPrice(), rate));
+        detail.setCostPrice(convertPriceString(detail.getCostPrice(), rate));
+        detail.setSuggestSellPrice(convertPriceString(detail.getSuggestSellPrice(), rate));
+        detail.setSellPriceRaw(parseMinPrice(detail.getSellPrice()));
+        detail.setCostPriceRaw(parseMinPrice(detail.getCostPrice()));
+
+        if (detail.getVariants() != null) {
+            for (ProductDetailVariant variant : detail.getVariants()) {
+                variant.setCurrencyCode(currencyCode);
+                if (variant.getVariantSellPrice() != null) {
+                    variant.setVariantSellPrice(variant.getVariantSellPrice().convertTo(currency, rate));
+                }
+                if (variant.getVariantSugSellPrice() != null) {
+                    variant.setVariantSugSellPrice(variant.getVariantSugSellPrice().convertTo(currency, rate));
+                }
+                if (variant.getRetailPrice() != null) {
+                    variant.setRetailPrice(variant.getRetailPrice().convertTo(currency, rate));
+                }
+            }
+        }
+    }
+
+    /**
      * Convert a price string like "12.50" or "12.50 -- 25.88" using the given rate.
      */
     private String convertPriceString(String priceString, BigDecimal rate) {
-        if (priceString == null || priceString.isBlank()) return priceString;
+        if (priceString == null || priceString.isBlank())
+            return priceString;
 
         String[] parts = priceString.split("\\s*--\\s*|\\s*-\\s*");
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < parts.length; i++) {
-            if (i > 0) result.append(" -- ");
+            if (i > 0)
+                result.append(" -- ");
             try {
                 BigDecimal val = new BigDecimal(parts[i].trim());
                 BigDecimal converted = val.multiply(rate).setScale(2, RoundingMode.HALF_UP);
@@ -292,7 +428,8 @@ public class PricingService {
      * Parse the minimum (first) price from a price string.
      */
     private BigDecimal parseMinPrice(String priceString) {
-        if (priceString == null || priceString.isBlank()) return null;
+        if (priceString == null || priceString.isBlank())
+            return null;
         String[] parts = priceString.split("\\s*--\\s*|\\s*-\\s*");
         try {
             return new BigDecimal(parts[0].trim());
