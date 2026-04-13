@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -105,7 +106,8 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public void deleteAll(List<String> productIds) {
-        if (productIds == null || productIds.isEmpty()) return;
+        if (productIds == null || productIds.isEmpty())
+            return;
         List<ProductEntity> entities = productJpaRepository.findAllByIdIn(productIds);
         productJpaRepository.deleteAll(entities);
     }
@@ -114,8 +116,10 @@ public class ProductRepositoryImpl implements ProductRepository {
     public void enrichDetail(String productId, String description, String productImageSet) {
         ProductEntity entity = productJpaRepository.findById(productId)
                 .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", productId));
-        if (description != null) entity.setDescription(description);
-        if (productImageSet != null) entity.setProductImageSet(productImageSet);
+        if (description != null)
+            entity.setDescription(description);
+        if (productImageSet != null)
+            entity.setProductImageSet(productImageSet);
         productJpaRepository.save(entity);
     }
 
@@ -129,7 +133,8 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public void bulkUpdateStatus(List<String> productIds, ProductStatus status) {
-        if (productIds == null || productIds.isEmpty()) return;
+        if (productIds == null || productIds.isEmpty())
+            return;
         productJpaRepository.bulkUpdateStatus(productIds, status);
     }
 
@@ -139,8 +144,14 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public int[] bulkSyncProducts(List<Product> products) {
-        if (products.isEmpty()) return new int[]{0, 0};
+    public Page<String> findProductIdsByCategoryIds(List<String> categoryIds, int page, int size) {
+        return productJpaRepository.findIdsByCategoryIds(categoryIds, PageRequest.of(page, size));
+    }
+
+    @Override
+    public int[] bulkSyncProducts(List<Product> products, boolean forceOverwrite) {
+        if (products.isEmpty())
+            return new int[] { 0, 0, 0 };
 
         List<String> ids = products.stream().map(Product::getId).toList();
         Map<String, ProductEntity> existingMap = productJpaRepository.findAllByIdIn(ids).stream()
@@ -149,23 +160,38 @@ public class ProductRepositoryImpl implements ProductRepository {
         List<ProductEntity> toSave = new ArrayList<>();
         int created = 0;
         int updated = 0;
+        int skipped = 0;
 
         for (Product product : products) {
             ProductEntity existing = existingMap.get(product.getId());
             if (existing != null) {
-                applyFieldsToEntity(existing, product);
-                upsertTranslations(existing, product.getTranslations());
-                toSave.add(existing);
-                updated++;
+                if (forceOverwrite) {
+                    applyFieldsToEntity(existing, product);
+                    upsertTranslations(existing, product.getTranslations());
+                    toSave.add(existing);
+                    updated++;
+                } else {
+                    boolean changed = applyChangedFields(existing, product);
+                    changed |= upsertTranslationsIfChanged(existing, product.getTranslations());
+                    if (changed) {
+                        toSave.add(existing);
+                        updated++;
+                    } else {
+                        skipped++;
+                    }
+                }
             } else {
                 toSave.add(productInfraMapper.toEntityWithChildren(product));
                 created++;
             }
         }
 
-        productJpaRepository.saveAll(toSave);
-        log.info("Bulk sync persisted: {} entities ({} created, {} updated)", toSave.size(), created, updated);
-        return new int[]{created, updated};
+        if (!toSave.isEmpty()) {
+            productJpaRepository.saveAll(toSave);
+        }
+        log.info("Bulk sync persisted: {} entities ({} created, {} updated, {} skipped)", toSave.size(), created,
+                updated, skipped);
+        return new int[] { created, updated, skipped };
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -179,14 +205,93 @@ public class ProductRepositoryImpl implements ProductRepository {
         entity.setSellPrice(product.getSellPrice());
         entity.setProductType(product.getProductType());
         entity.setDescription(product.getDescription());
-        if (product.getListedNum() != null) entity.setListedNum(product.getListedNum());
-        if (product.getWarehouseInventoryNum() != null) entity.setWarehouseInventoryNum(product.getWarehouseInventoryNum());
-        if (product.getIsVideo() != null) entity.setIsVideo(product.getIsVideo());
+        if (product.getListedNum() != null)
+            entity.setListedNum(product.getListedNum());
+        if (product.getWarehouseInventoryNum() != null)
+            entity.setWarehouseInventoryNum(product.getWarehouseInventoryNum());
+        if (product.getIsVideo() != null)
+            entity.setIsVideo(product.getIsVideo());
+    }
+
+    /**
+     * Applies only fields that actually changed. Returns true if at least one field
+     * was updated.
+     */
+    private boolean applyChangedFields(ProductEntity entity, Product product) {
+        boolean changed = false;
+        if (!Objects.equals(entity.getSku(), product.getSku())) {
+            entity.setSku(product.getSku());
+            changed = true;
+        }
+        if (!Objects.equals(entity.getCategoryId(), product.getCategoryId())) {
+            entity.setCategoryId(product.getCategoryId());
+            changed = true;
+        }
+        if (!Objects.equals(entity.getBigImage(), product.getBigImage())) {
+            entity.setBigImage(product.getBigImage());
+            changed = true;
+        }
+        if (!Objects.equals(entity.getProductImageSet(), product.getProductImageSet())) {
+            entity.setProductImageSet(product.getProductImageSet());
+            changed = true;
+        }
+        if (!Objects.equals(entity.getSellPrice(), product.getSellPrice())) {
+            entity.setSellPrice(product.getSellPrice());
+            changed = true;
+        }
+        if (!Objects.equals(entity.getProductType(), product.getProductType())) {
+            entity.setProductType(product.getProductType());
+            changed = true;
+        }
+        if (!Objects.equals(entity.getDescription(), product.getDescription())) {
+            entity.setDescription(product.getDescription());
+            changed = true;
+        }
+        if (product.getListedNum() != null && !Objects.equals(entity.getListedNum(), product.getListedNum())) {
+            entity.setListedNum(product.getListedNum());
+            changed = true;
+        }
+        if (product.getWarehouseInventoryNum() != null
+                && !Objects.equals(entity.getWarehouseInventoryNum(), product.getWarehouseInventoryNum())) {
+            entity.setWarehouseInventoryNum(product.getWarehouseInventoryNum());
+            changed = true;
+        }
+        if (product.getIsVideo() != null && !Objects.equals(entity.getIsVideo(), product.getIsVideo())) {
+            entity.setIsVideo(product.getIsVideo());
+            changed = true;
+        }
+        return changed;
+    }
+
+    /**
+     * Upserts translations only if they differ. Returns true if any translation was
+     * added or changed.
+     */
+    private boolean upsertTranslationsIfChanged(ProductEntity entity, List<ProductTranslation> translations) {
+        if (translations == null)
+            return false;
+        boolean changed = false;
+        for (ProductTranslation t : translations) {
+            var match = entity.getTranslations().stream()
+                    .filter(e -> e.getId().getLocale().equals(t.getLocale()))
+                    .findFirst();
+            if (match.isPresent()) {
+                if (!Objects.equals(match.get().getName(), t.getName())) {
+                    match.get().setName(t.getName());
+                    changed = true;
+                }
+            } else {
+                entity.getTranslations().add(buildTranslation(entity, t.getLocale(), t.getName()));
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     /** Upserts the given translations into the entity (add or update by locale). */
     private void upsertTranslations(ProductEntity entity, List<ProductTranslation> translations) {
-        if (translations == null) return;
+        if (translations == null)
+            return;
         for (ProductTranslation t : translations) {
             entity.getTranslations().stream()
                     .filter(e -> e.getId().getLocale().equals(t.getLocale()))
@@ -210,7 +315,8 @@ public class ProductRepositoryImpl implements ProductRepository {
      * Falls back to keeping all translations when the locale is not found.
      */
     private Product filterTranslations(Product product, String locale) {
-        if (locale == null || locale.isBlank()) return product;
+        if (locale == null || locale.isBlank())
+            return product;
 
         List<ProductTranslation> filtered = product.getTranslations().stream()
                 .filter(t -> locale.equals(t.getLocale()))
@@ -222,11 +328,10 @@ public class ProductRepositoryImpl implements ProductRepository {
         }
 
         if (product.getVariants() != null) {
-            product.getVariants().forEach(variant ->
-                    variant.setTranslations(
-                            variant.getTranslations().stream()
-                                    .filter(t -> locale.equals(t.getLocale()))
-                                    .toList()));
+            product.getVariants().forEach(variant -> variant.setTranslations(
+                    variant.getTranslations().stream()
+                            .filter(t -> locale.equals(t.getLocale()))
+                            .toList()));
         }
 
         return product;

@@ -105,6 +105,15 @@ public class ProductDetailEntity extends AuditableEntity {
     @Column(name = "creater_time")
     private Instant createrTime;
 
+    @Column(name = "product_synced_at")
+    private Instant productSyncedAt;
+
+    @Column(name = "inventory_synced_at")
+    private Instant inventorySyncedAt;
+
+    @Column(name = "reviews_synced_at")
+    private Instant reviewsSyncedAt;
+
     @ToString.Exclude
     @Builder.Default
     @EqualsAndHashCode.Exclude

@@ -29,4 +29,11 @@ public class Review {
 
     @Builder.Default
     private List<String> images = new ArrayList<>();
+
+    private String externalReviewId;
+
+    @Builder.Default
+    private String source = "USER";
+
+    private String countryCode;
 }

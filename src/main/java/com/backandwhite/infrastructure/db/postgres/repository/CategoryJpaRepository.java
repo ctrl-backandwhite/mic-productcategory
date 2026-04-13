@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -33,4 +34,15 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, Str
     @Query("UPDATE CategoryEntity c SET c.status = :status WHERE c.id IN :ids")
     int bulkUpdateStatus(@Param("ids") List<String> ids,
             @Param("status") com.backandwhite.domain.valueobject.CategoryStatus status);
+
+    @Query("SELECT c.id FROM CategoryEntity c WHERE c.level = :level")
+    List<String> findIdsByLevel(@Param("level") int level);
+
+    @Modifying
+    @Query("UPDATE CategoryEntity c SET c.status = com.backandwhite.domain.valueobject.CategoryStatus.PUBLISHED WHERE c.status = com.backandwhite.domain.valueobject.CategoryStatus.DRAFT")
+    int publishAllDrafts();
+
+    @Modifying
+    @Query("UPDATE CategoryEntity c SET c.lastDiscoveredAt = :now WHERE c.id = :categoryId")
+    void updateLastDiscoveredAt(@Param("categoryId") String categoryId, @Param("now") Instant now);
 }

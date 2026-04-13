@@ -75,22 +75,20 @@ public class CategoryController {
     }
 
     @PostMapping("/search")
-    @Operation(
-            summary = "Búsqueda paginada con filtros dinámicos",
-            description = """
-                    Listado paginado de categorías con filtros dinámicos vía reflexión.
-                    Solo los campos no nulos del objeto `filters` se aplican como predicados de igualdad.
-                    Soporta filtrado por locale (traducciones) + cualquier propiedad del DTO.
+    @Operation(summary = "Búsqueda paginada con filtros dinámicos", description = """
+            Listado paginado de categorías con filtros dinámicos vía reflexión.
+            Solo los campos no nulos del objeto `filters` se aplican como predicados de igualdad.
+            Soporta filtrado por locale (traducciones) + cualquier propiedad del DTO.
 
-                    Ejemplo de body:
-                    ```json
-                    {
-                      "page": 0, "size": 20, "sortBy": "level", "ascending": true,
-                      "locale": "es",
-                      "filters": { "status": "PUBLISHED", "active": true, "level": 1 }
-                    }
-                    ```
-                    """)
+            Ejemplo de body:
+            ```json
+            {
+              "page": 0, "size": 20, "sortBy": "level", "ascending": true,
+              "locale": "es",
+              "filters": { "status": "PUBLISHED", "active": true, "level": 1 }
+            }
+            ```
+            """)
     public ResponseEntity<PaginationDtoOut<CategoryDtoOut>> search(
             @Valid @RequestBody PageFilterRequest<CategoryFilterDto> request) {
 
@@ -98,7 +96,8 @@ public class CategoryController {
 
         // toFilterMap extrae via reflexión solo los campos no nulos del DTO de filtros
         // El mapa resultante: { status → PUBLISHED, active → true, level → 1 }
-        // Se pasa al use case que lo convierte a Specification con FilterUtils.buildSpecification()
+        // Se pasa al use case que lo convierte a Specification con
+        // FilterUtils.buildSpecification()
         Page<Category> result = categoryUseCase.findCategoriesPaged(
                 request.getLocale(),
                 request.getFilters() != null ? request.getFilters().getStatus() : null,
@@ -169,6 +168,13 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/publish-all-drafts")
+    @Operation(summary = "Publicar todas las categorías en borrador")
+    public ResponseEntity<java.util.Map<String, Integer>> publishAllDrafts() {
+        int count = categoryUseCase.publishAllDrafts();
+        return ResponseEntity.ok(java.util.Map.of("updated", count));
+    }
+
     @PatchMapping("/{id}/active")
     @Operation(summary = "Activar / desactivar categoría")
     public ResponseEntity<Void> toggleActive(
@@ -231,7 +237,8 @@ public class CategoryController {
 
     private List<CategoryTranslation> toTranslations(
             List<com.backandwhite.api.dto.in.CategoryTranslationDtoIn> dtos) {
-        if (dtos == null || dtos.isEmpty()) return null;
+        if (dtos == null || dtos.isEmpty())
+            return null;
         return dtos.stream()
                 .map(t -> CategoryTranslation.builder()
                         .locale(t.getLocale())

@@ -24,4 +24,6 @@ public interface ReviewJpaRepository extends JpaRepository<ReviewEntity, String>
 
     @Query("SELECT COUNT(r) FROM ReviewEntity r WHERE r.productId = :productId AND r.status = 'APPROVED' AND r.rating = :rating")
     Long countByProductIdAndRating(@Param("productId") String productId, @Param("rating") int rating);
+
+    boolean existsByExternalReviewId(String externalReviewId);
 }

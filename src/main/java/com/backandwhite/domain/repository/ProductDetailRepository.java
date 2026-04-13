@@ -20,6 +20,20 @@ public interface ProductDetailRepository {
 
     ProductDetail save(ProductDetail productDetail);
 
+    long countAll();
+
+    List<String> findPidsNeedingInventorySync(int limit);
+
+    List<String> findPidsNeedingProductSync(int limit);
+
+    List<String> findPidsNeedingReviewsSync(int limit);
+
+    void markInventorySynced(String pid);
+
+    void markProductSynced(String pid);
+
+    void markReviewsSynced(String pid);
+
     // ── Variant CRUD ─────────────────────────────────────────────────────────
 
     Page<ProductDetailVariant> findAllVariantsPaged(Pageable pageable);

@@ -1,0 +1,133 @@
+package com.backandwhite.api.controller;
+
+import com.backandwhite.api.dto.out.CjSyncResultDtoOut;
+import com.backandwhite.api.dto.out.SyncLogDtoOut;
+import com.backandwhite.application.usecase.CjInventorySyncUseCase;
+import com.backandwhite.application.usecase.CjProductFullSyncUseCase;
+import com.backandwhite.application.usecase.CjReviewSyncUseCase;
+import com.backandwhite.common.constants.AppConstants;
+import com.backandwhite.common.security.annotation.NxAdmin;
+import com.backandwhite.domain.model.CjSyncResult;
+import com.backandwhite.domain.model.SyncLog;
+import com.backandwhite.domain.repository.SyncLogRepository;
+import com.backandwhite.domain.valueobject.SyncType;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/sync")
+@Tag(name = "CJ Sync", description = "Endpoints de sincronización manual con CJ Dropshipping")
+public class CjSyncController {
+
+    private final CjInventorySyncUseCase cjInventorySyncUseCase;
+    private final CjProductFullSyncUseCase cjProductFullSyncUseCase;
+    private final CjReviewSyncUseCase cjReviewSyncUseCase;
+    private final SyncLogRepository syncLogRepository;
+
+    // ── Inventory ─────────────────────────────────────────────────────────────
+
+    @NxAdmin
+    @PostMapping("/inventory/all")
+    @Operation(summary = "Sincronizar inventario de todos los productos", description = "Lanza una sincronización de inventario para todos los productos con datos desactualizados (>4h)")
+    public ResponseEntity<CjSyncResultDtoOut> syncAllInventory(
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+            @Parameter(description = "Forzar re-sync aunque el inventario sea reciente") @RequestParam(defaultValue = "false") boolean force) {
+        return ResponseEntity.ok(toDto(cjInventorySyncUseCase.syncAll(force)));
+    }
+
+    @NxAdmin
+    @PostMapping("/inventory/product/{pid}")
+    @Operation(summary = "Sincronizar inventario de un producto específico")
+    public ResponseEntity<CjSyncResultDtoOut> syncInventoryByPid(
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+            @PathVariable String pid) {
+        return ResponseEntity.ok(toDto(cjInventorySyncUseCase.syncByPid(pid)));
+    }
+
+    // ── Product full sync ─────────────────────────────────────────────────────
+
+    @NxAdmin
+    @PostMapping("/product/all")
+    @Operation(summary = "Sincronizar datos completos de todos los productos", description = "Lanza una sincronización completa (nombre, descripción, imágenes, variantes) para productos desactualizados")
+    public ResponseEntity<CjSyncResultDtoOut> syncAllProducts(
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+            @Parameter(description = "Forzar re-sync aunque el producto sea reciente") @RequestParam(defaultValue = "false") boolean force) {
+        return ResponseEntity.ok(toDto(cjProductFullSyncUseCase.syncAll(force)));
+    }
+
+    @NxAdmin
+    @PostMapping("/product/{pid}")
+    @Operation(summary = "Sincronizar datos completos de un producto específico")
+    public ResponseEntity<CjSyncResultDtoOut> syncProductByPid(
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+            @PathVariable String pid) {
+        return ResponseEntity.ok(toDto(cjProductFullSyncUseCase.syncByPid(pid)));
+    }
+
+    // ── Reviews ───────────────────────────────────────────────────────────────
+
+    @NxAdmin
+    @PostMapping("/reviews/all")
+    @Operation(summary = "Sincronizar reseñas de CJ para todos los productos", description = "Importa nuevas reseñas desde CJ para los productos sin sync hoy")
+    public ResponseEntity<CjSyncResultDtoOut> syncAllReviews(
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+            @Parameter(description = "Forzar re-sync aunque el producto ya se sincronizó hoy") @RequestParam(defaultValue = "false") boolean force) {
+        return ResponseEntity.ok(toDto(cjReviewSyncUseCase.syncAll(force)));
+    }
+
+    @NxAdmin
+    @PostMapping("/reviews/product/{pid}")
+    @Operation(summary = "Sincronizar reseñas de CJ para un producto específico")
+    public ResponseEntity<CjSyncResultDtoOut> syncReviewsByPid(
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+            @PathVariable String pid) {
+        return ResponseEntity.ok(toDto(cjReviewSyncUseCase.syncByPid(pid)));
+    }
+
+    // ── Monitoring ────────────────────────────────────────────────────────────
+
+    @NxAdmin
+    @GetMapping("/log/{syncType}")
+    @Operation(summary = "Ver historial de sincronizaciones recientes", description = "Devuelve los últimos 10 registros de sync para el tipo indicado")
+    public ResponseEntity<List<SyncLogDtoOut>> getSyncLog(
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+            @Parameter(description = "Tipo de sync: INVENTORY, PRODUCT_FULL, REVIEWS, CATEGORIES") @PathVariable String syncType) {
+        List<SyncLog> logs = syncLogRepository.findRecentByType(SyncType.valueOf(syncType.toUpperCase()), 10);
+        return ResponseEntity.ok(logs.stream().map(this::toLogDto).toList());
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private CjSyncResultDtoOut toDto(CjSyncResult result) {
+        return CjSyncResultDtoOut.builder()
+                .totalItems(result.getTotalItems())
+                .syncedItems(result.getSyncedItems())
+                .failedItems(result.getFailedItems())
+                .skippedItems(result.getSkippedItems())
+                .durationMs(result.getDurationMs())
+                .syncLogId(result.getSyncLogId())
+                .build();
+    }
+
+    private SyncLogDtoOut toLogDto(SyncLog log) {
+        return SyncLogDtoOut.builder()
+                .id(log.getId())
+                .syncType(log.getSyncType() != null ? log.getSyncType().name() : null)
+                .status(log.getStatus() != null ? log.getStatus().name() : null)
+                .startedAt(log.getStartedAt())
+                .finishedAt(log.getFinishedAt())
+                .totalItems(log.getTotalItems())
+                .syncedItems(log.getSyncedItems())
+                .failedItems(log.getFailedItems())
+                .skippedItems(log.getSkippedItems())
+                .errorMessage(log.getErrorMessage())
+                .build();
+    }
+}

@@ -368,11 +368,13 @@ public class ProductController {
 
         @PostMapping("/sync")
         @Operation(summary = "Sincronizar todos los productos", description = "Sincroniza TODOS los productos desde CJ Dropshipping (listV2). Pagina internamente con intervalos de 10 s.")
-        public ResponseEntity<ProductSyncResultDtoOut> syncFromCjDropshipping() {
-                ProductSyncResult result = productSyncUseCase.syncFromCjDropshipping();
+        public ResponseEntity<ProductSyncResultDtoOut> syncFromCjDropshipping(
+                        @RequestParam(defaultValue = "true") boolean forceOverwrite) {
+                ProductSyncResult result = productSyncUseCase.syncFromCjDropshipping(forceOverwrite);
                 return ResponseEntity.ok(ProductSyncResultDtoOut.builder()
                                 .created(result.getCreated())
                                 .updated(result.getUpdated())
+                                .skipped(result.getSkipped())
                                 .total(result.getTotal())
                                 .page(result.getPage())
                                 .hasMore(result.isHasMore())
@@ -380,17 +382,39 @@ public class ProductController {
         }
 
         @PostMapping("/sync/page")
-        @Operation(summary = "Sincronizar una página de productos", description = "Sincroniza UNA página de productos desde CJ Dropshipping. El frontend itera llamando con page incremental hasta que hasMore=false.")
+        @Operation(summary = "Sincronizar una página de productos", description = "Sincroniza UNA página de productos desde CJ Dropshipping. El frontend itera llamando con page incremental hasta que hasMore=false. Opcionalmente filtra por categoryIds separados por coma.")
         public ResponseEntity<ProductSyncResultDtoOut> syncPageFromCjDropshipping(
                         @RequestParam(defaultValue = "1") int page,
-                        @RequestParam(defaultValue = "100") int size) {
-                ProductSyncResult result = productSyncUseCase.syncPageFromCjDropshipping(page, size);
+                        @RequestParam(defaultValue = "100") int size,
+                        @RequestParam(defaultValue = "true") boolean forceOverwrite,
+                        @RequestParam(required = false) List<String> categoryIds) {
+                ProductSyncResult result = productSyncUseCase.syncPageFromCjDropshipping(page, size, forceOverwrite,
+                                categoryIds);
                 return ResponseEntity.ok(ProductSyncResultDtoOut.builder()
                                 .created(result.getCreated())
                                 .updated(result.getUpdated())
+                                .skipped(result.getSkipped())
                                 .total(result.getTotal())
                                 .page(result.getPage())
                                 .hasMore(result.isHasMore())
+                                .build());
+        }
+
+        @PostMapping("/sync/discover/page")
+        @Operation(summary = "Descubrir productos nuevos por categoría", description = "Recorre las categorías L3 sincronizadas y busca productos nuevos en CJ "
+                        + "que aún no existen en la BD local. Procesa UNA categoría por llamada. "
+                        + "El frontend itera incrementando offset hasta que hasMore=false.")
+        public ResponseEntity<ProductSyncResultDtoOut> discoverNewByCategory(
+                        @Parameter(description = "Offset 0-based en la lista de categorías L3") @RequestParam(defaultValue = "0") int offset) {
+                ProductSyncResult result = productSyncUseCase.discoverNewProductsByCategory(offset);
+                return ResponseEntity.ok(ProductSyncResultDtoOut.builder()
+                                .created(result.getCreated())
+                                .updated(result.getUpdated())
+                                .skipped(result.getSkipped())
+                                .total(result.getTotal())
+                                .page(result.getPage())
+                                .hasMore(result.isHasMore())
+                                .totalCategories(result.getTotalCategories())
                                 .build());
         }
 }

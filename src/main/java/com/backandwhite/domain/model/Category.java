@@ -23,6 +23,7 @@ public class Category {
     private Boolean featured;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant lastDiscoveredAt;
 
     @Builder.Default
     private List<CategoryTranslation> translations = new ArrayList<>();

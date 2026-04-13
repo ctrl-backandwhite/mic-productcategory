@@ -37,6 +37,7 @@ public interface CategoryInfraMapper {
     @Mapping(target = "translations", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "lastDiscoveredAt", ignore = true)
     CategoryEntity toEntity(Category domain);
 
     @Mapping(target = "id", expression = "java(new CategoryTranslationId(categoryId, t.getLocale()))")

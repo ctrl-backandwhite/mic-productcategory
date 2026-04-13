@@ -65,4 +65,14 @@ public class ReviewEntity extends AuditableEntity {
     @Column(name = "images", columnDefinition = "jsonb")
     @Builder.Default
     private List<String> images = new ArrayList<>();
+
+    @Column(name = "external_review_id", length = 64, unique = true)
+    private String externalReviewId;
+
+    @Column(name = "source", length = 30, nullable = false)
+    @Builder.Default
+    private String source = "USER";
+
+    @Column(name = "country_code", length = 5)
+    private String countryCode;
 }

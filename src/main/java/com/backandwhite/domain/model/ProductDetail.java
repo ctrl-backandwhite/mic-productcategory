@@ -44,6 +44,9 @@ public class ProductDetail {
     private Instant createrTime;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant productSyncedAt;
+    private Instant inventorySyncedAt;
+    private Instant reviewsSyncedAt;
 
     // ── Currency fields (populated by PricingService after conversion) ──
     private String currencyCode;

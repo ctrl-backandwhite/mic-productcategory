@@ -6,6 +6,7 @@ import com.backandwhite.domain.valueobject.ReviewStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ReviewRepository {
@@ -18,6 +19,8 @@ public interface ReviewRepository {
 
     Review save(Review review);
 
+    void saveAll(List<Review> reviews);
+
     void delete(String reviewId);
 
     void updateStatus(String reviewId, ReviewStatus status);
@@ -27,4 +30,6 @@ public interface ReviewRepository {
     boolean addHelpfulVote(String reviewId, String sessionId);
 
     void incrementHelpfulCount(String reviewId);
+
+    boolean existsByExternalReviewId(String externalReviewId);
 }

@@ -106,6 +106,12 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
     }
 
     @Override
+    @Transactional
+    public int publishAllDrafts() {
+        return categoryRepository.publishAllDrafts();
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<Category> findFeatured(String locale) {
         return categoryRepository.findFeatured(locale);

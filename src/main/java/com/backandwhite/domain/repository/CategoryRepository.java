@@ -48,4 +48,10 @@ public interface CategoryRepository {
          * building).
          */
         String saveAndReturnId(Category category);
+
+        List<String> findAllLevel3Ids();
+
+        int publishAllDrafts();
+
+        void updateLastDiscoveredAt(String categoryId);
 }

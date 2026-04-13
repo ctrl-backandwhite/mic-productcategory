@@ -5,11 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Represents a paged response from CJ product/listV2 endpoint.
  * The "data" field of CjApiResponseDto wraps this object.
+ *
+ * CJ actual response:
+ * { pageSize, pageNumber, totalRecords, totalPages, content: [ { productList:
+ * [...], ... } ] }
  */
 @Data
 @NoArgsConstructor
@@ -17,8 +23,25 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CjProductListPageDto {
 
-    private Integer pageNum;
+    private Integer pageNumber;
     private Integer pageSize;
-    private Integer total;
-    private List<CjProductDetailDto> list;
+    private Integer totalRecords;
+    private Integer totalPages;
+    private List<CjProductListV2ContentDto> content;
+
+    /**
+     * Flattens all products from nested content[].productList[] into a single list.
+     */
+    public List<CjProductListV2ItemDto> getAllProducts() {
+        if (content == null || content.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<CjProductListV2ItemDto> all = new ArrayList<>();
+        for (CjProductListV2ContentDto entry : content) {
+            if (entry.getProductList() != null) {
+                all.addAll(entry.getProductList());
+            }
+        }
+        return all;
+    }
 }

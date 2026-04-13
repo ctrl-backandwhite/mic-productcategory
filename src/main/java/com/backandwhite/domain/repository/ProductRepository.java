@@ -34,12 +34,16 @@ public interface ProductRepository {
 
     Page<String> findAllProductIds(int page, int size);
 
+    Page<String> findProductIdsByCategoryIds(List<String> categoryIds, int page, int size);
+
     /**
      * Bulk sync: recibe una lista de Products (ya mapeados desde CJ).
      * Para cada uno, si existe lo actualiza; si no, lo crea.
      * Hace una sola lectura masiva y un solo saveAll.
-     * 
-     * @return int[]{created, updated}
+     *
+     * @param forceOverwrite true = overwrite all fields; false = only update
+     *                       changed fields (skip unchanged)
+     * @return int[]{created, updated, skipped}
      */
-    int[] bulkSyncProducts(List<Product> products);
+    int[] bulkSyncProducts(List<Product> products, boolean forceOverwrite);
 }

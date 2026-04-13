@@ -82,6 +82,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>au.com.dius.pact.provider</groupId>
+            <artifactId>junit5spring</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.backandwhite.core</groupId>
             <artifactId>app-common</artifactId>
         </dependency>

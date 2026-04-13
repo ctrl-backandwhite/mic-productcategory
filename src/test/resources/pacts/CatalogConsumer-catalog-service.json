@@ -1,0 +1,115 @@
+{
+  "consumer": {
+    "name": "CatalogConsumer"
+  },
+  "interactions": [
+    {
+      "description": "a request to get product by id",
+      "providerStates": [
+        {
+          "name": "product prod-001 exists with category cat-electronics-001"
+        }
+      ],
+      "request": {
+        "headers": {
+          "X-nx036-auth": "service-cms"
+        },
+        "method": "GET",
+        "path": "/api/v1/products/prod-001"
+      },
+      "response": {
+        "body": {
+          "categoryId": "cat-electronics-001",
+          "id": "prod-001"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.categoryId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to get category tree in English",
+      "providerStates": [
+        {
+          "name": "category tree exists with electronics category"
+        }
+      ],
+      "request": {
+        "headers": {
+          "X-nx036-auth": "service-cms"
+        },
+        "method": "GET",
+        "path": "/api/v1/categories",
+        "query": {
+          "locale": [
+            "en"
+          ]
+        }
+      },
+      "response": {
+        "body": [
+          {
+            "id": "cat-electronics-001",
+            "subCategories": []
+          }
+        ],
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$[0].id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0].subCategories": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.16"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "catalog-service"
+  }
+}

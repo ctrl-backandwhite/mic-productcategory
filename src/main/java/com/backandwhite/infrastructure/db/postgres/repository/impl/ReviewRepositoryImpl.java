@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -99,6 +100,19 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     @Override
     public void incrementHelpfulCount(String reviewId) {
         reviewJpaRepository.incrementHelpfulCount(reviewId);
+    }
+
+    @Override
+    public void saveAll(List<Review> reviews) {
+        List<ReviewEntity> entities = reviews.stream()
+                .map(reviewInfraMapper::toEntity)
+                .toList();
+        reviewJpaRepository.saveAll(entities);
+    }
+
+    @Override
+    public boolean existsByExternalReviewId(String externalReviewId) {
+        return reviewJpaRepository.existsByExternalReviewId(externalReviewId);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

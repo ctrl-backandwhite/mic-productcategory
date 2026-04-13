@@ -16,10 +16,92 @@ spring:
 cj-dropshipping:
   base-url: https://developers.cjdropshipping.com/api2.0/v1
   api-key: ${CJ_API_KEY}
+  discovery:
+    enabled: false
+    cron-full: "0 0 2 * * SUN"
+    cron-incremental: "0 0 4 * * *"
+    cron-enrich: "0 0 */6 * * *"
+    batch-size-enrich: 500
+    max-pages-per-category: 200
+    max-pages-per-keyword: 100
+    page-size: 100
+    rate-limit-wait-ms: 500
+    keywords:
+      - hoodie
+      - t-shirt
+      - pants
+      - dress
+      - sneakers
+      - phone case
+      - laptop bag
+      - watch
+      - sunglasses
+      - jewelry
+      - earrings
+      - necklace
+      - kitchen gadget
+      - bathroom
+      - garden tool
+      - toy
+      - puzzle
+      - wireless earbuds
+      - led light
+      - fitness
+      - yoga mat
+      - water bottle
+      - backpack
+      - wallet
+      - beauty
+      - skincare
+      - makeup
+      - hair
+      - pet
+      - dog
+      - cat
+      - car accessories
+      - camping
+      - fishing
+      - cycling
+      - running
+      - baby
+      - kids
+      - home decor
+      - candle
+      - pillow
+      - blanket
+      - organizer
+      - storage
+      - tools
+      - drill
+      - pen
+      - notebook
+      - sticker
+      - mask
+      - gloves
+      - hat
+      - scarf
+      - belt
+      - socks
 
 services:
   cms:
     url: ${SERVICES_CMS_URL:http://localhost:6006}
+
+management:
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING_PROBABILITY:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
 resilience4j:
   retry:
@@ -43,3 +125,13 @@ resilience4j:
         wait-duration-in-open-state: 60s
         permitted-number-of-calls-in-half-open-state: 3
         register-health-indicator: true
+
+# --- OAuth2 Resource Server (opt-in) ---
+# To enable JWT validation, uncomment and set OAUTH2_ISSUER_URI + OAUTH2_JWK_SET_URI env vars
+#spring:
+#    security:
+#        oauth2:
+#            resourceserver:
+#                jwt:
+#                    issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:6001}
+#                    jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://localhost:6001/oauth2/jwks}

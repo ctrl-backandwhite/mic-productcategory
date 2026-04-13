@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -114,6 +116,11 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
+    public int publishAllDrafts() {
+        return categoryJpaRepository.publishAllDrafts();
+    }
+
+    @Override
     public List<Category> findFeatured(String locale) {
         Map<String, List<CategoryEntity>> childrenMap = loadAllChildrenMap();
         return categoryJpaRepository.findAll(CategorySpecification.withFeatured(locale)).stream()
@@ -125,7 +132,8 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     public Optional<String> findCategoryIdByNameAndLocaleAndLevelAndParent(String name, String locale, int level,
             String parentId) {
         List<CategoryEntity> results = categoryJpaRepository
-                .findAll(CategorySpecification.byTranslationNameAndLocaleAndLevelAndParent(name, locale, level, parentId));
+                .findAll(CategorySpecification.byTranslationNameAndLocaleAndLevelAndParent(name, locale, level,
+                        parentId));
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst().getId());
     }
 
@@ -139,7 +147,8 @@ public class CategoryRepositoryImpl implements CategoryRepository {
         Optional<CategoryEntity> existingOpt = id != null
                 ? categoryJpaRepository.findById(id)
                 : categoryJpaRepository
-                        .findAll(CategorySpecification.byTranslationNameAndLocaleAndLevelAndParent(name, locale, level, parentId))
+                        .findAll(CategorySpecification.byTranslationNameAndLocaleAndLevelAndParent(name, locale, level,
+                                parentId))
                         .stream().findFirst();
 
         CategoryTranslation ct = CategoryTranslation.builder().locale(locale).name(name).build();
@@ -176,6 +185,17 @@ public class CategoryRepositoryImpl implements CategoryRepository {
         return newId;
     }
 
+    @Override
+    public List<String> findAllLevel3Ids() {
+        return categoryJpaRepository.findIdsByLevel(3);
+    }
+
+    @Override
+    @Transactional
+    public void updateLastDiscoveredAt(String categoryId) {
+        categoryJpaRepository.updateLastDiscoveredAt(categoryId, Instant.now());
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private CategoryEntity findOrThrow(String id) {
@@ -209,7 +229,8 @@ public class CategoryRepositoryImpl implements CategoryRepository {
      * No-op if the locale is not found (keeps the existing name).
      */
     private void applyLocaleName(Category category, String locale) {
-        if (locale == null || category.getTranslations() == null || category.getTranslations().isEmpty()) return;
+        if (locale == null || category.getTranslations() == null || category.getTranslations().isEmpty())
+            return;
         category.getTranslations().stream()
                 .filter(t -> locale.equals(t.getLocale()))
                 .findFirst()
@@ -228,7 +249,8 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     /** Upserts the given translations into the entity (add or update by locale). */
     private void upsertTranslations(CategoryEntity entity, List<CategoryTranslation> translations) {
-        if (translations == null) return;
+        if (translations == null)
+            return;
         translations.forEach(t -> entity.getTranslations().stream()
                 .filter(existing -> existing.getId().getLocale().equals(t.getLocale()))
                 .findFirst()

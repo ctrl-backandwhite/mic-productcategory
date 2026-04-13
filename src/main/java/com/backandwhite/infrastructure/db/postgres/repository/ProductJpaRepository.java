@@ -20,6 +20,9 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Strin
         @Query("SELECT p.id FROM ProductEntity p ORDER BY p.createdAt")
         Page<String> findAllIds(Pageable pageable);
 
+        @Query("SELECT p.id FROM ProductEntity p WHERE p.categoryId IN :categoryIds ORDER BY p.createdAt")
+        Page<String> findIdsByCategoryIds(@Param("categoryIds") List<String> categoryIds, Pageable pageable);
+
         List<ProductEntity> findAllByIdIn(List<String> ids);
 
         @Modifying

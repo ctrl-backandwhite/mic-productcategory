@@ -20,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,6 +53,44 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
     public ProductDetail save(ProductDetail detail) {
         ProductDetailEntity entity = productDetailInfraMapper.toEntityWithChildren(detail);
         return productDetailInfraMapper.toDomain(productDetailJpaRepository.save(entity));
+    }
+
+    @Override
+    public long countAll() {
+        return productDetailJpaRepository.count();
+    }
+
+    @Override
+    public List<String> findPidsNeedingInventorySync(int limit) {
+        Instant threshold = Instant.now().minus(4, ChronoUnit.HOURS);
+        return productDetailJpaRepository.findPidsNeedingInventorySync(threshold, limit);
+    }
+
+    @Override
+    public List<String> findPidsNeedingProductSync(int limit) {
+        Instant threshold = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        return productDetailJpaRepository.findPidsNeedingProductSync(threshold, limit);
+    }
+
+    @Override
+    public List<String> findPidsNeedingReviewsSync(int limit) {
+        Instant threshold = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        return productDetailJpaRepository.findPidsNeedingReviewsSync(threshold, limit);
+    }
+
+    @Override
+    public void markInventorySynced(String pid) {
+        productDetailJpaRepository.markInventorySynced(pid, Instant.now());
+    }
+
+    @Override
+    public void markProductSynced(String pid) {
+        productDetailJpaRepository.markProductSynced(pid, Instant.now());
+    }
+
+    @Override
+    public void markReviewsSynced(String pid) {
+        productDetailJpaRepository.markReviewsSynced(pid, Instant.now());
     }
 
     // ── Variant queries ───────────────────────────────────────────────────────

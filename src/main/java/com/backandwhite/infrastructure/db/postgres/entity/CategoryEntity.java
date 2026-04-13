@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,9 @@ public class CategoryEntity extends AuditableEntity {
     @Column(name = "featured")
     @Builder.Default
     private Boolean featured = false;
+
+    @Column(name = "last_discovered_at")
+    private Instant lastDiscoveredAt;
 
     @ToString.Exclude
     @Builder.Default

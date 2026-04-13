@@ -36,6 +36,8 @@ public interface CategoryUseCase {
 
         void bulkUpdateStatus(List<String> ids, String status);
 
+        int publishAllDrafts();
+
         /**
          * Creates categories in bulk from rows with up to 3 hierarchy levels.
          * Existing categories (matched by name+locale+level+parent) are skipped.

@@ -13,7 +13,9 @@ public class ProductSyncResultDtoOut {
 
     private int created;
     private int updated;
+    private int skipped;
     private int total;
     private int page;
     private boolean hasMore;
+    private int totalCategories;
 }

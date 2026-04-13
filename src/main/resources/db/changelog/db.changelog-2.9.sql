@@ -1,7 +1,11 @@
 -- ============================================================
 -- Seed data: Reviews (idempotent via ON CONFLICT DO NOTHING)
 -- Provides test data for 3 products with varied ratings
+-- Wrapped in DO block to gracefully skip if products don't exist yet
 -- ============================================================
+
+DO $$
+BEGIN
 
 INSERT INTO reviews (id, product_id, user_id, author_name, rating, title, body, verified, status, helpful_count, images, created_at, updated_at)
 VALUES
@@ -57,3 +61,7 @@ VALUES
  false, 'APPROVED', 1, '[]', NOW(), NOW())
 
 ON CONFLICT (id) DO NOTHING;
+
+EXCEPTION WHEN foreign_key_violation THEN
+    RAISE NOTICE 'Skipping reviews seed: referenced products do not exist yet';
+END $$;

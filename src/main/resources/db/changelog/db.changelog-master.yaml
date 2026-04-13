@@ -147,6 +147,7 @@ databaseChangeLog:
                   id: 19
                   author: Jesus.Finol
                   context: local,develop
+                  runOnChange: true
                   changes:
                           - sqlFile:
                                     path: db.changelog-2.9.sql
@@ -191,4 +192,29 @@ databaseChangeLog:
                   changes:
                           - sqlFile:
                                     path: db.changelog-3.4.sql
+                                    relativeToChangelogFile: "true"
+        - changeSet:
+                  id: 25
+                  author: Jesus.Finol
+                  context: local,develop
+                  runOnChange: true
+                  changes:
+                          - sqlFile:
+                                    path: db.changelog-3.5.sql
+                                    relativeToChangelogFile: "true"
+        - changeSet:
+                  id: 26
+                  author: Jesus.Finol
+                  context: local,develop
+                  changes:
+                          - sqlFile:
+                                    path: db.changelog-3.6.sql
+                                    relativeToChangelogFile: "true"
+        - changeSet:
+                  id: 27
+                  author: Jesus.Finol
+                  context: local,develop
+                  changes:
+                          - sqlFile:
+                                    path: db.changelog-3.7.sql
                                     relativeToChangelogFile: "true"
