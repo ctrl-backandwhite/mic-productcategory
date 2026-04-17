@@ -19,6 +19,12 @@ spring:
       port: 6379
       timeout: 60000
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISSUER_URI}
+
 logging:
   level:
     root: INFO

@@ -20,6 +20,12 @@ spring:
       database: ${REDIS_DATABASE:2}
       timeout: 60000
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISSUER_URI:https://gateway-service-des.up.railway.app}
+
 server:
   port: 8080
   ssl:
