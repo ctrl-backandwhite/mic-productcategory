@@ -32,10 +32,12 @@ public class PricingService {
     private final PriceRuleRepository priceRuleRepository;
     private final CurrencyRateCache currencyRateCache;
 
+    private static final String PRICE_RANGE_SEPARATOR = "\\s*+-{1,2}\\s*+";
+
     // Simple in-memory cache (refreshed per request batch)
-    private volatile List<PriceRule> cachedRules;
-    private volatile long cacheTimestamp;
-    private static final long CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+    private List<PriceRule> cachedRules;
+    private long cacheTimestamp;
+    private static final long CACHE_TTL_MS = 5L * 60 * 1000; // 5 minutes
 
     /**
      * Resolve the applicable margin rule for a given variant in context. Supports
@@ -203,7 +205,7 @@ public class PricingService {
 
         detail.setCostPrice(raw);
 
-        String[] parts = raw.split("\\s*--\\s*|\\s*-\\s*");
+        String[] parts = raw.split(PRICE_RANGE_SEPARATOR);
         StringBuilder retailRange = new StringBuilder();
 
         for (int i = 0; i < parts.length; i++) {
@@ -240,7 +242,7 @@ public class PricingService {
         product.setCostPrice(raw);
 
         // Parse range: "0.78 -- 0.81" or "6.11" or "0.84-2.94"
-        String[] parts = raw.split("\\s*--\\s*|\\s*-\\s*");
+        String[] parts = raw.split(PRICE_RANGE_SEPARATOR);
         StringBuilder retailRange = new StringBuilder();
 
         for (int i = 0; i < parts.length; i++) {
@@ -401,7 +403,7 @@ public class PricingService {
         if (priceString == null || priceString.isBlank())
             return priceString;
 
-        String[] parts = priceString.split("\\s*--\\s*|\\s*-\\s*");
+        String[] parts = priceString.split(PRICE_RANGE_SEPARATOR);
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < parts.length; i++) {
@@ -424,7 +426,7 @@ public class PricingService {
     private BigDecimal parseMinPrice(String priceString) {
         if (priceString == null || priceString.isBlank())
             return null;
-        String[] parts = priceString.split("\\s*--\\s*|\\s*-\\s*");
+        String[] parts = priceString.split(PRICE_RANGE_SEPARATOR);
         try {
             return new BigDecimal(parts[0].trim());
         } catch (NumberFormatException e) {
@@ -434,7 +436,7 @@ public class PricingService {
 
     // ── Private helpers ─────────────────────────────────────────────────────
 
-    private List<PriceRule> getActiveRules() {
+    private synchronized List<PriceRule> getActiveRules() {
         long now = System.currentTimeMillis();
         if (cachedRules == null || (now - cacheTimestamp) > CACHE_TTL_MS) {
             cachedRules = priceRuleRepository.findAllActive();

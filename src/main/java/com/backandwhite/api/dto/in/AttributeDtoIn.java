@@ -25,7 +25,7 @@ public class AttributeDtoIn {
 
     @NotBlank(message = "Slug is required")
     @Size(max = 255, message = "Slug must not exceed 255 characters")
-    @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$", message = "Slug must be lowercase alphanumeric separated by hyphens")
+    @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*+$", message = "Slug must be lowercase alphanumeric separated by hyphens")
     @Schema(description = "URL-friendly attribute slug", example = "color")
     private String slug;
 

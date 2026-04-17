@@ -35,7 +35,6 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
 
     private final ExecutorService fetchExecutor = Executors.newFixedThreadPool(PARALLEL_FETCH_THREADS, r -> {
         Thread t = Thread.ofVirtual().unstarted(r);
-        t.setDaemon(true);
         return t;
     });
 

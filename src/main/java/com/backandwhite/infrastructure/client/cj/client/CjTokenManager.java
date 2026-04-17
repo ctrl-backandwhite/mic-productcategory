@@ -34,7 +34,7 @@ public class CjTokenManager {
     private static final String SINGLETON_ID = "SINGLETON";
     private static final DateTimeFormatter CJ_DATE_FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     /** CJ only allows requesting a new token every 5 minutes */
-    private static final long TOKEN_REQUEST_COOLDOWN_SECONDS = 5 * 60;
+    private static final long TOKEN_REQUEST_COOLDOWN_SECONDS = 5L * 60;
     /** Margin for proactive refresh: 30 minutes before expiry */
     private static final long PROACTIVE_REFRESH_MINUTES = 30;
 
