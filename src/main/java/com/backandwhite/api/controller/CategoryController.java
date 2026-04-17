@@ -13,6 +13,8 @@ import com.backandwhite.api.mapper.CategoryApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.CategorySyncUseCase;
 import com.backandwhite.application.usecase.CategoryUseCase;
+import com.backandwhite.common.security.annotation.NxAdmin;
+import com.backandwhite.common.security.annotation.NxUser;
 import com.backandwhite.domain.model.BulkCategoryResult;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategorySyncResult;
@@ -22,14 +24,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +44,7 @@ public class CategoryController {
 
     // ── Listados ─────────────────────────────────────────────────────────────
 
+    @NxUser
     @GetMapping
     @Operation(summary = "List categories as tree", description = "Returns categories in hierarchical structure, with optional filters by status, active and locale")
     public ResponseEntity<List<CategoryDtoOut>> findByLocale(
@@ -54,6 +56,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryApiMapper.toDtoList(categories));
     }
 
+    @NxUser
     @GetMapping("/paged")
     @Operation(summary = "List paginated categories", description = "Returns paginated categories with optional filters. Uses PageableUtils internally.")
     public ResponseEntity<PaginationDtoOut<CategoryDtoOut>> findPaged(
@@ -74,6 +77,7 @@ public class CategoryController {
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(categoryApiMapper::toDto)));
     }
 
+    @NxUser
     @PostMapping("/search")
     @Operation(summary = "Paginated search with dynamic filters", description = """
             Paginated category listing with dynamic filters via reflection.
@@ -98,29 +102,27 @@ public class CategoryController {
         // Resulting map: { status → PUBLISHED, active → true, level → 1 }
         // Passed to the use case which converts it to Specification with
         // FilterUtils.buildSpecification()
-        Page<Category> result = categoryUseCase.findCategoriesPaged(
-                request.getLocale(),
+        Page<Category> result = categoryUseCase.findCategoriesPaged(request.getLocale(),
                 request.getFilters() != null ? request.getFilters().getStatus() : null,
-                request.getFilters() != null ? request.getFilters().getActive() : null,
-                null,
-                request.getFilters() != null ? request.getFilters().getLevel() : null,
-                pageable.getPageNumber(), pageable.getPageSize(),
-                request.getSortBy(), request.isAscending());
+                request.getFilters() != null ? request.getFilters().getActive() : null, null,
+                request.getFilters() != null ? request.getFilters().getLevel() : null, pageable.getPageNumber(),
+                pageable.getPageSize(), request.getSortBy(), request.isAscending());
 
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(categoryApiMapper::toDto)));
     }
 
     // ── CRUD ─────────────────────────────────────────────────────────────────
 
+    @NxUser
     @GetMapping("/{id}")
     @Operation(summary = "Get category by ID")
-    public ResponseEntity<CategoryDtoOut> getById(
-            @Parameter(description = "Category ID") @PathVariable String id,
+    public ResponseEntity<CategoryDtoOut> getById(@Parameter(description = "Category ID") @PathVariable String id,
             @Parameter(description = "Language code", example = "es") @RequestParam(defaultValue = "en") String locale) {
 
         return ResponseEntity.ok(categoryApiMapper.toDto(categoryUseCase.findById(id, locale)));
     }
 
+    @NxAdmin
     @PostMapping
     @Operation(summary = "Create category")
     public ResponseEntity<CategoryDtoOut> create(@Valid @RequestBody CategoryDtoIn dto) {
@@ -128,16 +130,16 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryApiMapper.toDto(created));
     }
 
+    @NxAdmin
     @PutMapping("/{id}")
     @Operation(summary = "Update category")
-    public ResponseEntity<CategoryDtoOut> update(
-            @PathVariable String id,
-            @Valid @RequestBody CategoryDtoIn dto) {
+    public ResponseEntity<CategoryDtoOut> update(@PathVariable String id, @Valid @RequestBody CategoryDtoIn dto) {
 
         Category updated = categoryUseCase.update(id, categoryApiMapper.toDomain(dto));
         return ResponseEntity.ok(categoryApiMapper.toDto(updated));
     }
 
+    @NxAdmin
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete category")
     public ResponseEntity<Void> delete(@PathVariable String id) {
@@ -145,6 +147,7 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @DeleteMapping
     @Operation(summary = "Bulk delete categories")
     public ResponseEntity<Void> deleteAll(@RequestBody List<String> ids) {
@@ -154,6 +157,7 @@ public class CategoryController {
 
     // ── Estado / flags ───────────────────────────────────────────────────────
 
+    @NxAdmin
     @PatchMapping("/{id}/publish")
     @Operation(summary = "Publish / unpublish category")
     public ResponseEntity<Void> publish(@PathVariable String id) {
@@ -161,6 +165,7 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/bulk-status")
     @Operation(summary = "Bulk update category status")
     public ResponseEntity<Void> bulkUpdateStatus(@Valid @RequestBody BulkStatusUpdateDtoIn body) {
@@ -168,6 +173,7 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/publish-all-drafts")
     @Operation(summary = "Publish all draft categories")
     public ResponseEntity<java.util.Map<String, Integer>> publishAllDrafts() {
@@ -175,75 +181,62 @@ public class CategoryController {
         return ResponseEntity.ok(java.util.Map.of("updated", count));
     }
 
+    @NxAdmin
     @PatchMapping("/{id}/active")
     @Operation(summary = "Activate / deactivate category")
-    public ResponseEntity<Void> toggleActive(
-            @PathVariable String id,
-            @RequestParam boolean active) {
+    public ResponseEntity<Void> toggleActive(@PathVariable String id, @RequestParam boolean active) {
         categoryUseCase.toggleActive(id, active);
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/{id}/featured")
     @Operation(summary = "Mark / unmark category as featured")
-    public ResponseEntity<Void> toggleFeatured(
-            @PathVariable String id,
-            @RequestParam boolean featured) {
+    public ResponseEntity<Void> toggleFeatured(@PathVariable String id, @RequestParam boolean featured) {
         categoryUseCase.toggleFeatured(id, featured);
         return ResponseEntity.noContent().build();
     }
 
+    @NxUser
     @GetMapping("/featured")
     @Operation(summary = "List featured categories")
-    public ResponseEntity<List<CategoryDtoOut>> findFeatured(
-            @RequestParam(defaultValue = "en") String locale) {
+    public ResponseEntity<List<CategoryDtoOut>> findFeatured(@RequestParam(defaultValue = "en") String locale) {
         return ResponseEntity.ok(categoryApiMapper.toDtoList(categoryUseCase.findFeatured(locale)));
     }
 
     // ── Bulk / Sync ──────────────────────────────────────────────────────────
 
+    @NxAdmin
     @PostMapping("/bulk")
     @Operation(summary = "Bulk category upload")
     public ResponseEntity<BulkCategoryResultDtoOut> bulkCreate(@Valid @RequestBody BulkCategoryDtoIn dto) {
 
         List<CategoryUseCase.BulkCategoryRow> rows = dto.getRows().stream()
-                .map(r -> new CategoryUseCase.BulkCategoryRow(
-                        toTranslations(r.getLevel1Translations()),
-                        toTranslations(r.getLevel2Translations()),
-                        toTranslations(r.getLevel3Translations())))
+                .map(r -> new CategoryUseCase.BulkCategoryRow(toTranslations(r.getLevel1Translations()),
+                        toTranslations(r.getLevel2Translations()), toTranslations(r.getLevel3Translations())))
                 .toList();
 
         BulkCategoryResult result = categoryUseCase.bulkCreate(rows);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(BulkCategoryResultDtoOut.builder()
-                .created(result.getCreated())
-                .skipped(result.getSkipped())
-                .totalRows(result.getTotalRows())
-                .build());
+                .created(result.getCreated()).skipped(result.getSkipped()).totalRows(result.getTotalRows()).build());
     }
 
+    @NxAdmin
     @PostMapping("/sync")
     @Operation(summary = "Sync categories from CJ Dropshipping")
     public ResponseEntity<CategorySyncResultDtoOut> syncFromCjDropshipping() {
         CategorySyncResult result = categorySyncUseCase.syncFromCjDropshipping();
-        return ResponseEntity.ok(CategorySyncResultDtoOut.builder()
-                .created(result.getCreated())
-                .updated(result.getUpdated())
-                .total(result.getTotal())
-                .build());
+        return ResponseEntity.ok(CategorySyncResultDtoOut.builder().created(result.getCreated())
+                .updated(result.getUpdated()).total(result.getTotal()).build());
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private List<CategoryTranslation> toTranslations(
-            List<com.backandwhite.api.dto.in.CategoryTranslationDtoIn> dtos) {
+    private List<CategoryTranslation> toTranslations(List<com.backandwhite.api.dto.in.CategoryTranslationDtoIn> dtos) {
         if (dtos == null || dtos.isEmpty())
             return null;
-        return dtos.stream()
-                .map(t -> CategoryTranslation.builder()
-                        .locale(t.getLocale())
-                        .name(t.getName())
-                        .build())
+        return dtos.stream().map(t -> CategoryTranslation.builder().locale(t.getLocale()).name(t.getName()).build())
                 .toList();
     }
 }

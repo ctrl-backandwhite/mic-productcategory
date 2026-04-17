@@ -14,8 +14,7 @@ public final class AttributeSpecification {
             Predicate predicate = cb.conjunction();
 
             if (name != null && !name.isBlank()) {
-                predicate = cb.and(predicate,
-                        cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+                predicate = cb.and(predicate, cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
             }
 
             return predicate;

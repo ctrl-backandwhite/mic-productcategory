@@ -11,14 +11,13 @@ import com.backandwhite.infrastructure.db.postgres.mapper.ReviewInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.ReviewHelpfulVoteJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.repository.ReviewJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.specification.ReviewSpecification;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -42,8 +41,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Optional<Review> findById(String reviewId) {
-        return reviewJpaRepository.findById(reviewId)
-                .map(reviewInfraMapper::toDomain);
+        return reviewJpaRepository.findById(reviewId).map(reviewInfraMapper::toDomain);
     }
 
     @Override
@@ -55,8 +53,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
         reviewJpaRepository.save(reviewInfraMapper.toEntity(review));
 
-        return findById(newId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Review", newId));
+        return findById(newId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Review", newId));
     }
 
     @Override
@@ -73,15 +70,13 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public ReviewStats getStatsByProductId(String productId) {
-        return ReviewStats.builder()
-                .avgRating(reviewJpaRepository.avgRatingByProductId(productId))
+        return ReviewStats.builder().avgRating(reviewJpaRepository.avgRatingByProductId(productId))
                 .totalCount(reviewJpaRepository.countApprovedByProductId(productId))
                 .count1(reviewJpaRepository.countByProductIdAndRating(productId, 1))
                 .count2(reviewJpaRepository.countByProductIdAndRating(productId, 2))
                 .count3(reviewJpaRepository.countByProductIdAndRating(productId, 3))
                 .count4(reviewJpaRepository.countByProductIdAndRating(productId, 4))
-                .count5(reviewJpaRepository.countByProductIdAndRating(productId, 5))
-                .build();
+                .count5(reviewJpaRepository.countByProductIdAndRating(productId, 5)).build();
     }
 
     @Override
@@ -89,11 +84,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         if (helpfulVoteJpaRepository.existsByReviewIdAndSessionId(reviewId, sessionId)) {
             return false;
         }
-        helpfulVoteJpaRepository.save(ReviewHelpfulVoteEntity.builder()
-                .id(UUID.randomUUID().toString())
-                .reviewId(reviewId)
-                .sessionId(sessionId)
-                .build());
+        helpfulVoteJpaRepository.save(ReviewHelpfulVoteEntity.builder().id(UUID.randomUUID().toString())
+                .reviewId(reviewId).sessionId(sessionId).build());
         return true;
     }
 
@@ -104,9 +96,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public void saveAll(List<Review> reviews) {
-        List<ReviewEntity> entities = reviews.stream()
-                .map(reviewInfraMapper::toEntity)
-                .toList();
+        List<ReviewEntity> entities = reviews.stream().map(reviewInfraMapper::toEntity).toList();
         reviewJpaRepository.saveAll(entities);
     }
 

@@ -9,8 +9,8 @@ public interface ProductSearchReindexUseCase {
     long reindexAll();
 
     /**
-     * Bulk upsert of all products from PostgreSQL without deleting the index.
-     * Keeps existing documents and updates/adds according to the DB.
+     * Bulk upsert of all products from PostgreSQL without deleting the index. Keeps
+     * existing documents and updates/adds according to the DB.
      */
     long reindexFromDb();
 }

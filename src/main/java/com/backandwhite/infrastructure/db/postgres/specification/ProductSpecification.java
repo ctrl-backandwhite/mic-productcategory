@@ -6,11 +6,10 @@ import com.backandwhite.infrastructure.db.postgres.entity.ProductTranslationEnti
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import java.util.Collection;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-
-import java.util.Collection;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProductSpecification {
@@ -20,8 +19,8 @@ public final class ProductSpecification {
         return (root, query, cb) -> {
             Join<ProductEntity, ProductTranslationEntity> translationJoin;
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<ProductEntity, ProductTranslationEntity>) (Object) root
-                        .fetch("translations", JoinType.INNER);
+                translationJoin = (Join<ProductEntity, ProductTranslationEntity>) (Object) root.fetch("translations",
+                        JoinType.INNER);
             } else {
                 translationJoin = root.join("translations", JoinType.INNER);
             }
@@ -76,8 +75,8 @@ public final class ProductSpecification {
         return (root, query, cb) -> {
             Join<ProductEntity, ProductTranslationEntity> translationJoin;
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<ProductEntity, ProductTranslationEntity>) (Object) root
-                        .fetch("translations", JoinType.INNER);
+                translationJoin = (Join<ProductEntity, ProductTranslationEntity>) (Object) root.fetch("translations",
+                        JoinType.INNER);
             } else {
                 translationJoin = root.join("translations", JoinType.INNER);
             }

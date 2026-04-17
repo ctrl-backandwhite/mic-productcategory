@@ -66,9 +66,7 @@ public class BrandUseCaseImpl implements BrandUseCase {
     public void toggleStatus(String brandId) {
         Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", brandId));
-        BrandStatus newStatus = brand.getStatus() == BrandStatus.ACTIVE
-                ? BrandStatus.INACTIVE
-                : BrandStatus.ACTIVE;
+        BrandStatus newStatus = brand.getStatus() == BrandStatus.ACTIVE ? BrandStatus.INACTIVE : BrandStatus.ACTIVE;
         brandRepository.updateStatus(brandId, newStatus);
     }
 }

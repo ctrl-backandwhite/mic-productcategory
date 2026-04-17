@@ -11,22 +11,18 @@ import com.backandwhite.domain.model.ProductDetailVariant;
 import com.backandwhite.domain.repository.PriceRuleRepository;
 import com.backandwhite.domain.valueobject.MarginType;
 import com.backandwhite.domain.valueobject.PriceRuleScope;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Pricing engine that resolves and applies margin rules to product prices.
  * <p>
- * Resolution order (most specific wins):
- * VARIANT → PRODUCT → CATEGORY → GLOBAL
+ * Resolution order (most specific wins): VARIANT → PRODUCT → CATEGORY → GLOBAL
  */
 @Log4j2
 @Service
@@ -42,9 +38,9 @@ public class PricingService {
     private static final long CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
     /**
-     * Resolve the applicable margin rule for a given variant in context.
-     * Supports price-range-based rules: if a rule has min/max price defined,
-     * the cost price must fall within that range for the rule to match.
+     * Resolve the applicable margin rule for a given variant in context. Supports
+     * price-range-based rules: if a rule has min/max price defined, the cost price
+     * must fall within that range for the rule to match.
      */
     public Optional<PriceRule> resolveRule(String variantId, String productId, String categoryId) {
         return resolveRule(variantId, productId, categoryId, null);
@@ -52,10 +48,9 @@ public class PricingService {
 
     /**
      * Resolve the applicable margin rule considering the cost price for range
-     * matching.
-     * Resolution order (most specific wins): VARIANT → PRODUCT → CATEGORY → GLOBAL.
-     * Within each scope, a range-matching rule takes priority over a no-range
-     * fallback.
+     * matching. Resolution order (most specific wins): VARIANT → PRODUCT → CATEGORY
+     * → GLOBAL. Within each scope, a range-matching rule takes priority over a
+     * no-range fallback.
      */
     public Optional<PriceRule> resolveRule(String variantId, String productId, String categoryId,
             BigDecimal costPrice) {
@@ -89,8 +84,8 @@ public class PricingService {
 
         if (rule.getMarginType() == MarginType.PERCENTAGE) {
             // retailPrice = costPrice × (1 + marginValue / 100)
-            BigDecimal multiplier = BigDecimal.ONE.add(
-                    rule.getMarginValue().divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP));
+            BigDecimal multiplier = BigDecimal.ONE
+                    .add(rule.getMarginValue().divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP));
             return Money.of(costPrice.getAmount().multiply(multiplier).setScale(2, RoundingMode.HALF_UP));
         } else {
             // FIXED: retailPrice = costPrice + marginValue
@@ -99,9 +94,9 @@ public class PricingService {
     }
 
     /**
-     * Apply margin to a variant's sell price, returning the retail price.
-     * The original variantSellPrice is the cost price from CJ.
-     * Uses cost price for range-based rule resolution.
+     * Apply margin to a variant's sell price, returning the retail price. The
+     * original variantSellPrice is the cost price from CJ. Uses cost price for
+     * range-based rule resolution.
      */
     public Money calculateRetailPrice(ProductDetailVariant variant, String productId, String categoryId) {
         if (variant.getVariantSellPrice() == null)
@@ -113,8 +108,8 @@ public class PricingService {
 
     /**
      * Apply margins to all variants of a product and recalculate the product-level
-     * sellPrice range string based on the min/max retail prices.
-     * After margins, converts all prices to the currency from X-Currency header.
+     * sellPrice range string based on the min/max retail prices. After margins,
+     * converts all prices to the currency from X-Currency header.
      */
     public void applyMarginsToProduct(Product product) {
         if (product.getVariants() == null || product.getVariants().isEmpty()) {
@@ -158,9 +153,8 @@ public class PricingService {
 
     /**
      * Apply margins to a ProductDetail and convert to the currency from X-Currency
-     * header.
-     * Similar to {@link #applyMarginsToProduct(Product)} but for the full detail
-     * model.
+     * header. Similar to {@link #applyMarginsToProduct(Product)} but for the full
+     * detail model.
      */
     public void applyMarginsToProductDetail(ProductDetail detail) {
         if (detail.getVariants() == null || detail.getVariants().isEmpty()) {
@@ -283,8 +277,8 @@ public class PricingService {
 
     /**
      * Convert all prices in a product to the currency requested via X-Currency
-     * header.
-     * If the header is absent or "USD", prices stay in USD (backward compatible).
+     * header. If the header is absent or "USD", prices stay in USD (backward
+     * compatible).
      */
     private void convertProductToRequestCurrency(Product product) {
         String currencyCode = CurrencyHolder.get();
@@ -449,17 +443,14 @@ public class PricingService {
         return cachedRules;
     }
 
-    private Optional<PriceRule> findRuleWithRange(List<PriceRule> rules, PriceRuleScope scope,
-            String scopeId, BigDecimal costPrice) {
+    private Optional<PriceRule> findRuleWithRange(List<PriceRule> rules, PriceRuleScope scope, String scopeId,
+            BigDecimal costPrice) {
         // Filter rules matching scope + scopeId
-        List<PriceRule> scopeRules = rules.stream()
-                .filter(r -> r.getScope() == scope)
-                .filter(r -> {
-                    if (scope == PriceRuleScope.GLOBAL)
-                        return r.getScopeId() == null;
-                    return scopeId != null && scopeId.equals(r.getScopeId());
-                })
-                .toList();
+        List<PriceRule> scopeRules = rules.stream().filter(r -> r.getScope() == scope).filter(r -> {
+            if (scope == PriceRuleScope.GLOBAL)
+                return r.getScopeId() == null;
+            return scopeId != null && scopeId.equals(r.getScopeId());
+        }).toList();
 
         if (scopeRules.isEmpty())
             return Optional.empty();
@@ -467,23 +458,18 @@ public class PricingService {
         // If we have a cost price, try to find a range-matching rule first
         if (costPrice != null) {
             Optional<PriceRule> rangeMatch = scopeRules.stream()
-                    .filter(r -> r.getMinPrice() != null || r.getMaxPrice() != null)
-                    .filter(r -> {
-                        boolean aboveMin = r.getMinPrice() == null
-                                || costPrice.compareTo(r.getMinPrice()) >= 0;
-                        boolean belowMax = r.getMaxPrice() == null
-                                || costPrice.compareTo(r.getMaxPrice()) <= 0;
+                    .filter(r -> r.getMinPrice() != null || r.getMaxPrice() != null).filter(r -> {
+                        boolean aboveMin = r.getMinPrice() == null || costPrice.compareTo(r.getMinPrice()) >= 0;
+                        boolean belowMax = r.getMaxPrice() == null || costPrice.compareTo(r.getMaxPrice()) <= 0;
                         return aboveMin && belowMax;
-                    })
-                    .max(java.util.Comparator.comparingInt(r -> r.getPriority() != null ? r.getPriority() : 0));
+                    }).max(java.util.Comparator.comparingInt(r -> r.getPriority() != null ? r.getPriority() : 0));
 
             if (rangeMatch.isPresent())
                 return rangeMatch;
         }
 
         // Fallback: rule without price range (min/max both null)
-        return scopeRules.stream()
-                .filter(r -> r.getMinPrice() == null && r.getMaxPrice() == null)
+        return scopeRules.stream().filter(r -> r.getMinPrice() == null && r.getMaxPrice() == null)
                 .max(java.util.Comparator.comparingInt(r -> r.getPriority() != null ? r.getPriority() : 0));
     }
 }

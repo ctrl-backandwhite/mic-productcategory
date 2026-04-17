@@ -2,10 +2,9 @@ package com.backandwhite.domain.model;
 
 import com.backandwhite.domain.valueobject.MarginType;
 import com.backandwhite.domain.valueobject.PriceRuleScope;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.Instant;
+import lombok.*;
 
 @Data
 @With

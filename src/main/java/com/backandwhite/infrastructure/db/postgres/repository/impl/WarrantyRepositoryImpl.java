@@ -8,14 +8,13 @@ import com.backandwhite.infrastructure.db.postgres.entity.WarrantyEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.WarrantyInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.WarrantyJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.specification.WarrantySpecification;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -77,8 +76,7 @@ public class WarrantyRepositoryImpl implements WarrantyRepository {
 
     @Override
     public void deleteById(String id) {
-        jpaRepository.findById(id)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Warranty", id));
+        jpaRepository.findById(id).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Warranty", id));
         jpaRepository.deleteById(id);
     }
 

@@ -1,9 +1,8 @@
 package com.backandwhite.util;
 
+import java.lang.reflect.Field;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
-import java.lang.reflect.Field;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MapperTestUtils {

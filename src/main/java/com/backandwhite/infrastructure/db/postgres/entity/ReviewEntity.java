@@ -3,13 +3,12 @@ package com.backandwhite.infrastructure.db.postgres.entity;
 import com.backandwhite.common.infrastructure.entity.AuditableEntity;
 import com.backandwhite.domain.valueobject.ReviewStatus;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @With
 @Getter
@@ -18,12 +17,10 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "reviews", indexes = {
-        @Index(name = "idx_reviews_product", columnList = "product_id"),
+@Table(name = "reviews", indexes = {@Index(name = "idx_reviews_product", columnList = "product_id"),
         @Index(name = "idx_reviews_user", columnList = "user_id"),
         @Index(name = "idx_reviews_status", columnList = "status"),
-        @Index(name = "idx_reviews_rating", columnList = "product_id, rating")
-})
+        @Index(name = "idx_reviews_rating", columnList = "product_id, rating")})
 public class ReviewEntity extends AuditableEntity {
 
     @Id

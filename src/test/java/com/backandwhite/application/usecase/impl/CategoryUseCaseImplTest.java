@@ -1,24 +1,23 @@
 package com.backandwhite.application.usecase.impl;
 
-import com.backandwhite.common.exception.EntityNotFoundException;
-import com.backandwhite.domain.model.Category;
-import com.backandwhite.domain.repository.CategoryRepository;
-import com.backandwhite.domain.valueobject.CategoryStatus;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Optional;
-
 import static com.backandwhite.provider.CategoryProvider.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.backandwhite.common.exception.EntityNotFoundException;
+import com.backandwhite.domain.model.Category;
+import com.backandwhite.domain.repository.CategoryRepository;
+import com.backandwhite.domain.valueobject.CategoryStatus;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryUseCaseImplTest {
@@ -71,8 +70,7 @@ class CategoryUseCaseImplTest {
     void findById_missingCategory_throwsEntityNotFoundException() {
         when(categoryRepository.findById("non-existent", "es")).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class,
-                () -> categoryUseCase.findById("non-existent", "es"));
+        assertThrows(EntityNotFoundException.class, () -> categoryUseCase.findById("non-existent", "es"));
         verify(categoryRepository).findById("non-existent", "es");
     }
 
@@ -129,8 +127,7 @@ class CategoryUseCaseImplTest {
     void publishCategory_notFound_throwsEntityNotFoundException() {
         when(categoryRepository.findById("missing", null)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class,
-                () -> categoryUseCase.publishCategory("missing"));
+        assertThrows(EntityNotFoundException.class, () -> categoryUseCase.publishCategory("missing"));
     }
 
     @Test

@@ -8,14 +8,13 @@ import com.backandwhite.infrastructure.db.postgres.entity.MediaAssetEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.MediaAssetInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.MediaAssetJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.specification.MediaAssetSpecification;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -61,8 +60,7 @@ public class MediaAssetRepositoryImpl implements MediaAssetRepository {
 
     @Override
     public void deleteById(String id) {
-        jpaRepository.findById(id)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("MediaAsset", id));
+        jpaRepository.findById(id).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("MediaAsset", id));
         jpaRepository.deleteById(id);
     }
 

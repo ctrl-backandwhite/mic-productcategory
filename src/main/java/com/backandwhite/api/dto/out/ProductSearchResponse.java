@@ -1,9 +1,8 @@
 package com.backandwhite.api.dto.out;
 
-import lombok.*;
-
 import java.util.List;
 import java.util.Map;
+import lombok.*;
 
 @Data
 @Builder

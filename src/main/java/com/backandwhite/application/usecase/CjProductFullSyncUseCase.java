@@ -8,7 +8,8 @@ public interface CjProductFullSyncUseCase {
      * Syncs full product detail (name, description, images, variants, translations)
      * for all stale products.
      *
-     * @param force if true, re-sync even products synced today
+     * @param force
+     *            if true, re-sync even products synced today
      */
     CjSyncResult syncAll(boolean force);
 

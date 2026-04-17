@@ -4,8 +4,6 @@ import com.backandwhite.domain.model.Brand;
 import com.backandwhite.domain.valueobject.BrandStatus;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
-
 public interface BrandUseCase {
 
     Page<Brand> findAll(BrandStatus status, String name, int page, int size, String sortBy, boolean ascending);

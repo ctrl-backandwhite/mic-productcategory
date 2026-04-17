@@ -12,14 +12,13 @@ import com.backandwhite.domain.valueobject.DiscoveryStrategy;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductListPageDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductListV2ItemDto;
 import com.backandwhite.infrastructure.configuration.CjDropshippingProperties;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Component;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Component;
 
 @Log4j2
 @Component
@@ -74,8 +73,8 @@ public class DiscoveryByCategoryStrategy implements DiscoveryStrategyExecutor {
                 stateRepository.save(state);
 
                 if (catResult.getNewPidsDiscovered() > 0) {
-                    log.info("Category {}: {} new PIDs (total processed: {})", catId,
-                            catResult.getNewPidsDiscovered(), catResult.getTotalPidsProcessed());
+                    log.info("Category {}: {} new PIDs (total processed: {})", catId, catResult.getNewPidsDiscovered(),
+                            catResult.getTotalPidsProcessed());
                 }
             } catch (Exception e) {
                 log.error("Error crawling category {}: {}", catId, e.getMessage());
@@ -83,15 +82,11 @@ public class DiscoveryByCategoryStrategy implements DiscoveryStrategyExecutor {
             }
         }
 
-        log.info("BY_CATEGORY discovery completed: {} new PIDs, {} total processed, {} pages scanned",
-                totalNew, totalProcessed, totalPages);
+        log.info("BY_CATEGORY discovery completed: {} new PIDs, {} total processed, {} pages scanned", totalNew,
+                totalProcessed, totalPages);
 
-        return DiscoveryResult.builder()
-                .newPidsDiscovered(totalNew)
-                .totalPidsProcessed(totalProcessed)
-                .pagesScanned(totalPages)
-                .completed(true)
-                .build();
+        return DiscoveryResult.builder().newPidsDiscovered(totalNew).totalPidsProcessed(totalProcessed)
+                .pagesScanned(totalPages).completed(true).build();
     }
 
     private DiscoveryResult crawlCategory(String categoryId) {
@@ -104,12 +99,10 @@ public class DiscoveryByCategoryStrategy implements DiscoveryStrategyExecutor {
         int totalProcessed = 0;
 
         while (page <= maxPages) {
-            CjProductListPageDto pageResult = dropshippingPort.getProductListFiltered(
-                    page, pageSize, categoryId, null, null, null, 3, "desc");
+            CjProductListPageDto pageResult = dropshippingPort.getProductListFiltered(page, pageSize, categoryId, null,
+                    null, null, 3, "desc");
 
-            List<CjProductListV2ItemDto> products = (pageResult != null)
-                    ? pageResult.getAllProducts()
-                    : List.of();
+            List<CjProductListV2ItemDto> products = (pageResult != null) ? pageResult.getAllProducts() : List.of();
 
             if (products.isEmpty()) {
                 break;
@@ -142,11 +135,8 @@ public class DiscoveryByCategoryStrategy implements DiscoveryStrategyExecutor {
             rateLimitWait(waitMs);
         }
 
-        return DiscoveryResult.builder()
-                .newPidsDiscovered(newPids)
-                .totalPidsProcessed(totalProcessed)
-                .pagesScanned(page)
-                .build();
+        return DiscoveryResult.builder().newPidsDiscovered(newPids).totalPidsProcessed(totalProcessed)
+                .pagesScanned(page).build();
     }
 
     private int findResumeIndex(List<String> categoryIds, String lastCategoryId) {
@@ -157,19 +147,10 @@ public class DiscoveryByCategoryStrategy implements DiscoveryStrategyExecutor {
     }
 
     private DiscoveredPid buildDiscoveredPid(CjProductListV2ItemDto item, String categoryId, String keyword) {
-        return DiscoveredPid.builder()
-                .id(UUID.randomUUID().toString())
-                .pid(item.getId())
-                .categoryId(categoryId)
-                .keyword(keyword)
-                .strategy(DiscoveryStrategy.BY_CATEGORY)
-                .status(DiscoveryStatus.NEW)
-                .nameEn(item.getNameEn())
-                .sellPrice(item.getSellPrice())
-                .discoveredAt(Instant.now())
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+        return DiscoveredPid.builder().id(UUID.randomUUID().toString()).pid(item.getId()).categoryId(categoryId)
+                .keyword(keyword).strategy(DiscoveryStrategy.BY_CATEGORY).status(DiscoveryStatus.NEW)
+                .nameEn(item.getNameEn()).sellPrice(item.getSellPrice()).discoveredAt(Instant.now())
+                .createdAt(Instant.now()).updatedAt(Instant.now()).build();
     }
 
     private void rateLimitWait(long ms) {

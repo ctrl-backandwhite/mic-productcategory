@@ -18,8 +18,7 @@ public final class BrandSpecification {
                 predicate = cb.and(predicate, cb.equal(root.get("status"), status));
             }
             if (name != null && !name.isBlank()) {
-                predicate = cb.and(predicate,
-                        cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+                predicate = cb.and(predicate, cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
             }
 
             return predicate;

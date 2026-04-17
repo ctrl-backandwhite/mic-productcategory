@@ -4,5 +4,7 @@ import com.backandwhite.infrastructure.search.elasticsearch.document.ProductDocu
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 
 public interface ProductSearchRepository
-                extends ElasticsearchRepository<ProductDocument, String>, ProductSearchRepositoryCustom {
+        extends
+            ElasticsearchRepository<ProductDocument, String>,
+            ProductSearchRepositoryCustom {
 }

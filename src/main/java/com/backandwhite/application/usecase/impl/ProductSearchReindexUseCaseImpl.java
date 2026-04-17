@@ -6,14 +6,13 @@ import com.backandwhite.domain.model.Product;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.ProductInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.ProductJpaRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Log4j2
 @Service
@@ -60,17 +59,14 @@ public class ProductSearchReindexUseCaseImpl implements ProductSearchReindexUseC
         Page<ProductEntity> batch;
         do {
             batch = productJpaRepository.findAll(PageRequest.of(page, BATCH_SIZE));
-            List<Product> products = batch.getContent().stream()
-                    .map(entity -> {
-                        try {
-                            return productInfraMapper.toDomain(entity);
-                        } catch (Exception e) {
-                            log.warn("Failed to map product id={}: {}", entity.getId(), e.getMessage());
-                            return null;
-                        }
-                    })
-                    .filter(p -> p != null)
-                    .toList();
+            List<Product> products = batch.getContent().stream().map(entity -> {
+                try {
+                    return productInfraMapper.toDomain(entity);
+                } catch (Exception e) {
+                    log.warn("Failed to map product id={}: {}", entity.getId(), e.getMessage());
+                    return null;
+                }
+            }).filter(p -> p != null).toList();
 
             if (!products.isEmpty()) {
                 productSearchIndexPort.indexBulk(products);

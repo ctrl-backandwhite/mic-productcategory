@@ -14,14 +14,13 @@ import com.backandwhite.domain.repository.DiscoveryStateRepository;
 import com.backandwhite.domain.valueobject.DiscoveryStateStatus;
 import com.backandwhite.domain.valueobject.DiscoveryStatus;
 import com.backandwhite.domain.valueobject.DiscoveryStrategy;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
 
 @Log4j2
 @Service
@@ -32,20 +31,16 @@ public class ProductDiscoveryUseCaseImpl implements ProductDiscoveryUseCase {
     private final DiscoveredPidRepository discoveredPidRepository;
     private final CjProductFullSyncUseCase fullSyncUseCase;
 
-    public ProductDiscoveryUseCaseImpl(
-            DiscoveryByCategoryStrategy byCategoryStrategy,
-            DiscoveryByKeywordStrategy byKeywordStrategy,
-            DiscoveryByTimeStrategy byTimeStrategy,
-            DiscoveryStateRepository stateRepository,
-            DiscoveredPidRepository discoveredPidRepository,
+    public ProductDiscoveryUseCaseImpl(DiscoveryByCategoryStrategy byCategoryStrategy,
+            DiscoveryByKeywordStrategy byKeywordStrategy, DiscoveryByTimeStrategy byTimeStrategy,
+            DiscoveryStateRepository stateRepository, DiscoveredPidRepository discoveredPidRepository,
             CjProductFullSyncUseCase fullSyncUseCase) {
 
         this.stateRepository = stateRepository;
         this.discoveredPidRepository = discoveredPidRepository;
         this.fullSyncUseCase = fullSyncUseCase;
 
-        this.strategyMap = List.of(byCategoryStrategy, byKeywordStrategy, byTimeStrategy)
-                .stream()
+        this.strategyMap = List.of(byCategoryStrategy, byKeywordStrategy, byTimeStrategy).stream()
                 .collect(Collectors.toMap(DiscoveryStrategyExecutor::getStrategy, Function.identity()));
     }
 
@@ -56,8 +51,8 @@ public class ProductDiscoveryUseCaseImpl implements ProductDiscoveryUseCase {
         int totalProcessed = 0;
         int totalPages = 0;
 
-        for (DiscoveryStrategy strategy : List.of(
-                DiscoveryStrategy.BY_CATEGORY, DiscoveryStrategy.BY_KEYWORD, DiscoveryStrategy.BY_TIME)) {
+        for (DiscoveryStrategy strategy : List.of(DiscoveryStrategy.BY_CATEGORY, DiscoveryStrategy.BY_KEYWORD,
+                DiscoveryStrategy.BY_TIME)) {
             try {
                 var result = runStrategy(strategy);
                 totalNew += result.getNewPidsDiscovered();
@@ -68,38 +63,25 @@ public class ProductDiscoveryUseCaseImpl implements ProductDiscoveryUseCase {
             }
         }
 
-        log.info("FULL discovery completed: {} new PIDs, {} processed, {} pages",
-                totalNew, totalProcessed, totalPages);
+        log.info("FULL discovery completed: {} new PIDs, {} processed, {} pages", totalNew, totalProcessed, totalPages);
 
-        return DiscoveryResult.builder()
-                .newPidsDiscovered(totalNew)
-                .totalPidsProcessed(totalProcessed)
-                .pagesScanned(totalPages)
-                .completed(true)
-                .build();
+        return DiscoveryResult.builder().newPidsDiscovered(totalNew).totalPidsProcessed(totalProcessed)
+                .pagesScanned(totalPages).completed(true).build();
     }
 
     @Override
     public DiscoveryResult runStrategy(DiscoveryStrategy strategy) {
         DiscoveryStrategyExecutor executor = strategyMap.get(strategy);
         if (executor == null) {
-            return DiscoveryResult.builder()
-                    .errorMessage("Unknown strategy: " + strategy)
-                    .build();
+            return DiscoveryResult.builder().errorMessage("Unknown strategy: " + strategy).build();
         }
 
-        DiscoveryState state = stateRepository.findByStrategy(strategy)
-                .orElse(DiscoveryState.builder()
-                        .strategy(strategy)
-                        .status(DiscoveryStateStatus.IDLE)
-                        .totalDiscovered(0)
-                        .build());
+        DiscoveryState state = stateRepository.findByStrategy(strategy).orElse(DiscoveryState.builder()
+                .strategy(strategy).status(DiscoveryStateStatus.IDLE).totalDiscovered(0).build());
 
         if (state.getStatus() == DiscoveryStateStatus.RUNNING) {
             log.warn("Strategy {} is already running — skipping", strategy);
-            return DiscoveryResult.builder()
-                    .errorMessage("Strategy already running")
-                    .build();
+            return DiscoveryResult.builder().errorMessage("Strategy already running").build();
         }
 
         // Mark as running

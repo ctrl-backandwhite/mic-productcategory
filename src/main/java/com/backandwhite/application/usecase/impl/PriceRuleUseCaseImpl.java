@@ -5,12 +5,11 @@ import com.backandwhite.application.usecase.PriceRuleUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.PriceRule;
 import com.backandwhite.domain.repository.PriceRuleRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Log4j2
 @Service
@@ -38,8 +37,8 @@ public class PriceRuleUseCaseImpl implements PriceRuleUseCase {
     public PriceRule create(PriceRule priceRule) {
         PriceRule saved = priceRuleRepository.save(priceRule);
         pricingService.invalidateCache();
-        log.info("Price rule created: scope={}, scopeId={}, marginType={}, marginValue={}",
-                saved.getScope(), saved.getScopeId(), saved.getMarginType(), saved.getMarginValue());
+        log.info("Price rule created: scope={}, scopeId={}, marginType={}, marginValue={}", saved.getScope(),
+                saved.getScopeId(), saved.getMarginType(), saved.getMarginValue());
         return saved;
     }
 
@@ -48,8 +47,8 @@ public class PriceRuleUseCaseImpl implements PriceRuleUseCase {
     public PriceRule update(String id, PriceRule priceRule) {
         PriceRule updated = priceRuleRepository.update(id, priceRule);
         pricingService.invalidateCache();
-        log.info("Price rule updated: id={}, scope={}, marginValue={}",
-                id, updated.getScope(), updated.getMarginValue());
+        log.info("Price rule updated: id={}, scope={}, marginValue={}", id, updated.getScope(),
+                updated.getMarginValue());
         return updated;
     }
 

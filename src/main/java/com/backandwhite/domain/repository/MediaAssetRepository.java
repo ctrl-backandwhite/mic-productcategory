@@ -2,10 +2,9 @@ package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.MediaAsset;
 import com.backandwhite.domain.valueobject.MediaCategory;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.Optional;
 
 public interface MediaAssetRepository {
 

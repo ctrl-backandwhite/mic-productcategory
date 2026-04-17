@@ -4,11 +4,10 @@ import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategoryTranslation;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryTranslationEntity;
+import java.util.List;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface CategoryInfraMapper {

@@ -15,15 +15,14 @@ import com.backandwhite.domain.valueobject.SyncType;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductCommentsPageDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjReviewItemDto;
 import com.backandwhite.infrastructure.client.cj.mapper.CjReviewMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Log4j2
 @Service
@@ -44,11 +43,8 @@ public class CjReviewSyncUseCaseImpl implements CjReviewSyncUseCase {
     public CjSyncResult syncAll(boolean force) {
         log.info("Starting CJ review sync (force={})", force);
 
-        SyncLog syncLog = syncLogRepository.save(SyncLog.builder()
-                .syncType(SyncType.REVIEWS)
-                .status(SyncStatus.RUNNING)
-                .startedAt(Instant.now())
-                .build());
+        SyncLog syncLog = syncLogRepository.save(SyncLog.builder().syncType(SyncType.REVIEWS).status(SyncStatus.RUNNING)
+                .startedAt(Instant.now()).build());
 
         long start = System.currentTimeMillis();
         int synced = 0;
@@ -68,44 +64,30 @@ public class CjReviewSyncUseCaseImpl implements CjReviewSyncUseCase {
                 } catch (Exception e) {
                     failed++;
                     log.warn("Review sync failed for pid={}: {}", pid, e.getMessage());
-                    syncFailureRepository.save(SyncFailure.builder()
-                            .syncLogId(syncLog.getId())
-                            .entityType("PRODUCT_DETAIL")
-                            .entityId(pid)
-                            .errorCode("REVIEW_SYNC_ERROR")
-                            .errorMessage(e.getMessage())
-                            .build());
+                    syncFailureRepository
+                            .save(SyncFailure.builder().syncLogId(syncLog.getId()).entityType("PRODUCT_DETAIL")
+                                    .entityId(pid).errorCode("REVIEW_SYNC_ERROR").errorMessage(e.getMessage()).build());
                 }
             }
 
-            SyncStatus finalStatus = failed == 0 ? SyncStatus.SUCCESS
+            SyncStatus finalStatus = failed == 0
+                    ? SyncStatus.SUCCESS
                     : (synced > 0 ? SyncStatus.PARTIAL : SyncStatus.FAILED);
 
-            syncLogRepository.save(syncLog.toBuilder()
-                    .status(finalStatus)
-                    .finishedAt(Instant.now())
-                    .totalItems(total)
-                    .syncedItems(synced)
-                    .failedItems(failed)
-                    .build());
+            syncLogRepository.save(syncLog.toBuilder().status(finalStatus).finishedAt(Instant.now()).totalItems(total)
+                    .syncedItems(synced).failedItems(failed).build());
 
             long duration = System.currentTimeMillis() - start;
             log.info("CJ review sync done: total={}, synced={}, failed={}, durationMs={}", total, synced, failed,
                     duration);
 
-            return CjSyncResult.builder()
-                    .totalItems(total).syncedItems(synced).failedItems(failed)
-                    .durationMs(duration).syncLogId(syncLog.getId())
-                    .build();
+            return CjSyncResult.builder().totalItems(total).syncedItems(synced).failedItems(failed).durationMs(duration)
+                    .syncLogId(syncLog.getId()).build();
 
         } catch (Exception e) {
             log.error("CJ review sync aborted: {}", e.getMessage(), e);
-            syncLogRepository.save(syncLog.toBuilder()
-                    .status(SyncStatus.FAILED)
-                    .finishedAt(Instant.now())
-                    .totalItems(total).syncedItems(synced).failedItems(failed)
-                    .errorMessage(e.getMessage())
-                    .build());
+            syncLogRepository.save(syncLog.toBuilder().status(SyncStatus.FAILED).finishedAt(Instant.now())
+                    .totalItems(total).syncedItems(synced).failedItems(failed).errorMessage(e.getMessage()).build());
             throw e;
         }
     }
@@ -115,16 +97,12 @@ public class CjReviewSyncUseCaseImpl implements CjReviewSyncUseCase {
         long start = System.currentTimeMillis();
         try {
             int imported = syncReviewsForPid(pid);
-            return CjSyncResult.builder()
-                    .totalItems(imported).syncedItems(imported).failedItems(0)
-                    .durationMs(System.currentTimeMillis() - start)
-                    .build();
+            return CjSyncResult.builder().totalItems(imported).syncedItems(imported).failedItems(0)
+                    .durationMs(System.currentTimeMillis() - start).build();
         } catch (Exception e) {
             log.error("Review sync failed for pid={}: {}", pid, e.getMessage(), e);
-            return CjSyncResult.builder()
-                    .totalItems(0).syncedItems(0).failedItems(1)
-                    .durationMs(System.currentTimeMillis() - start)
-                    .build();
+            return CjSyncResult.builder().totalItems(0).syncedItems(0).failedItems(1)
+                    .durationMs(System.currentTimeMillis() - start).build();
         }
     }
 

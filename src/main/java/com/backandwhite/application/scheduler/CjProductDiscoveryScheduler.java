@@ -22,8 +22,8 @@ public class CjProductDiscoveryScheduler {
         log.info("Scheduled FULL product discovery triggered");
         try {
             var result = productDiscoveryUseCase.runFullDiscovery();
-            log.info("Scheduled full discovery finished: newPids={}, pagesScanned={}",
-                    result.getNewPidsDiscovered(), result.getPagesScanned());
+            log.info("Scheduled full discovery finished: newPids={}, pagesScanned={}", result.getNewPidsDiscovered(),
+                    result.getPagesScanned());
         } catch (Exception e) {
             log.error("Scheduled full discovery failed: {}", e.getMessage(), e);
         }

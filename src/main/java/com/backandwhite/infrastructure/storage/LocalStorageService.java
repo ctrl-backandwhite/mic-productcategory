@@ -2,10 +2,6 @@ package com.backandwhite.infrastructure.storage;
 
 import com.backandwhite.application.service.StorageService;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -13,10 +9,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 /**
- * StorageService implementation for local filesystem storage.
- * In production it is replaced by an S3/MinIO adapter.
+ * StorageService implementation for local filesystem storage. In production it
+ * is replaced by an S3/MinIO adapter.
  */
 @Log4j2
 @Service

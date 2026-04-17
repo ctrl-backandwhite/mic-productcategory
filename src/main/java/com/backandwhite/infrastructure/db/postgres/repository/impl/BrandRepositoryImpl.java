@@ -8,13 +8,12 @@ import com.backandwhite.infrastructure.db.postgres.entity.BrandEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.BrandInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.BrandJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.specification.BrandSpecification;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -25,32 +24,29 @@ public class BrandRepositoryImpl implements BrandRepository {
 
     @Override
     public Page<Brand> findAll(BrandStatus status, String name, Pageable pageable) {
-        return brandJpaRepository.findAll(BrandSpecification.withFilters(status, name), pageable)
-                .map(entity -> {
-                    Brand brand = brandInfraMapper.toDomain(entity);
-                    brand.setProductCount(brandJpaRepository.countProductsByBrandId(entity.getId()));
-                    return brand;
-                });
+        return brandJpaRepository.findAll(BrandSpecification.withFilters(status, name), pageable).map(entity -> {
+            Brand brand = brandInfraMapper.toDomain(entity);
+            brand.setProductCount(brandJpaRepository.countProductsByBrandId(entity.getId()));
+            return brand;
+        });
     }
 
     @Override
     public Optional<Brand> findById(String brandId) {
-        return brandJpaRepository.findById(brandId)
-                .map(entity -> {
-                    Brand brand = brandInfraMapper.toDomain(entity);
-                    brand.setProductCount(brandJpaRepository.countProductsByBrandId(entity.getId()));
-                    return brand;
-                });
+        return brandJpaRepository.findById(brandId).map(entity -> {
+            Brand brand = brandInfraMapper.toDomain(entity);
+            brand.setProductCount(brandJpaRepository.countProductsByBrandId(entity.getId()));
+            return brand;
+        });
     }
 
     @Override
     public Optional<Brand> findBySlug(String slug) {
-        return brandJpaRepository.findBySlug(slug)
-                .map(entity -> {
-                    Brand brand = brandInfraMapper.toDomain(entity);
-                    brand.setProductCount(brandJpaRepository.countProductsByBrandId(entity.getId()));
-                    return brand;
-                });
+        return brandJpaRepository.findBySlug(slug).map(entity -> {
+            Brand brand = brandInfraMapper.toDomain(entity);
+            brand.setProductCount(brandJpaRepository.countProductsByBrandId(entity.getId()));
+            return brand;
+        });
     }
 
     @Override
@@ -61,8 +57,7 @@ public class BrandRepositoryImpl implements BrandRepository {
 
         brandJpaRepository.save(brandInfraMapper.toEntity(brand));
 
-        return findById(newId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", newId));
+        return findById(newId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", newId));
     }
 
     @Override
@@ -77,8 +72,7 @@ public class BrandRepositoryImpl implements BrandRepository {
 
         brandJpaRepository.save(entity);
 
-        return findById(brandId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", brandId));
+        return findById(brandId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", brandId));
     }
 
     @Override

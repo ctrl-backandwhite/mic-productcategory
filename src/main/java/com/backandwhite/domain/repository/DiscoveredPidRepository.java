@@ -3,10 +3,9 @@ package com.backandwhite.domain.repository;
 import com.backandwhite.domain.model.DiscoveredPid;
 import com.backandwhite.domain.valueobject.DiscoveryStatus;
 import com.backandwhite.domain.valueobject.DiscoveryStrategy;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
 
 public interface DiscoveredPidRepository {
 

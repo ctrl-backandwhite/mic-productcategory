@@ -1,7 +1,6 @@
 package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.CountryTax;
-
 import java.util.List;
 import java.util.Optional;
 

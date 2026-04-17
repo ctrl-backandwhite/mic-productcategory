@@ -1,8 +1,7 @@
 package com.backandwhite.api.dto.out;
 
-import lombok.*;
-
 import java.time.Instant;
+import lombok.*;
 
 @Data
 @Builder

@@ -4,10 +4,9 @@ import com.backandwhite.domain.model.Attribute;
 import com.backandwhite.domain.model.AttributeValue;
 import com.backandwhite.infrastructure.db.postgres.entity.AttributeEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.AttributeValueEntity;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface AttributeInfraMapper {

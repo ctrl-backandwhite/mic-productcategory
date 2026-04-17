@@ -1,14 +1,21 @@
 package com.backandwhite.api.controller;
 
+import static com.backandwhite.provider.CategoryProvider.CATEGORY_ID;
+import static com.backandwhite.provider.ProductProvider.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.backandwhite.api.dto.in.ProductDtoIn;
 import com.backandwhite.api.dto.out.ProductDtoOut;
 import com.backandwhite.api.mapper.ProductApiMapper;
 import com.backandwhite.api.mapper.ProductDetailApiMapper;
+import com.backandwhite.application.service.PricingService;
 import com.backandwhite.application.usecase.ProductDetailUseCase;
 import com.backandwhite.application.usecase.ProductSyncUseCase;
 import com.backandwhite.application.usecase.ProductUseCase;
-import com.backandwhite.application.service.PricingService;
 import com.backandwhite.domain.model.Product;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,14 +23,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.List;
-
-import static com.backandwhite.provider.CategoryProvider.CATEGORY_ID;
-import static com.backandwhite.provider.ProductProvider.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProductControllerTest {

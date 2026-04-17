@@ -5,11 +5,8 @@ import com.backandwhite.domain.model.ProductDetail;
 import com.backandwhite.domain.model.ProductDetailVariant;
 import com.backandwhite.domain.model.ProductDetailVariantInventory;
 import com.backandwhite.infrastructure.search.elasticsearch.document.ProductDocument;
-import org.mapstruct.*;
-
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface ProductDocumentMapper {
@@ -109,16 +106,12 @@ public interface ProductDocumentMapper {
     default Integer calcTotalStock(List<ProductDetailVariant> variants) {
         if (variants == null || variants.isEmpty())
             return 0;
-        return variants.stream()
-                .mapToInt(v -> calcVariantStock(v.getInventories()))
-                .sum();
+        return variants.stream().mapToInt(v -> calcVariantStock(v.getInventories())).sum();
     }
 
     default Integer calcVariantStock(List<ProductDetailVariantInventory> inventories) {
         if (inventories == null || inventories.isEmpty())
             return 0;
-        return inventories.stream()
-                .mapToInt(i -> i.getTotalInventory() != null ? i.getTotalInventory() : 0)
-                .sum();
+        return inventories.stream().mapToInt(i -> i.getTotalInventory() != null ? i.getTotalInventory() : 0).sum();
     }
 }

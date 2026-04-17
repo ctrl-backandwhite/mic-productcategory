@@ -7,13 +7,12 @@ import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.ProductDetailVariant;
 import com.backandwhite.domain.repository.InventoryRepository;
 import com.backandwhite.domain.repository.ProductDetailRepository;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -36,8 +35,8 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
         int updated = inventoryRepository.decrementStock(variantId, country, quantity);
         if (updated == 0) {
-            throw Message.VALIDATION_ERROR.toArgumentException(
-                    "Insufficient stock for variant " + variantId + " in " + country);
+            throw Message.VALIDATION_ERROR
+                    .toArgumentException("Insufficient stock for variant " + variantId + " in " + country);
         }
 
         int remaining = inventoryRepository.getTotalStockByVid(variantId);
@@ -59,8 +58,8 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
         int updated = inventoryRepository.decrementStock(variantId, country, quantity);
         if (updated == 0) {
-            throw Message.VALIDATION_ERROR.toArgumentException(
-                    "Insufficient stock for variant " + variantId + " in " + country);
+            throw Message.VALIDATION_ERROR
+                    .toArgumentException("Insufficient stock for variant " + variantId + " in " + country);
         }
 
         int remaining = inventoryRepository.getTotalStockByVid(variantId);
@@ -141,16 +140,13 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
     }
 
     private String getProductIdForVariant(String variantId) {
-        return productDetailRepository.findVariantByVid(variantId, null)
-                .map(ProductDetailVariant::getPid)
+        return productDetailRepository.findVariantByVid(variantId, null).map(ProductDetailVariant::getPid)
                 .orElse(variantId);
     }
 
     private String getProductNameForVariant(String variantId) {
         return productDetailRepository.findVariantByVid(variantId, null)
-                .flatMap(v -> v.getTranslations().stream().findFirst())
-                .map(t -> t.getVariantName())
-                .orElse("Unknown");
+                .flatMap(v -> v.getTranslations().stream().findFirst()).map(t -> t.getVariantName()).orElse("Unknown");
     }
 
     private void checkLowStock(String productId, String variantId, int remaining) {
@@ -166,11 +162,8 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
     private void updateEsStock(String pid) {
         try {
-            Map<String, Integer> variantStockMap = productDetailRepository
-                    .findVariantsByPid(pid, null)
-                    .stream()
-                    .collect(Collectors.toMap(
-                            ProductDetailVariant::getVid,
+            Map<String, Integer> variantStockMap = productDetailRepository.findVariantsByPid(pid, null).stream()
+                    .collect(Collectors.toMap(ProductDetailVariant::getVid,
                             v -> inventoryRepository.getTotalStockByVid(v.getVid())));
             productSearchIndexPort.updateStock(pid, variantStockMap);
             log.debug("ES stock updated for pid={}, variants={}", pid, variantStockMap.size());

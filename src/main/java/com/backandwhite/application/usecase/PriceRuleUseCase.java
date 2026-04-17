@@ -1,7 +1,6 @@
 package com.backandwhite.application.usecase;
 
 import com.backandwhite.domain.model.PriceRule;
-
 import java.util.List;
 
 public interface PriceRuleUseCase {

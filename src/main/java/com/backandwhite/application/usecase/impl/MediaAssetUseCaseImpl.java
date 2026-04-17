@@ -6,6 +6,9 @@ import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.MediaAsset;
 import com.backandwhite.domain.repository.MediaAssetRepository;
 import com.backandwhite.domain.valueobject.MediaCategory;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -15,21 +18,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.Set;
-
 @Log4j2
 @Service
 @RequiredArgsConstructor
 public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
 
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-    private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml",
-            "application/pdf", "video/mp4");
-    private static final Set<String> IMAGE_MIME_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/gif", "image/webp");
+    private static final Set<String> ALLOWED_MIME_TYPES = Set.of("image/jpeg", "image/png", "image/gif", "image/webp",
+            "image/svg+xml", "application/pdf", "video/mp4");
+    private static final Set<String> IMAGE_MIME_TYPES = Set.of("image/jpeg", "image/png", "image/gif", "image/webp");
 
     private final MediaAssetRepository mediaAssetRepository;
     private final StorageService storageService;
@@ -62,17 +59,10 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
                 thumbnailUrl = storageService.getThumbnailUrl(thumbFilename);
             }
 
-            MediaAsset mediaAsset = MediaAsset.builder()
-                    .filename(filename)
-                    .originalName(file.getOriginalFilename())
-                    .mimeType(contentType)
-                    .sizeBytes(file.getSize())
-                    .url(url)
-                    .thumbnailUrl(thumbnailUrl)
-                    .category(category != null ? category : MediaCategory.GENERAL)
-                    .alt(alt)
-                    .tags(tags != null ? tags : List.of())
-                    .build();
+            MediaAsset mediaAsset = MediaAsset.builder().filename(filename).originalName(file.getOriginalFilename())
+                    .mimeType(contentType).sizeBytes(file.getSize()).url(url).thumbnailUrl(thumbnailUrl)
+                    .category(category != null ? category : MediaCategory.GENERAL).alt(alt)
+                    .tags(tags != null ? tags : List.of()).build();
 
             MediaAsset saved = mediaAssetRepository.save(mediaAsset);
             log.info("Media asset uploaded: {} ({})", saved.getOriginalName(), saved.getId());
@@ -86,8 +76,8 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MediaAsset> findAll(MediaCategory category, String mimeType, String tag,
-            int page, int size, String sortBy, boolean ascending) {
+    public Page<MediaAsset> findAll(MediaCategory category, String mimeType, String tag, int page, int size,
+            String sortBy, boolean ascending) {
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         return mediaAssetRepository.findAll(category, mimeType, tag, PageRequest.of(page, size, sort));
     }

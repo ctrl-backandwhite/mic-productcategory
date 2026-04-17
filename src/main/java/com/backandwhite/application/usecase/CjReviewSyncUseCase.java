@@ -7,7 +7,8 @@ public interface CjReviewSyncUseCase {
     /**
      * Syncs reviews for all products that haven't been synced today.
      *
-     * @param force if true, re-sync even products synced today
+     * @param force
+     *            if true, re-sync even products synced today
      */
     CjSyncResult syncAll(boolean force);
 

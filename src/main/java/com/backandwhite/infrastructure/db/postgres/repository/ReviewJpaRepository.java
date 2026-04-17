@@ -9,8 +9,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ReviewJpaRepository extends JpaRepository<ReviewEntity, String>,
-        JpaSpecificationExecutor<ReviewEntity> {
+public interface ReviewJpaRepository
+        extends
+            JpaRepository<ReviewEntity, String>,
+            JpaSpecificationExecutor<ReviewEntity> {
 
     @Modifying
     @Query("UPDATE ReviewEntity r SET r.helpfulCount = r.helpfulCount + 1 WHERE r.id = :reviewId")

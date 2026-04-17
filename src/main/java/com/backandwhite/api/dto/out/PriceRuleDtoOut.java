@@ -3,10 +3,9 @@ package com.backandwhite.api.dto.out;
 import com.backandwhite.domain.valueobject.MarginType;
 import com.backandwhite.domain.valueobject.PriceRuleScope;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.Instant;
+import lombok.*;
 
 @Data
 @With

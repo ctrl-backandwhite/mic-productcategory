@@ -8,9 +8,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Filter DTO for the paginated product listing.
- * Only fields with non-null values are applied as predicates.
- * Compatible with {@code PageableUtils.toFilterMap()} + {@code FilterUtils.buildSpecification()}.
+ * Filter DTO for the paginated product listing. Only fields with non-null
+ * values are applied as predicates. Compatible with
+ * {@code PageableUtils.toFilterMap()} +
+ * {@code FilterUtils.buildSpecification()}.
  */
 @Data
 @Builder

@@ -1,18 +1,17 @@
 package com.backandwhite.application.usecase.impl;
 
+import com.backandwhite.application.port.out.DropshippingPort;
 import com.backandwhite.application.usecase.CategorySyncUseCase;
 import com.backandwhite.domain.model.CategorySyncResult;
 import com.backandwhite.domain.repository.CategoryRepository;
-import com.backandwhite.application.port.out.DropshippingPort;
 import com.backandwhite.infrastructure.client.cj.dto.CjCategoryFirstLevelDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjCategorySecondLevelDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjCategoryThirdLevelDto;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Log4j2
 @Service
@@ -40,11 +39,9 @@ public class CategorySyncUseCaseImpl implements CategorySyncUseCase {
                 continue;
 
             boolean firstExists = categoryRepository
-                    .findCategoryIdByNameAndLocaleAndLevelAndParent(firstName, LOCALE_EN, 1, null)
-                    .isPresent();
+                    .findCategoryIdByNameAndLocaleAndLevelAndParent(firstName, LOCALE_EN, 1, null).isPresent();
 
-            String firstLevelId = categoryRepository.upsertCategory(
-                    null, null, 1, firstName, LOCALE_EN);
+            String firstLevelId = categoryRepository.upsertCategory(null, null, 1, firstName, LOCALE_EN);
 
             if (firstExists) {
                 updated++;
@@ -64,8 +61,7 @@ public class CategorySyncUseCaseImpl implements CategorySyncUseCase {
                         .findCategoryIdByNameAndLocaleAndLevelAndParent(secondName, LOCALE_EN, 2, firstLevelId)
                         .isPresent();
 
-                String secondLevelId = categoryRepository.upsertCategory(
-                        null, firstLevelId, 2, secondName, LOCALE_EN);
+                String secondLevelId = categoryRepository.upsertCategory(null, firstLevelId, 2, secondName, LOCALE_EN);
 
                 if (secondExists) {
                     updated++;
@@ -82,12 +78,9 @@ public class CategorySyncUseCaseImpl implements CategorySyncUseCase {
                     if (thirdName == null || thirdName.isBlank() || thirdId == null)
                         continue;
 
-                    boolean thirdExists = categoryRepository
-                            .findCategoryIdById(thirdId)
-                            .isPresent();
+                    boolean thirdExists = categoryRepository.findCategoryIdById(thirdId).isPresent();
 
-                    categoryRepository.upsertCategory(
-                            thirdId, secondLevelId, 3, thirdName, LOCALE_EN);
+                    categoryRepository.upsertCategory(thirdId, secondLevelId, 3, thirdName, LOCALE_EN);
 
                     if (thirdExists) {
                         updated++;
@@ -98,13 +91,9 @@ public class CategorySyncUseCaseImpl implements CategorySyncUseCase {
             }
         }
 
-        log.info("CJ Dropshipping category sync completed: created={}, updated={}, total={}",
-                created, updated, created + updated);
+        log.info("CJ Dropshipping category sync completed: created={}, updated={}, total={}", created, updated,
+                created + updated);
 
-        return CategorySyncResult.builder()
-                .created(created)
-                .updated(updated)
-                .total(created + updated)
-                .build();
+        return CategorySyncResult.builder().created(created).updated(updated).total(created + updated).build();
     }
 }

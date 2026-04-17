@@ -3,8 +3,8 @@ package com.backandwhite.application.service;
 import java.io.InputStream;
 
 /**
- * Interface for the file storage service.
- * Allows abstracting the storage (local, S3, MinIO).
+ * Interface for the file storage service. Allows abstracting the storage
+ * (local, S3, MinIO).
  */
 public interface StorageService {
 

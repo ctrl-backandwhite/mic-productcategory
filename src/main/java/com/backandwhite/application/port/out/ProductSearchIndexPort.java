@@ -3,7 +3,6 @@ package com.backandwhite.application.port.out;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.model.ProductDetail;
 import com.backandwhite.domain.valueobject.ProductStatus;
-
 import java.util.List;
 import java.util.Map;
 

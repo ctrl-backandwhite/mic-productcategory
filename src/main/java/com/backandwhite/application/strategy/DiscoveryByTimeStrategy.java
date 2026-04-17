@@ -11,15 +11,14 @@ import com.backandwhite.domain.valueobject.DiscoveryStrategy;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductListPageDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductListV2ItemDto;
 import com.backandwhite.infrastructure.configuration.CjDropshippingProperties;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Component;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Component;
 
 @Log4j2
 @Component
@@ -69,8 +68,8 @@ public class DiscoveryByTimeStrategy implements DiscoveryStrategyExecutor {
 
         while (page <= maxPages) {
             try {
-                CjProductListPageDto pageResult = dropshippingPort.getProductListFiltered(
-                        page, pageSize, null, null, timeStartMs, timeEndMs, 3, "asc");
+                CjProductListPageDto pageResult = dropshippingPort.getProductListFiltered(page, pageSize, null, null,
+                        timeStartMs, timeEndMs, 3, "asc");
 
                 if (pageResult == null || pageResult.getAllProducts().isEmpty()) {
                     break;
@@ -113,30 +112,18 @@ public class DiscoveryByTimeStrategy implements DiscoveryStrategyExecutor {
         state.setUpdatedAt(Instant.now());
         stateRepository.save(state);
 
-        log.info("BY_TIME discovery completed: {} new PIDs, {} total processed, {} pages scanned",
-                totalNew, totalProcessed, page);
+        log.info("BY_TIME discovery completed: {} new PIDs, {} total processed, {} pages scanned", totalNew,
+                totalProcessed, page);
 
-        return DiscoveryResult.builder()
-                .newPidsDiscovered(totalNew)
-                .totalPidsProcessed(totalProcessed)
-                .pagesScanned(page)
-                .completed(true)
-                .build();
+        return DiscoveryResult.builder().newPidsDiscovered(totalNew).totalPidsProcessed(totalProcessed)
+                .pagesScanned(page).completed(true).build();
     }
 
     private DiscoveredPid buildDiscoveredPid(CjProductListV2ItemDto item) {
-        return DiscoveredPid.builder()
-                .id(UUID.randomUUID().toString())
-                .pid(item.getId())
-                .categoryId(item.getCategoryId())
-                .strategy(DiscoveryStrategy.BY_TIME)
-                .status(DiscoveryStatus.NEW)
-                .nameEn(item.getNameEn())
-                .sellPrice(item.getSellPrice())
-                .discoveredAt(Instant.now())
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+        return DiscoveredPid.builder().id(UUID.randomUUID().toString()).pid(item.getId())
+                .categoryId(item.getCategoryId()).strategy(DiscoveryStrategy.BY_TIME).status(DiscoveryStatus.NEW)
+                .nameEn(item.getNameEn()).sellPrice(item.getSellPrice()).discoveredAt(Instant.now())
+                .createdAt(Instant.now()).updatedAt(Instant.now()).build();
     }
 
     private void rateLimitWait(long ms) {

@@ -1,26 +1,24 @@
 package com.backandwhite.application.usecase.impl;
 
+import com.backandwhite.application.port.out.DropshippingPort;
 import com.backandwhite.application.usecase.ProductDetailUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.*;
 import com.backandwhite.domain.repository.ProductDetailRepository;
 import com.backandwhite.domain.valueobject.ProductStatus;
-import com.backandwhite.application.port.out.DropshippingPort;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductDetailDto;
 import com.backandwhite.infrastructure.client.cj.mapper.CjProductDetailMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Optional;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Log4j2
 @Service
@@ -137,10 +135,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
                 .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid));
 
         // Preserve immutable fields
-        variant = variant
-                .withVid(vid)
-                .withPid(existing.getPid())
-                .withCreateTime(existing.getCreateTime());
+        variant = variant.withVid(vid).withPid(existing.getPid()).withCreateTime(existing.getCreateTime());
 
         log.info("Updating variant vid={} for pid={}", vid, existing.getPid());
         return productDetailRepository.saveVariant(variant);
@@ -182,8 +177,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
                 ProductDetailVariant v = variants.get(i);
 
                 if (!productDetailRepository.existsByPid(v.getPid())) {
-                    throw new IllegalArgumentException(
-                            "ProductDetail pid=" + v.getPid() + " does not exist");
+                    throw new IllegalArgumentException("ProductDetail pid=" + v.getPid() + " does not exist");
                 }
 
                 String vid = UUID.randomUUID().toString().toUpperCase();
@@ -193,19 +187,12 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
                 created++;
             } catch (Exception e) {
                 log.warn("Bulk variant row {} failed: {}", i, e.getMessage());
-                errors.add(BulkImportResult.RowError.builder()
-                        .row(i)
-                        .message(e.getMessage())
-                        .build());
+                errors.add(BulkImportResult.RowError.builder().row(i).message(e.getMessage()).build());
             }
         }
 
         log.info("Bulk variant import: created={}, failed={}, total={}", created, errors.size(), variants.size());
-        return BulkImportResult.builder()
-                .created(created)
-                .failed(errors.size())
-                .totalRows(variants.size())
-                .errors(errors)
-                .build();
+        return BulkImportResult.builder().created(created).failed(errors.size()).totalRows(variants.size())
+                .errors(errors).build();
     }
 }

@@ -3,11 +3,10 @@ package com.backandwhite.infrastructure.db.postgres.entity;
 import com.backandwhite.common.infrastructure.entity.AuditableEntity;
 import com.backandwhite.domain.valueobject.AttributeType;
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @With
 @Getter
@@ -16,9 +15,7 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "attributes", indexes = {
-        @Index(name = "idx_attributes_slug", columnList = "slug")
-})
+@Table(name = "attributes", indexes = {@Index(name = "idx_attributes_slug", columnList = "slug")})
 public class AttributeEntity extends AuditableEntity {
 
     @Id

@@ -1,8 +1,5 @@
 package com.backandwhite.domain.valueobject;
 
 public enum DiscoveryStateStatus {
-    IDLE,
-    RUNNING,
-    PAUSED,
-    COMPLETED
+    IDLE, RUNNING, PAUSED, COMPLETED
 }

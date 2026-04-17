@@ -1,7 +1,6 @@
 package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.SyncFailure;
-
 import java.util.List;
 import java.util.Optional;
 

@@ -5,11 +5,10 @@ import com.backandwhite.domain.repository.DiscoveryStateRepository;
 import com.backandwhite.domain.valueobject.DiscoveryStrategy;
 import com.backandwhite.infrastructure.db.postgres.mapper.DiscoveryInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.DiscoveryStateJpaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

@@ -13,11 +13,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "brands", indexes = {
-        @Index(name = "idx_brands_slug", columnList = "slug"),
+@Table(name = "brands", indexes = {@Index(name = "idx_brands_slug", columnList = "slug"),
         @Index(name = "idx_brands_status", columnList = "status"),
-        @Index(name = "idx_brands_name", columnList = "name")
-})
+        @Index(name = "idx_brands_name", columnList = "name")})
 public class BrandEntity extends AuditableEntity {
 
     @Id

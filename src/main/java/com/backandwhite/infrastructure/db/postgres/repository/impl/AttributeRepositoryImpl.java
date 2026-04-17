@@ -9,13 +9,12 @@ import com.backandwhite.infrastructure.db.postgres.entity.AttributeValueEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.AttributeInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.AttributeJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.specification.AttributeSpecification;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -32,8 +31,7 @@ public class AttributeRepositoryImpl implements AttributeRepository {
 
     @Override
     public Optional<Attribute> findById(String attributeId) {
-        return attributeJpaRepository.findById(attributeId)
-                .map(attributeInfraMapper::toDomain);
+        return attributeJpaRepository.findById(attributeId).map(attributeInfraMapper::toDomain);
     }
 
     @Override
@@ -53,8 +51,7 @@ public class AttributeRepositoryImpl implements AttributeRepository {
 
         attributeJpaRepository.save(attributeInfraMapper.toEntityWithValues(attribute));
 
-        return findById(newId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Attribute", newId));
+        return findById(newId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Attribute", newId));
     }
 
     @Override
@@ -97,8 +94,7 @@ public class AttributeRepositoryImpl implements AttributeRepository {
         }
 
         // Index existing values by ID
-        Map<String, AttributeValueEntity> existingById = entity.getValues().stream()
-                .filter(v -> v.getId() != null)
+        Map<String, AttributeValueEntity> existingById = entity.getValues().stream().filter(v -> v.getId() != null)
                 .collect(Collectors.toMap(AttributeValueEntity::getId, v -> v));
 
         List<AttributeValueEntity> updatedList = new ArrayList<>();
@@ -114,12 +110,8 @@ public class AttributeRepositoryImpl implements AttributeRepository {
                 updatedList.add(existing);
             } else {
                 // New value
-                AttributeValueEntity newEntity = AttributeValueEntity.builder()
-                        .id(UUID.randomUUID().toString())
-                        .value(incoming.getValue())
-                        .colorHex(incoming.getColorHex())
-                        .position(pos++)
-                        .attribute(entity)
+                AttributeValueEntity newEntity = AttributeValueEntity.builder().id(UUID.randomUUID().toString())
+                        .value(incoming.getValue()).colorHex(incoming.getColorHex()).position(pos++).attribute(entity)
                         .build();
                 updatedList.add(newEntity);
             }

@@ -2,13 +2,12 @@ package com.backandwhite.infrastructure.client.cj.mapper;
 
 import com.backandwhite.domain.model.Review;
 import com.backandwhite.infrastructure.client.cj.dto.CjReviewItemDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface CjReviewMapper {

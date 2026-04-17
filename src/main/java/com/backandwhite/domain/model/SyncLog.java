@@ -2,9 +2,8 @@ package com.backandwhite.domain.model;
 
 import com.backandwhite.domain.valueobject.SyncStatus;
 import com.backandwhite.domain.valueobject.SyncType;
-import lombok.*;
-
 import java.time.Instant;
+import lombok.*;
 
 @Data
 @Builder(toBuilder = true)

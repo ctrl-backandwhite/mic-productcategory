@@ -7,6 +7,8 @@ import com.backandwhite.domain.valueobject.ProductStatus;
 import com.backandwhite.infrastructure.search.elasticsearch.document.ProductDocument;
 import com.backandwhite.infrastructure.search.elasticsearch.mapper.ProductDocumentMapper;
 import com.backandwhite.infrastructure.search.elasticsearch.repository.ProductSearchRepository;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -14,9 +16,6 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Service
@@ -56,9 +55,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
     @Async
     public void indexBulk(List<Product> products) {
         try {
-            List<ProductDocument> docs = products.stream()
-                    .map(documentMapper::fromProduct)
-                    .toList();
+            List<ProductDocument> docs = products.stream().map(documentMapper::fromProduct).toList();
             searchRepository.saveAll(docs);
             log.info("Bulk indexed {} products", docs.size());
         } catch (Exception e) {
@@ -69,9 +66,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
     @Override
     public void indexBulkProductDetail(List<ProductDetail> details) {
         try {
-            List<ProductDocument> docs = details.stream()
-                    .map(documentMapper::fromProductDetail)
-                    .toList();
+            List<ProductDocument> docs = details.stream().map(documentMapper::fromProductDetail).toList();
             searchRepository.saveAll(docs);
             log.info("Bulk indexed {} product details", docs.size());
         } catch (Exception e) {

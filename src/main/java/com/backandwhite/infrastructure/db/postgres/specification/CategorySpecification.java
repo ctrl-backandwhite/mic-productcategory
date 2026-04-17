@@ -20,9 +20,7 @@ public final class CategorySpecification {
                     .fetch("translations", JoinType.INNER);
 
             query.distinct(true);
-            query.orderBy(
-                    cb.asc(root.get("level")),
-                    cb.asc(root.get("id")));
+            query.orderBy(cb.asc(root.get("level")), cb.asc(root.get("id")));
 
             Predicate predicate = cb.equal(translationJoin.get("id").get("locale"), locale);
 
@@ -43,8 +41,8 @@ public final class CategorySpecification {
         return (root, query, cb) -> {
             Join<CategoryEntity, CategoryTranslationEntity> translationJoin;
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root
-                        .fetch("translations", JoinType.INNER);
+                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root.fetch("translations",
+                        JoinType.INNER);
             } else {
                 translationJoin = root.join("translations", JoinType.INNER);
             }
@@ -80,13 +78,13 @@ public final class CategorySpecification {
      * CategoryJpaRepository#findByTranslationNameAndLocaleAndLevelAndParent.
      */
     @SuppressWarnings("unchecked")
-    public static Specification<CategoryEntity> byTranslationNameAndLocaleAndLevelAndParent(
-            String name, String locale, Integer level, String parentId) {
+    public static Specification<CategoryEntity> byTranslationNameAndLocaleAndLevelAndParent(String name, String locale,
+            Integer level, String parentId) {
         return (root, query, cb) -> {
             Join<CategoryEntity, CategoryTranslationEntity> translationJoin;
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root
-                        .fetch("translations", JoinType.INNER);
+                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root.fetch("translations",
+                        JoinType.INNER);
             } else {
                 translationJoin = root.join("translations", JoinType.INNER);
             }
@@ -112,16 +110,14 @@ public final class CategorySpecification {
         return (root, query, cb) -> {
             Join<CategoryEntity, CategoryTranslationEntity> translationJoin;
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root
-                        .fetch("translations", JoinType.INNER);
+                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root.fetch("translations",
+                        JoinType.INNER);
             } else {
                 translationJoin = root.join("translations", JoinType.INNER);
             }
 
             query.distinct(true);
-            query.orderBy(
-                    cb.asc(root.get("level")),
-                    cb.asc(root.get("id")));
+            query.orderBy(cb.asc(root.get("level")), cb.asc(root.get("id")));
 
             Predicate predicate = cb.equal(root.get("featured"), true);
             predicate = cb.and(predicate, cb.equal(root.get("active"), true));

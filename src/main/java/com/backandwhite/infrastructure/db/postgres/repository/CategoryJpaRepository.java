@@ -1,6 +1,8 @@
 package com.backandwhite.infrastructure.db.postgres.repository;
 
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryEntity;
+import java.time.Instant;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -8,12 +10,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
-import java.util.List;
-
 @Repository
-public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, String>,
-        JpaSpecificationExecutor<CategoryEntity> {
+public interface CategoryJpaRepository
+        extends
+            JpaRepository<CategoryEntity, String>,
+            JpaSpecificationExecutor<CategoryEntity> {
 
     /**
      * Recursively finds all descendant category IDs for a given parent category,

@@ -3,11 +3,10 @@ package com.backandwhite.infrastructure.db.postgres.entity;
 import com.backandwhite.common.infrastructure.entity.AuditableEntity;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @With
 @Getter
@@ -16,10 +15,8 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "products", indexes = {
-        @Index(name = "idx_products_category", columnList = "category_id"),
-        @Index(name = "idx_products_sku", columnList = "sku")
-})
+@Table(name = "products", indexes = {@Index(name = "idx_products_category", columnList = "category_id"),
+        @Index(name = "idx_products_sku", columnList = "sku")})
 public class ProductEntity extends AuditableEntity {
 
     @Id

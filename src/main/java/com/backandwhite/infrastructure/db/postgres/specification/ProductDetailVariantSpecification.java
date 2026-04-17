@@ -29,14 +29,15 @@ public final class ProductDetailVariantSpecification {
      */
     public static Specification<ProductDetailVariantEntity> hasPid(String pid) {
         return (root, query, cb) -> {
-            if (pid == null || pid.isBlank()) return cb.conjunction();
+            if (pid == null || pid.isBlank())
+                return cb.conjunction();
             return cb.equal(root.get("pid"), pid);
         };
     }
 
     /**
-     * Searches variants whose VID, PID, variant name, SKU, key or parent
-     * product name contain the term (case-insensitive).
+     * Searches variants whose VID, PID, variant name, SKU, key or parent product
+     * name contain the term (case-insensitive).
      */
     public static Specification<ProductDetailVariantEntity> searchByTerm(String term) {
         return (root, query, cb) -> {
@@ -48,8 +49,8 @@ public final class ProductDetailVariantSpecification {
 
             Join<ProductDetailVariantEntity, ProductDetailEntity> pdJoin;
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                pdJoin = (Join<ProductDetailVariantEntity, ProductDetailEntity>) (Object) root
-                        .fetch("productDetail", JoinType.LEFT);
+                pdJoin = (Join<ProductDetailVariantEntity, ProductDetailEntity>) (Object) root.fetch("productDetail",
+                        JoinType.LEFT);
             } else {
                 pdJoin = root.join("productDetail", JoinType.LEFT);
             }

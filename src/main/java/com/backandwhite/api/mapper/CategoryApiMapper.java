@@ -6,10 +6,9 @@ import com.backandwhite.api.dto.out.CategoryDtoOut;
 import com.backandwhite.api.dto.out.CategoryTranslationDtoOut;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategoryTranslation;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface CategoryApiMapper {

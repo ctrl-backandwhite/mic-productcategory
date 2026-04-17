@@ -1,13 +1,15 @@
 package com.backandwhite.application.usecase.impl;
 
+import com.backandwhite.application.port.out.CatalogEventPort;
+import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import com.backandwhite.application.usecase.ProductUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valueobject.ProductStatus;
-import com.backandwhite.application.port.out.CatalogEventPort;
-import com.backandwhite.application.port.out.ProductSearchIndexPort;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -16,9 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Log4j2
 @Service
@@ -68,9 +67,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
     public Product create(Product product) {
         Product saved = productRepository.save(product);
         // Publish product.created event (L-12)
-        catalogEventPort.publishProductCreated(
-                saved.getId(), saved.getName(), saved.getSku(),
-                saved.getSellPrice(),
+        catalogEventPort.publishProductCreated(saved.getId(), saved.getName(), saved.getSku(), saved.getSellPrice(),
                 saved.getCategoryId(), null);
         productSearchIndexPort.indexProduct(saved);
         return saved;
@@ -81,11 +78,8 @@ public class ProductUseCaseImpl implements ProductUseCase {
     public Product update(String productId, Product product) {
         Product updated = productRepository.update(productId, product);
         // Publish product.updated event (L-12)
-        catalogEventPort.publishProductUpdated(
-                updated.getId(), updated.getName(),
-                updated.getSellPrice(),
-                updated.getCategoryId(), null,
-                updated.getStatus() == ProductStatus.PUBLISHED);
+        catalogEventPort.publishProductUpdated(updated.getId(), updated.getName(), updated.getSellPrice(),
+                updated.getCategoryId(), null, updated.getStatus() == ProductStatus.PUBLISHED);
         productSearchIndexPort.indexProduct(updated);
         return updated;
     }
@@ -140,10 +134,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
                 created++;
             } catch (Exception e) {
                 log.warn("Bulk product row {} failed: {}", i, e.getMessage());
-                errors.add(BulkImportResult.RowError.builder()
-                        .row(i)
-                        .message(e.getMessage())
-                        .build());
+                errors.add(BulkImportResult.RowError.builder().row(i).message(e.getMessage()).build());
             }
         }
 
@@ -152,11 +143,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
         }
 
         log.info("Bulk product import: created={}, failed={}, total={}", created, errors.size(), products.size());
-        return BulkImportResult.builder()
-                .created(created)
-                .failed(errors.size())
-                .totalRows(products.size())
-                .errors(errors)
-                .build();
+        return BulkImportResult.builder().created(created).failed(errors.size()).totalRows(products.size())
+                .errors(errors).build();
     }
 }

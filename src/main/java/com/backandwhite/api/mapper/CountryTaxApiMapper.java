@@ -3,13 +3,12 @@ package com.backandwhite.api.mapper;
 import com.backandwhite.api.dto.in.CountryTaxDtoIn;
 import com.backandwhite.api.dto.out.CountryTaxDtoOut;
 import com.backandwhite.domain.model.CountryTax;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface CountryTaxApiMapper {
@@ -33,10 +32,7 @@ public interface CountryTaxApiMapper {
     default List<String> stringToList(String value) {
         if (value == null || value.isBlank())
             return Collections.emptyList();
-        return Arrays.stream(value.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toList();
+        return Arrays.stream(value.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
     }
 
     @Named("listToString")

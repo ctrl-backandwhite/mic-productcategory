@@ -8,8 +8,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface WarrantyJpaRepository extends JpaRepository<WarrantyEntity, String>,
-        JpaSpecificationExecutor<WarrantyEntity> {
+public interface WarrantyJpaRepository
+        extends
+            JpaRepository<WarrantyEntity, String>,
+            JpaSpecificationExecutor<WarrantyEntity> {
 
     @Query("SELECT COUNT(p) FROM ProductEntity p WHERE p.warrantyId = :warrantyId")
     long countProductsByWarrantyId(@Param("warrantyId") String warrantyId);

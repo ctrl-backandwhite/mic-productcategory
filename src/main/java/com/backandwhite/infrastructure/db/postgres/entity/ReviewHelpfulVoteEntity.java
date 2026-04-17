@@ -1,9 +1,8 @@
 package com.backandwhite.infrastructure.db.postgres.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.Instant;
+import lombok.*;
 
 @Getter
 @Setter
@@ -12,8 +11,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "review_helpful_votes", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_review_helpful_vote", columnNames = { "review_id", "session_id" })
-})
+        @UniqueConstraint(name = "uq_review_helpful_vote", columnNames = {"review_id", "session_id"})})
 public class ReviewHelpfulVoteEntity {
 
     @Id

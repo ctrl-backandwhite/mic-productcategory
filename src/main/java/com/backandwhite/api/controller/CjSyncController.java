@@ -15,11 +15,10 @@ import com.backandwhite.domain.valueobject.SyncType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,8 +47,7 @@ public class CjSyncController {
     @PostMapping("/inventory/product/{pid}")
     @Operation(summary = "Sync inventory for a specific product")
     public ResponseEntity<CjSyncResultDtoOut> syncInventoryByPid(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String pid) {
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String pid) {
         return ResponseEntity.ok(toDto(cjInventorySyncUseCase.syncByPid(pid)));
     }
 
@@ -68,8 +66,7 @@ public class CjSyncController {
     @PostMapping("/product/{pid}")
     @Operation(summary = "Sync full data for a specific product")
     public ResponseEntity<CjSyncResultDtoOut> syncProductByPid(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String pid) {
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String pid) {
         return ResponseEntity.ok(toDto(cjProductFullSyncUseCase.syncByPid(pid)));
     }
 
@@ -88,8 +85,7 @@ public class CjSyncController {
     @PostMapping("/reviews/product/{pid}")
     @Operation(summary = "Sync CJ reviews for a specific product")
     public ResponseEntity<CjSyncResultDtoOut> syncReviewsByPid(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String pid) {
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String pid) {
         return ResponseEntity.ok(toDto(cjReviewSyncUseCase.syncByPid(pid)));
     }
 
@@ -98,8 +94,7 @@ public class CjSyncController {
     @NxAdmin
     @GetMapping("/log/{syncType}")
     @Operation(summary = "View recent sync history", description = "Returns the last 10 sync records for the specified type")
-    public ResponseEntity<List<SyncLogDtoOut>> getSyncLog(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+    public ResponseEntity<List<SyncLogDtoOut>> getSyncLog(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Sync type: INVENTORY, PRODUCT_FULL, REVIEWS, CATEGORIES") @PathVariable String syncType) {
         List<SyncLog> logs = syncLogRepository.findRecentByType(SyncType.valueOf(syncType.toUpperCase()), 10);
         return ResponseEntity.ok(logs.stream().map(this::toLogDto).toList());
@@ -113,10 +108,8 @@ public class CjSyncController {
     public ResponseEntity<java.util.Map<String, Object>> reindexElasticsearch(
             @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
         long indexed = productSearchReindexUseCase.reindexAll();
-        return ResponseEntity.accepted().body(java.util.Map.of(
-                "status", "completed",
-                "operation", "full-reindex",
-                "totalIndexed", indexed));
+        return ResponseEntity.accepted()
+                .body(java.util.Map.of("status", "completed", "operation", "full-reindex", "totalIndexed", indexed));
     }
 
     @NxAdmin
@@ -126,37 +119,24 @@ public class CjSyncController {
     public ResponseEntity<java.util.Map<String, Object>> reindexFromDb(
             @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
         long indexed = productSearchReindexUseCase.reindexFromDb();
-        return ResponseEntity.accepted().body(java.util.Map.of(
-                "status", "completed",
-                "operation", "incremental-reindex",
-                "totalIndexed", indexed));
+        return ResponseEntity.accepted().body(
+                java.util.Map.of("status", "completed", "operation", "incremental-reindex", "totalIndexed", indexed));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private CjSyncResultDtoOut toDto(CjSyncResult result) {
-        return CjSyncResultDtoOut.builder()
-                .totalItems(result.getTotalItems())
-                .syncedItems(result.getSyncedItems())
-                .failedItems(result.getFailedItems())
-                .skippedItems(result.getSkippedItems())
-                .durationMs(result.getDurationMs())
-                .syncLogId(result.getSyncLogId())
-                .build();
+        return CjSyncResultDtoOut.builder().totalItems(result.getTotalItems()).syncedItems(result.getSyncedItems())
+                .failedItems(result.getFailedItems()).skippedItems(result.getSkippedItems())
+                .durationMs(result.getDurationMs()).syncLogId(result.getSyncLogId()).build();
     }
 
     private SyncLogDtoOut toLogDto(SyncLog log) {
-        return SyncLogDtoOut.builder()
-                .id(log.getId())
+        return SyncLogDtoOut.builder().id(log.getId())
                 .syncType(log.getSyncType() != null ? log.getSyncType().name() : null)
-                .status(log.getStatus() != null ? log.getStatus().name() : null)
-                .startedAt(log.getStartedAt())
-                .finishedAt(log.getFinishedAt())
-                .totalItems(log.getTotalItems())
-                .syncedItems(log.getSyncedItems())
-                .failedItems(log.getFailedItems())
-                .skippedItems(log.getSkippedItems())
-                .errorMessage(log.getErrorMessage())
-                .build();
+                .status(log.getStatus() != null ? log.getStatus().name() : null).startedAt(log.getStartedAt())
+                .finishedAt(log.getFinishedAt()).totalItems(log.getTotalItems()).syncedItems(log.getSyncedItems())
+                .failedItems(log.getFailedItems()).skippedItems(log.getSkippedItems())
+                .errorMessage(log.getErrorMessage()).build();
     }
 }

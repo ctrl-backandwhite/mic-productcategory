@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Represents a single product item from CJ's listV2 response.
- * Field names match CJ's actual API response (e.g. "id", "nameEn").
+ * Represents a single product item from CJ's listV2 response. Field names match
+ * CJ's actual API response (e.g. "id", "nameEn").
  */
 @Data
 @NoArgsConstructor

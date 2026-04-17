@@ -4,12 +4,11 @@ import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.model.ProductDetail;
 import com.backandwhite.domain.valueobject.ProductStatus;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Component

@@ -10,8 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "product_translations", indexes = {
-        @Index(name = "idx_product_translations_locale", columnList = "locale")
-})
+        @Index(name = "idx_product_translations_locale", columnList = "locale")})
 public class ProductTranslationEntity {
 
     @EmbeddedId

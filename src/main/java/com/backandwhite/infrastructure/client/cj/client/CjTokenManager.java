@@ -3,10 +3,6 @@ package com.backandwhite.infrastructure.client.cj.client;
 import com.backandwhite.infrastructure.client.cj.dto.CjAccessTokenDataDto;
 import com.backandwhite.infrastructure.db.postgres.entity.CjTokenEntity;
 import com.backandwhite.infrastructure.db.postgres.repository.CjTokenJpaRepository;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -14,6 +10,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 /**
  * Manages the CJ Dropshipping token lifecycle with DB persistence:
@@ -57,10 +56,9 @@ public class CjTokenManager {
     }
 
     /**
-     * Returns a valid access token.
-     * 1. If there is a cached token and it is valid → returns it.
-     * 2. If it is close to expiring → attempts proactive refresh.
-     * 3. If it is expired → requests a new one (respecting cooldown).
+     * Returns a valid access token. 1. If there is a cached token and it is valid →
+     * returns it. 2. If it is close to expiring → attempts proactive refresh. 3. If
+     * it is expired → requests a new one (respecting cooldown).
      */
     public String getValidAccessToken() {
         lock.lock();
@@ -107,8 +105,8 @@ public class CjTokenManager {
     }
 
     /**
-     * Scheduled task: runs every hour (3_600_000 ms).
-     * Proactively refreshes the token and logs its status.
+     * Scheduled task: runs every hour (3_600_000 ms). Proactively refreshes the
+     * token and logs its status.
      */
     @Scheduled(fixedRate = 3_600_000, initialDelay = 10_000)
     public void scheduledRefresh() {
@@ -185,14 +183,9 @@ public class CjTokenManager {
      */
     private void saveToDatabase() {
         try {
-            CjTokenEntity entity = CjTokenEntity.builder()
-                    .id(SINGLETON_ID)
-                    .accessToken(cachedAccessToken)
-                    .refreshToken(cachedRefreshToken)
-                    .accessTokenExpiry(accessTokenExpiry)
-                    .refreshTokenExpiry(refreshTokenExpiry)
-                    .lastTokenRequestTime(lastTokenRequestTime)
-                    .build();
+            CjTokenEntity entity = CjTokenEntity.builder().id(SINGLETON_ID).accessToken(cachedAccessToken)
+                    .refreshToken(cachedRefreshToken).accessTokenExpiry(accessTokenExpiry)
+                    .refreshTokenExpiry(refreshTokenExpiry).lastTokenRequestTime(lastTokenRequestTime).build();
             tokenRepository.save(entity);
             log.debug("CJ token persisted to DB");
         } catch (Exception e) {
@@ -248,11 +241,10 @@ public class CjTokenManager {
                 ? ChronoUnit.MINUTES.between(Instant.now(), refreshTokenExpiry)
                 : -1;
 
-        log.info("  AccessToken  : {}...{} | expires: {} ({} min left)",
-                maskStart(), maskEnd(), accessTokenExpiry, minutesLeft);
-        log.info("  RefreshToken : {}...{} | expires: {} ({} min left)",
-                maskStart(cachedRefreshToken), maskEnd(cachedRefreshToken),
-                refreshTokenExpiry, refreshMinutesLeft);
+        log.info("  AccessToken  : {}...{} | expires: {} ({} min left)", maskStart(), maskEnd(), accessTokenExpiry,
+                minutesLeft);
+        log.info("  RefreshToken : {}...{} | expires: {} ({} min left)", maskStart(cachedRefreshToken),
+                maskEnd(cachedRefreshToken), refreshTokenExpiry, refreshMinutesLeft);
     }
 
     private boolean isExpired() {
@@ -264,8 +256,7 @@ public class CjTokenManager {
     private boolean isAboutToExpire() {
         if (accessTokenExpiry == null)
             return false;
-        return Instant.now().plus(PROACTIVE_REFRESH_MINUTES, ChronoUnit.MINUTES)
-                .isAfter(accessTokenExpiry);
+        return Instant.now().plus(PROACTIVE_REFRESH_MINUTES, ChronoUnit.MINUTES).isAfter(accessTokenExpiry);
     }
 
     private boolean isRefreshTokenExpired() {

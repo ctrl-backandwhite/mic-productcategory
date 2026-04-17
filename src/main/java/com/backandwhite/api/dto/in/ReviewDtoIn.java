@@ -2,9 +2,8 @@ package com.backandwhite.api.dto.in;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import lombok.*;
-
 import java.util.List;
+import lombok.*;
 
 @Data
 @With

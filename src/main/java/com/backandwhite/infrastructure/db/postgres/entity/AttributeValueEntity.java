@@ -14,8 +14,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Table(name = "attribute_values", indexes = {
         @Index(name = "idx_attribute_values_attribute", columnList = "attribute_id"),
-        @Index(name = "idx_attribute_values_position", columnList = "attribute_id, position")
-})
+        @Index(name = "idx_attribute_values_position", columnList = "attribute_id, position")})
 public class AttributeValueEntity extends AuditableEntity {
 
     @Id

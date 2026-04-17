@@ -6,12 +6,11 @@ import com.backandwhite.domain.valueobject.SyncType;
 import com.backandwhite.infrastructure.db.postgres.entity.SyncLogEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.SyncInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.SyncLogJpaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -41,8 +40,7 @@ public class SyncLogRepositoryImpl implements SyncLogRepository {
 
     @Override
     public List<SyncLog> findRecentByType(SyncType syncType, int limit) {
-        return syncLogJpaRepository.findRecentByType(syncType.name(), limit).stream()
-                .map(syncInfraMapper::toDomain)
+        return syncLogJpaRepository.findRecentByType(syncType.name(), limit).stream().map(syncInfraMapper::toDomain)
                 .toList();
     }
 }

@@ -7,7 +7,8 @@ public interface CjInventorySyncUseCase {
     /**
      * Syncs inventory for all products that are stale (>4h since last sync).
      *
-     * @param force if true, re-sync even products synced recently
+     * @param force
+     *            if true, re-sync even products synced recently
      */
     CjSyncResult syncAll(boolean force);
 

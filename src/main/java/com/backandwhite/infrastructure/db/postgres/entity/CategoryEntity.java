@@ -3,12 +3,11 @@ package com.backandwhite.infrastructure.db.postgres.entity;
 import com.backandwhite.common.infrastructure.entity.AuditableEntity;
 import com.backandwhite.domain.valueobject.CategoryStatus;
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @With
 @Getter
@@ -17,10 +16,8 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "categories", indexes = {
-        @Index(name = "idx_categories_parent", columnList = "parent_id"),
-        @Index(name = "idx_categories_level", columnList = "level")
-})
+@Table(name = "categories", indexes = {@Index(name = "idx_categories_parent", columnList = "parent_id"),
+        @Index(name = "idx_categories_level", columnList = "level")})
 public class CategoryEntity extends AuditableEntity {
 
     @Id

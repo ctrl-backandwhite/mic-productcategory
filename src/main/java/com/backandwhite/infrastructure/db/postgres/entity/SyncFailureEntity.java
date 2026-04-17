@@ -2,10 +2,9 @@ package com.backandwhite.infrastructure.db.postgres.entity;
 
 import com.backandwhite.common.infrastructure.entity.AuditableEntity;
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-
-import java.time.Instant;
 
 @With
 @Getter
@@ -14,9 +13,7 @@ import java.time.Instant;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "sync_failure", indexes = {
-        @Index(name = "idx_sync_failure_log", columnList = "sync_log_id")
-})
+@Table(name = "sync_failure", indexes = {@Index(name = "idx_sync_failure_log", columnList = "sync_log_id")})
 public class SyncFailureEntity extends AuditableEntity {
 
     @Id

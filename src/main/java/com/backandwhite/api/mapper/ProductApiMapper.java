@@ -5,11 +5,10 @@ import com.backandwhite.api.dto.in.ProductTranslationDtoIn;
 import com.backandwhite.api.dto.out.*;
 import com.backandwhite.common.domain.valueobject.Money;
 import com.backandwhite.domain.model.*;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import java.math.BigDecimal;
 import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ProductApiMapper {

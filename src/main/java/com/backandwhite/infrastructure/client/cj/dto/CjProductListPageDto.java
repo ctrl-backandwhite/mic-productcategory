@@ -1,21 +1,19 @@
 package com.backandwhite.infrastructure.client.cj.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
- * Represents a paged response from CJ product/listV2 endpoint.
- * The "data" field of CjApiResponseDto wraps this object.
+ * Represents a paged response from CJ product/listV2 endpoint. The "data" field
+ * of CjApiResponseDto wraps this object.
  *
- * CJ actual response:
- * { pageSize, pageNumber, totalRecords, totalPages, content: [ { productList:
- * [...], ... } ] }
+ * CJ actual response: { pageSize, pageNumber, totalRecords, totalPages,
+ * content: [ { productList: [...], ... } ] }
  */
 @Data
 @NoArgsConstructor

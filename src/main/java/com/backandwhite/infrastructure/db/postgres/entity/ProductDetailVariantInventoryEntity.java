@@ -9,9 +9,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_detail_variant_inventories", indexes = {
-        @Index(name = "idx_detail_inv_vid", columnList = "vid")
-})
+@Table(name = "product_detail_variant_inventories", indexes = {@Index(name = "idx_detail_inv_vid", columnList = "vid")})
 public class ProductDetailVariantInventoryEntity {
 
     @Id

@@ -12,13 +12,6 @@ import com.backandwhite.infrastructure.db.postgres.mapper.ProductInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.CategoryJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.repository.ProductJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.specification.ProductSpecification;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +20,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
 
 @Log4j2
 @Component
@@ -43,9 +42,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         return productJpaRepository
                 .findAll(ProductSpecification.byLocaleAndCategoryIds(locale,
                         categoryIds.isEmpty() ? List.of(categoryId) : categoryIds, status))
-                .stream()
-                .map(productInfraMapper::toDomain)
-                .map(product -> filterTranslations(product, locale))
+                .stream().map(productInfraMapper::toDomain).map(product -> filterTranslations(product, locale))
                 .toList();
     }
 
@@ -59,14 +56,12 @@ public class ProductRepositoryImpl implements ProductRepository {
         }
         return productJpaRepository
                 .findAll(ProductSpecification.byLocaleAndCategoryIds(locale, categoryIds, status, name), pageable)
-                .map(productInfraMapper::toDomain)
-                .map(product -> filterTranslations(product, locale));
+                .map(productInfraMapper::toDomain).map(product -> filterTranslations(product, locale));
     }
 
     @Override
     public Optional<Product> findById(String productId, String locale) {
-        return productJpaRepository.findById(productId)
-                .map(productInfraMapper::toDomain)
+        return productJpaRepository.findById(productId).map(productInfraMapper::toDomain)
                 .map(product -> filterTranslations(product, locale));
     }
 
@@ -151,7 +146,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public int[] bulkSyncProducts(List<Product> products, boolean forceOverwrite) {
         if (products.isEmpty())
-            return new int[] { 0, 0, 0 };
+            return new int[]{0, 0, 0};
 
         List<String> ids = products.stream().map(Product::getId).toList();
         Map<String, ProductEntity> existingMap = productJpaRepository.findAllByIdIn(ids).stream()
@@ -191,7 +186,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         }
         log.info("Bulk sync persisted: {} entities ({} created, {} updated, {} skipped)", toSave.size(), created,
                 updated, skipped);
-        return new int[] { created, updated, skipped };
+        return new int[]{created, updated, skipped};
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -272,8 +267,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             return false;
         boolean changed = false;
         for (ProductTranslation t : translations) {
-            var match = entity.getTranslations().stream()
-                    .filter(e -> e.getId().getLocale().equals(t.getLocale()))
+            var match = entity.getTranslations().stream().filter(e -> e.getId().getLocale().equals(t.getLocale()))
                     .findFirst();
             if (match.isPresent()) {
                 if (!Objects.equals(match.get().getName(), t.getName())) {
@@ -293,21 +287,15 @@ public class ProductRepositoryImpl implements ProductRepository {
         if (translations == null)
             return;
         for (ProductTranslation t : translations) {
-            entity.getTranslations().stream()
-                    .filter(e -> e.getId().getLocale().equals(t.getLocale()))
-                    .findFirst()
-                    .ifPresentOrElse(
-                            e -> e.setName(t.getName()),
+            entity.getTranslations().stream().filter(e -> e.getId().getLocale().equals(t.getLocale())).findFirst()
+                    .ifPresentOrElse(e -> e.setName(t.getName()),
                             () -> entity.getTranslations().add(buildTranslation(entity, t.getLocale(), t.getName())));
         }
     }
 
     private ProductTranslationEntity buildTranslation(ProductEntity product, String locale, String name) {
-        return ProductTranslationEntity.builder()
-                .id(new ProductTranslationId(product.getId(), locale))
-                .name(name)
-                .product(product)
-                .build();
+        return ProductTranslationEntity.builder().id(new ProductTranslationId(product.getId(), locale)).name(name)
+                .product(product).build();
     }
 
     /**
@@ -318,8 +306,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         if (locale == null || locale.isBlank())
             return product;
 
-        List<ProductTranslation> filtered = product.getTranslations().stream()
-                .filter(t -> locale.equals(t.getLocale()))
+        List<ProductTranslation> filtered = product.getTranslations().stream().filter(t -> locale.equals(t.getLocale()))
                 .toList();
 
         if (!filtered.isEmpty()) {
@@ -329,9 +316,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         if (product.getVariants() != null) {
             product.getVariants().forEach(variant -> variant.setTranslations(
-                    variant.getTranslations().stream()
-                            .filter(t -> locale.equals(t.getLocale()))
-                            .toList()));
+                    variant.getTranslations().stream().filter(t -> locale.equals(t.getLocale())).toList()));
         }
 
         return product;

@@ -1,12 +1,11 @@
 package com.backandwhite.infrastructure.client.cj.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Paged response from CJ /product/productComments endpoint.

@@ -14,16 +14,15 @@ import com.backandwhite.infrastructure.db.postgres.mapper.ProductDetailInfraMapp
 import com.backandwhite.infrastructure.db.postgres.repository.ProductDetailJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.repository.ProductDetailVariantJpaRepository;
 import com.backandwhite.infrastructure.db.postgres.specification.ProductDetailVariantSpecification;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -35,8 +34,7 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
 
     @Override
     public Optional<ProductDetail> findByPid(String pid) {
-        return productDetailJpaRepository.findById(pid)
-                .map(productDetailInfraMapper::toDomain);
+        return productDetailJpaRepository.findById(pid).map(productDetailInfraMapper::toDomain);
     }
 
     @Override
@@ -97,8 +95,7 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
 
     @Override
     public Page<ProductDetailVariant> findAllVariantsPaged(Pageable pageable) {
-        return productDetailVariantJpaRepository.findAll(pageable)
-                .map(productDetailInfraMapper::toVariantDomain);
+        return productDetailVariantJpaRepository.findAll(pageable).map(productDetailInfraMapper::toVariantDomain);
     }
 
     @Override
@@ -130,8 +127,7 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
     @Override
     public List<ProductDetailVariant> findVariantsByPid(String pid, String locale) {
         return productDetailVariantJpaRepository.findByPid(pid).stream()
-                .map(e -> filterVariantTranslations(productDetailInfraMapper.toVariantDomain(e), locale))
-                .toList();
+                .map(e -> filterVariantTranslations(productDetailInfraMapper.toVariantDomain(e), locale)).toList();
     }
 
     @Override
@@ -170,8 +166,8 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
             }
         }
 
-        ProductDetailVariant result = productDetailInfraMapper.toVariantDomain(
-                productDetailVariantJpaRepository.save(entity));
+        ProductDetailVariant result = productDetailInfraMapper
+                .toVariantDomain(productDetailVariantJpaRepository.save(entity));
         return result.getPid() == null ? result.withPid(variant.getPid()) : result;
     }
 
@@ -204,17 +200,16 @@ public class ProductDetailRepositoryImpl implements ProductDetailRepository {
     // ── Private helpers ───────────────────────────────────────────────────────
 
     /**
-     * Filters variant translations to the requested locale.
-     * Falls back to keeping all translations when the locale is not found.
+     * Filters variant translations to the requested locale. Falls back to keeping
+     * all translations when the locale is not found.
      */
     private ProductDetailVariant filterVariantTranslations(ProductDetailVariant variant, String locale) {
-        if (locale == null || locale.isBlank()
-                || variant.getTranslations() == null || variant.getTranslations().isEmpty()) {
+        if (locale == null || locale.isBlank() || variant.getTranslations() == null
+                || variant.getTranslations().isEmpty()) {
             return variant;
         }
         List<ProductDetailVariantTranslation> filtered = variant.getTranslations().stream()
-                .filter(t -> locale.equals(t.getLocale()))
-                .toList();
+                .filter(t -> locale.equals(t.getLocale())).toList();
         return variant.withTranslations(filtered.isEmpty() ? variant.getTranslations() : filtered);
     }
 }

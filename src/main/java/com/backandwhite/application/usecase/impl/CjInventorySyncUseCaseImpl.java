@@ -14,16 +14,15 @@ import com.backandwhite.domain.valueobject.SyncType;
 import com.backandwhite.infrastructure.client.cj.dto.CjInventoryByPidItemDto;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductDetailVariantInventoryEntity;
 import com.backandwhite.infrastructure.db.postgres.repository.InventoryJpaRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Log4j2
 @Service
@@ -43,11 +42,8 @@ public class CjInventorySyncUseCaseImpl implements CjInventorySyncUseCase {
     public CjSyncResult syncAll(boolean force) {
         log.info("Starting CJ inventory sync (force={})", force);
 
-        SyncLog syncLog = syncLogRepository.save(SyncLog.builder()
-                .syncType(SyncType.INVENTORY)
-                .status(SyncStatus.RUNNING)
-                .startedAt(Instant.now())
-                .build());
+        SyncLog syncLog = syncLogRepository.save(SyncLog.builder().syncType(SyncType.INVENTORY)
+                .status(SyncStatus.RUNNING).startedAt(Instant.now()).build());
 
         long start = System.currentTimeMillis();
         int synced = 0;
@@ -69,49 +65,30 @@ public class CjInventorySyncUseCaseImpl implements CjInventorySyncUseCase {
                 } catch (Exception e) {
                     failed++;
                     log.warn("Inventory sync failed for pid={}: {}", pid, e.getMessage());
-                    syncFailureRepository.save(SyncFailure.builder()
-                            .syncLogId(syncLog.getId())
-                            .entityType("PRODUCT_DETAIL")
-                            .entityId(pid)
-                            .errorCode("INVENTORY_SYNC_ERROR")
-                            .errorMessage(e.getMessage())
-                            .build());
+                    syncFailureRepository.save(
+                            SyncFailure.builder().syncLogId(syncLog.getId()).entityType("PRODUCT_DETAIL").entityId(pid)
+                                    .errorCode("INVENTORY_SYNC_ERROR").errorMessage(e.getMessage()).build());
                 }
             }
 
-            SyncStatus finalStatus = failed == 0 ? SyncStatus.SUCCESS
+            SyncStatus finalStatus = failed == 0
+                    ? SyncStatus.SUCCESS
                     : (synced > 0 ? SyncStatus.PARTIAL : SyncStatus.FAILED);
 
-            syncLogRepository.save(syncLog.toBuilder()
-                    .status(finalStatus)
-                    .finishedAt(Instant.now())
-                    .totalItems(total)
-                    .syncedItems(synced)
-                    .failedItems(failed)
-                    .build());
+            syncLogRepository.save(syncLog.toBuilder().status(finalStatus).finishedAt(Instant.now()).totalItems(total)
+                    .syncedItems(synced).failedItems(failed).build());
 
             long duration = System.currentTimeMillis() - start;
             log.info("CJ inventory sync completed: total={}, synced={}, failed={}, durationMs={}", total, synced,
                     failed, duration);
 
-            return CjSyncResult.builder()
-                    .totalItems(total)
-                    .syncedItems(synced)
-                    .failedItems(failed)
-                    .durationMs(duration)
-                    .syncLogId(syncLog.getId())
-                    .build();
+            return CjSyncResult.builder().totalItems(total).syncedItems(synced).failedItems(failed).durationMs(duration)
+                    .syncLogId(syncLog.getId()).build();
 
         } catch (Exception e) {
             log.error("CJ inventory sync aborted with unexpected error: {}", e.getMessage(), e);
-            syncLogRepository.save(syncLog.toBuilder()
-                    .status(SyncStatus.FAILED)
-                    .finishedAt(Instant.now())
-                    .totalItems(total)
-                    .syncedItems(synced)
-                    .failedItems(failed)
-                    .errorMessage(e.getMessage())
-                    .build());
+            syncLogRepository.save(syncLog.toBuilder().status(SyncStatus.FAILED).finishedAt(Instant.now())
+                    .totalItems(total).syncedItems(synced).failedItems(failed).errorMessage(e.getMessage()).build());
             throw e;
         }
     }
@@ -122,16 +99,12 @@ public class CjInventorySyncUseCaseImpl implements CjInventorySyncUseCase {
         long start = System.currentTimeMillis();
         try {
             syncInventoryForPid(pid);
-            return CjSyncResult.builder()
-                    .totalItems(1).syncedItems(1).failedItems(0)
-                    .durationMs(System.currentTimeMillis() - start)
-                    .build();
+            return CjSyncResult.builder().totalItems(1).syncedItems(1).failedItems(0)
+                    .durationMs(System.currentTimeMillis() - start).build();
         } catch (Exception e) {
             log.error("Inventory sync failed for pid={}: {}", pid, e.getMessage(), e);
-            return CjSyncResult.builder()
-                    .totalItems(1).syncedItems(0).failedItems(1)
-                    .durationMs(System.currentTimeMillis() - start)
-                    .build();
+            return CjSyncResult.builder().totalItems(1).syncedItems(0).failedItems(1)
+                    .durationMs(System.currentTimeMillis() - start).build();
         }
     }
 
@@ -154,17 +127,12 @@ public class CjInventorySyncUseCaseImpl implements CjInventorySyncUseCase {
                 entity.setFactoryInventory(item.getFactoryInventory());
                 inventoryJpaRepository.save(entity);
             } else {
-                inventoryJpaRepository.save(ProductDetailVariantInventoryEntity.builder()
-                        .vid(item.getVid())
-                        .countryCode(item.getCountryCode())
-                        .totalInventory(item.getTotalInventory())
-                        .cjInventory(item.getCjInventory())
-                        .factoryInventory(item.getFactoryInventory())
-                        .build());
+                inventoryJpaRepository.save(ProductDetailVariantInventoryEntity.builder().vid(item.getVid())
+                        .countryCode(item.getCountryCode()).totalInventory(item.getTotalInventory())
+                        .cjInventory(item.getCjInventory()).factoryInventory(item.getFactoryInventory()).build());
             }
 
-            variantStock.merge(item.getVid(),
-                    item.getTotalInventory() != null ? item.getTotalInventory() : 0,
+            variantStock.merge(item.getVid(), item.getTotalInventory() != null ? item.getTotalInventory() : 0,
                     Integer::sum);
         }
 

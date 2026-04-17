@@ -2,7 +2,6 @@ package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.DiscoveryState;
 import com.backandwhite.domain.valueobject.DiscoveryStrategy;
-
 import java.util.List;
 import java.util.Optional;
 

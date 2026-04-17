@@ -5,13 +5,12 @@ import com.backandwhite.common.domain.valueobject.MoneyConverter;
 import com.backandwhite.common.infrastructure.entity.AuditableEntity;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @With
 @Getter
@@ -20,10 +19,8 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_detail_variants", indexes = {
-        @Index(name = "idx_detail_variants_pid", columnList = "pid"),
-        @Index(name = "idx_detail_variants_sku", columnList = "variant_sku")
-})
+@Table(name = "product_detail_variants", indexes = {@Index(name = "idx_detail_variants_pid", columnList = "pid"),
+        @Index(name = "idx_detail_variants_sku", columnList = "variant_sku")})
 public class ProductDetailVariantEntity extends AuditableEntity {
 
     @Id

@@ -6,10 +6,9 @@ import com.backandwhite.api.dto.out.AttributeDtoOut;
 import com.backandwhite.api.dto.out.AttributeValueDtoOut;
 import com.backandwhite.domain.model.Attribute;
 import com.backandwhite.domain.model.AttributeValue;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface AttributeApiMapper {

@@ -7,14 +7,13 @@ import com.backandwhite.domain.valueobject.DiscoveryStrategy;
 import com.backandwhite.infrastructure.db.postgres.entity.DiscoveredPidEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.DiscoveryInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.DiscoveredPidJpaRepository;
+import java.time.Instant;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -42,8 +41,8 @@ public class DiscoveredPidRepositoryImpl implements DiscoveredPidRepository {
 
     @Override
     public List<DiscoveredPid> findByStatus(DiscoveryStatus status, int limit) {
-        return jpaRepository.findByStatusOrderByDiscoveredAtAsc(status.name(), PageRequest.of(0, limit))
-                .stream().map(mapper::toDomain).toList();
+        return jpaRepository.findByStatusOrderByDiscoveredAtAsc(status.name(), PageRequest.of(0, limit)).stream()
+                .map(mapper::toDomain).toList();
     }
 
     @Override
@@ -95,8 +94,8 @@ public class DiscoveredPidRepositoryImpl implements DiscoveredPidRepository {
 
     @Override
     public int bulkUpdateStatus(DiscoveryStatus fromStatus, DiscoveryStatus toStatus, int limit) {
-        List<DiscoveredPidEntity> entities = jpaRepository
-                .findByStatusOrderByDiscoveredAtAsc(fromStatus.name(), PageRequest.of(0, limit));
+        List<DiscoveredPidEntity> entities = jpaRepository.findByStatusOrderByDiscoveredAtAsc(fromStatus.name(),
+                PageRequest.of(0, limit));
         Instant now = Instant.now();
         for (DiscoveredPidEntity entity : entities) {
             entity.setStatus(toStatus.name());

@@ -2,10 +2,9 @@ package com.backandwhite.infrastructure.db.postgres.entity;
 
 import com.backandwhite.domain.valueobject.TaxType;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.Instant;
+import lombok.*;
 
 @With
 @Getter
@@ -14,10 +13,8 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "country_taxes", indexes = {
-        @Index(name = "idx_country_taxes_country", columnList = "country_code"),
-        @Index(name = "idx_country_taxes_active", columnList = "active")
-})
+@Table(name = "country_taxes", indexes = {@Index(name = "idx_country_taxes_country", columnList = "country_code"),
+        @Index(name = "idx_country_taxes_active", columnList = "active")})
 public class CountryTaxEntity {
 
     @Id

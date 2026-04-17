@@ -2,9 +2,8 @@ package com.backandwhite.application.usecase;
 
 import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
-import org.springframework.data.domain.Page;
-
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface ProductUseCase {
 
@@ -28,8 +27,8 @@ public interface ProductUseCase {
     void deleteAll(List<String> productIds);
 
     /**
-     * Bulk product creation. Creates each product individually,
-     * accumulating errors per row without aborting the entire batch.
+     * Bulk product creation. Creates each product individually, accumulating errors
+     * per row without aborting the entire batch.
      */
     BulkImportResult bulkCreate(List<Product> products);
 }

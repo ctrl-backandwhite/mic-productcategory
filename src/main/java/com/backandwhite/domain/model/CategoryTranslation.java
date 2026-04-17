@@ -2,8 +2,6 @@ package com.backandwhite.domain.model;
 
 import lombok.*;
 
-import java.util.List;
-
 @Data
 @With
 @Builder

@@ -1,7 +1,5 @@
 package com.backandwhite.domain.valueobject;
 
 public enum ReviewStatus {
-    PENDING,
-    APPROVED,
-    REJECTED
+    PENDING, APPROVED, REJECTED
 }

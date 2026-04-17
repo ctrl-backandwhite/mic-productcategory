@@ -3,7 +3,6 @@ package com.backandwhite.application.usecase;
 import com.backandwhite.application.strategy.DiscoveryResult;
 import com.backandwhite.domain.model.DiscoveryState;
 import com.backandwhite.domain.valueobject.DiscoveryStrategy;
-
 import java.util.List;
 
 public interface ProductDiscoveryUseCase {

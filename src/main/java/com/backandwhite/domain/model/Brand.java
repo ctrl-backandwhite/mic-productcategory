@@ -1,9 +1,8 @@
 package com.backandwhite.domain.model;
 
 import com.backandwhite.domain.valueobject.BrandStatus;
-import lombok.*;
-
 import java.time.Instant;
+import lombok.*;
 
 @Data
 @With

@@ -15,16 +15,15 @@ public class CjProductFullSyncScheduler {
 
     /**
      * Runs daily at 03:00 to refresh product data (names, descriptions, images,
-     * variants).
-     * Cron: 0 0 3 * * * — at 3 AM every day.
+     * variants). Cron: 0 0 3 * * * — at 3 AM every day.
      */
     @Scheduled(cron = "0 0 3 * * *")
     public void syncProducts() {
         log.info("Scheduled CJ product full sync triggered");
         try {
             var result = cjProductFullSyncUseCase.syncAll(false);
-            log.info("Scheduled product full sync finished: total={}, synced={}, failed={}",
-                    result.getTotalItems(), result.getSyncedItems(), result.getFailedItems());
+            log.info("Scheduled product full sync finished: total={}, synced={}, failed={}", result.getTotalItems(),
+                    result.getSyncedItems(), result.getFailedItems());
         } catch (Exception e) {
             log.error("Scheduled product full sync failed: {}", e.getMessage(), e);
         }

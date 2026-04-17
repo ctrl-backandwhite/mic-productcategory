@@ -3,10 +3,9 @@ package com.backandwhite.infrastructure.db.postgres.entity;
 import com.backandwhite.domain.valueobject.MarginType;
 import com.backandwhite.domain.valueobject.PriceRuleScope;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.Instant;
+import lombok.*;
 
 @With
 @Getter

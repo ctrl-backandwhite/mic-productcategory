@@ -3,11 +3,10 @@ package com.backandwhite.domain.repository;
 import com.backandwhite.domain.model.Review;
 import com.backandwhite.domain.model.ReviewStats;
 import com.backandwhite.domain.valueobject.ReviewStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ReviewRepository {
 

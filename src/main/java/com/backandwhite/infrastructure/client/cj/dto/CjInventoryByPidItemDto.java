@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Individual inventory item returned by /product/stock/getInventoryByPid.
- * Maps to one warehouse/country entry for a specific variant (vid).
+ * Individual inventory item returned by /product/stock/getInventoryByPid. Maps
+ * to one warehouse/country entry for a specific variant (vid).
  */
 @Data
 @NoArgsConstructor

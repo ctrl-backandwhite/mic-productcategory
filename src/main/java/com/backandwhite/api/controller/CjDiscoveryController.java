@@ -14,11 +14,10 @@ import com.backandwhite.domain.valueobject.DiscoveryStrategy;
 import com.backandwhite.infrastructure.configuration.CjDropshippingProperties;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,8 +32,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/run/full")
     @Operation(summary = "Trigger full discovery (all strategies)")
-    public ResponseEntity<DiscoveryResultDtoOut> runFull(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
+    public ResponseEntity<DiscoveryResultDtoOut> runFull(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
         DiscoveryResult result = productDiscoveryUseCase.runFullDiscovery();
         return ResponseEntity.ok(toDto(result));
     }
@@ -52,8 +50,7 @@ public class CjDiscoveryController {
     @PostMapping("/run/{strategy}")
     @Operation(summary = "Trigger a specific discovery strategy")
     public ResponseEntity<DiscoveryResultDtoOut> runStrategy(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable DiscoveryStrategy strategy) {
+            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable DiscoveryStrategy strategy) {
         DiscoveryResult result = productDiscoveryUseCase.runStrategy(strategy);
         return ResponseEntity.ok(toDto(result));
     }
@@ -61,8 +58,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/enrich")
     @Operation(summary = "Trigger enrichment batch for discovered PIDs")
-    public ResponseEntity<String> enrich(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+    public ResponseEntity<String> enrich(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @RequestParam(defaultValue = "500") int batchSize) {
         int synced = productDiscoveryUseCase.enrichDiscoveredPids(batchSize);
         return ResponseEntity.ok("Enriched " + synced + " PIDs");
@@ -71,8 +67,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/pause/{strategy}")
     @Operation(summary = "Pause a running discovery strategy")
-    public ResponseEntity<Void> pause(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+    public ResponseEntity<Void> pause(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @PathVariable DiscoveryStrategy strategy) {
         productDiscoveryUseCase.pause(strategy);
         return ResponseEntity.ok().build();
@@ -81,8 +76,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/resume/{strategy}")
     @Operation(summary = "Resume a paused discovery strategy")
-    public ResponseEntity<Void> resume(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+    public ResponseEntity<Void> resume(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @PathVariable DiscoveryStrategy strategy) {
         productDiscoveryUseCase.resume(strategy);
         return ResponseEntity.ok().build();
@@ -94,25 +88,20 @@ public class CjDiscoveryController {
     public ResponseEntity<List<DiscoveryStatusDtoOut>> getStatus(
             @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
         List<DiscoveryState> states = productDiscoveryUseCase.getStatus();
-        List<DiscoveryStatusDtoOut> dtos = states.stream().map(s -> DiscoveryStatusDtoOut.builder()
-                .strategy(s.getStrategy())
-                .status(s.getStatus())
-                .totalDiscovered(s.getTotalDiscovered())
-                .lastRunAt(s.getLastRunAt())
-                .lastCrawledAt(s.getLastCrawledAt())
-                .lastCategoryId(s.getLastCategoryId())
-                .lastKeyword(s.getLastKeyword())
-                .build()).toList();
+        List<DiscoveryStatusDtoOut> dtos = states.stream()
+                .map(s -> DiscoveryStatusDtoOut.builder().strategy(s.getStrategy()).status(s.getStatus())
+                        .totalDiscovered(s.getTotalDiscovered()).lastRunAt(s.getLastRunAt())
+                        .lastCrawledAt(s.getLastCrawledAt()).lastCategoryId(s.getLastCategoryId())
+                        .lastKeyword(s.getLastKeyword()).build())
+                .toList();
         return ResponseEntity.ok(dtos);
     }
 
     @NxAdmin
     @GetMapping("/stats")
     @Operation(summary = "Get discovery statistics")
-    public ResponseEntity<DiscoveryStatsDtoOut> getStats(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
-        DiscoveryStatsDtoOut stats = DiscoveryStatsDtoOut.builder()
-                .totalDiscovered(discoveredPidRepository.countAll())
+    public ResponseEntity<DiscoveryStatsDtoOut> getStats(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
+        DiscoveryStatsDtoOut stats = DiscoveryStatsDtoOut.builder().totalDiscovered(discoveredPidRepository.countAll())
                 .statusNew(discoveredPidRepository.countByStatus(DiscoveryStatus.NEW))
                 .statusQueued(discoveredPidRepository.countByStatus(DiscoveryStatus.QUEUED))
                 .statusSynced(discoveredPidRepository.countByStatus(DiscoveryStatus.SYNCED))
@@ -120,18 +109,13 @@ public class CjDiscoveryController {
                 .statusSkipped(discoveredPidRepository.countByStatus(DiscoveryStatus.SKIPPED))
                 .byCategory(discoveredPidRepository.countByStrategy(DiscoveryStrategy.BY_CATEGORY))
                 .byKeyword(discoveredPidRepository.countByStrategy(DiscoveryStrategy.BY_KEYWORD))
-                .byTime(discoveredPidRepository.countByStrategy(DiscoveryStrategy.BY_TIME))
-                .build();
+                .byTime(discoveredPidRepository.countByStrategy(DiscoveryStrategy.BY_TIME)).build();
         return ResponseEntity.ok(stats);
     }
 
     private DiscoveryResultDtoOut toDto(DiscoveryResult result) {
-        return DiscoveryResultDtoOut.builder()
-                .newPidsDiscovered(result.getNewPidsDiscovered())
-                .totalPidsProcessed(result.getTotalPidsProcessed())
-                .pagesScanned(result.getPagesScanned())
-                .completed(result.isCompleted())
-                .errorMessage(result.getErrorMessage())
-                .build();
+        return DiscoveryResultDtoOut.builder().newPidsDiscovered(result.getNewPidsDiscovered())
+                .totalPidsProcessed(result.getTotalPidsProcessed()).pagesScanned(result.getPagesScanned())
+                .completed(result.isCompleted()).errorMessage(result.getErrorMessage()).build();
     }
 }

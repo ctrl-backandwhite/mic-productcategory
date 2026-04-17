@@ -1,6 +1,5 @@
 package com.backandwhite.domain.valueobject;
 
 public enum BrandStatus {
-    ACTIVE,
-    INACTIVE
+    ACTIVE, INACTIVE
 }

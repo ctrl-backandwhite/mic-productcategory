@@ -11,8 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 public final class ReviewSpecification {
 
     public static Specification<ReviewEntity> approvedByProductId(String productId) {
-        return (root, query, cb) -> cb.and(
-                cb.equal(root.get("productId"), productId),
+        return (root, query, cb) -> cb.and(cb.equal(root.get("productId"), productId),
                 cb.equal(root.get("status"), ReviewStatus.APPROVED));
     }
 

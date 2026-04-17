@@ -4,12 +4,11 @@ import com.backandwhite.application.usecase.CountryTaxUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.CountryTax;
 import com.backandwhite.domain.repository.CountryTaxRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Log4j2
 @Service
@@ -35,8 +34,8 @@ public class CountryTaxUseCaseImpl implements CountryTaxUseCase {
     @Transactional
     public CountryTax create(CountryTax countryTax) {
         CountryTax saved = countryTaxRepository.save(countryTax);
-        log.info("Country tax created: country={}, rate={}, type={}",
-                saved.getCountryCode(), saved.getRate(), saved.getType());
+        log.info("Country tax created: country={}, rate={}, type={}", saved.getCountryCode(), saved.getRate(),
+                saved.getType());
         return saved;
     }
 
@@ -44,8 +43,7 @@ public class CountryTaxUseCaseImpl implements CountryTaxUseCase {
     @Transactional
     public CountryTax update(String id, CountryTax countryTax) {
         CountryTax updated = countryTaxRepository.update(id, countryTax);
-        log.info("Country tax updated: id={}, country={}, rate={}",
-                id, updated.getCountryCode(), updated.getRate());
+        log.info("Country tax updated: id={}, country={}, rate={}", id, updated.getCountryCode(), updated.getRate());
         return updated;
     }
 

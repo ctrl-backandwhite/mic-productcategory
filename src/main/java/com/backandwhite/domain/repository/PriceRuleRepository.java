@@ -2,7 +2,6 @@ package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.PriceRule;
 import com.backandwhite.domain.valueobject.PriceRuleScope;
-
 import java.util.List;
 import java.util.Optional;
 

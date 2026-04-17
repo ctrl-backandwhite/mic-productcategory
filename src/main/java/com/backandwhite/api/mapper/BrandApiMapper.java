@@ -3,10 +3,9 @@ package com.backandwhite.api.mapper;
 import com.backandwhite.api.dto.in.BrandDtoIn;
 import com.backandwhite.api.dto.out.BrandDtoOut;
 import com.backandwhite.domain.model.Brand;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface BrandApiMapper {

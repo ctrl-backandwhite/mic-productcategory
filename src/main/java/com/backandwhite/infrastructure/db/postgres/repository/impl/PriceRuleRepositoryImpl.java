@@ -7,12 +7,11 @@ import com.backandwhite.domain.valueobject.PriceRuleScope;
 import com.backandwhite.infrastructure.db.postgres.entity.PriceRuleEntity;
 import com.backandwhite.infrastructure.db.postgres.mapper.PriceRuleInfraMapper;
 import com.backandwhite.infrastructure.db.postgres.repository.PriceRuleJpaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

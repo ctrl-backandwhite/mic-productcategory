@@ -7,6 +7,10 @@ import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategoryTranslation;
 import com.backandwhite.domain.repository.CategoryRepository;
 import com.backandwhite.domain.valueobject.CategoryStatus;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -15,11 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -134,18 +133,14 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
             String l1Locale = l1Translations.get(0).getLocale();
             String l1Id;
 
-            Optional<String> existingL1 = categoryRepository
-                    .findCategoryIdByNameAndLocaleAndLevelAndParent(l1Key, l1Locale, 1, null);
+            Optional<String> existingL1 = categoryRepository.findCategoryIdByNameAndLocaleAndLevelAndParent(l1Key,
+                    l1Locale, 1, null);
 
             if (existingL1.isPresent()) {
                 l1Id = existingL1.get();
                 skipped++;
             } else {
-                Category l1 = Category.builder()
-                        .level(1)
-                        .parentId(null)
-                        .translations(l1Translations)
-                        .build();
+                Category l1 = Category.builder().level(1).parentId(null).translations(l1Translations).build();
                 l1Id = categoryRepository.saveAndReturnId(l1);
                 created++;
             }
@@ -160,18 +155,14 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
             String l2Locale = l2Translations.get(0).getLocale();
             String l2Id;
 
-            Optional<String> existingL2 = categoryRepository
-                    .findCategoryIdByNameAndLocaleAndLevelAndParent(l2Key, l2Locale, 2, l1Id);
+            Optional<String> existingL2 = categoryRepository.findCategoryIdByNameAndLocaleAndLevelAndParent(l2Key,
+                    l2Locale, 2, l1Id);
 
             if (existingL2.isPresent()) {
                 l2Id = existingL2.get();
                 skipped++;
             } else {
-                Category l2 = Category.builder()
-                        .level(2)
-                        .parentId(l1Id)
-                        .translations(l2Translations)
-                        .build();
+                Category l2 = Category.builder().level(2).parentId(l1Id).translations(l2Translations).build();
                 l2Id = categoryRepository.saveAndReturnId(l2);
                 created++;
             }
@@ -185,44 +176,31 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
             String l3Key = l3Translations.get(0).getName();
             String l3Locale = l3Translations.get(0).getLocale();
 
-            Optional<String> existingL3 = categoryRepository
-                    .findCategoryIdByNameAndLocaleAndLevelAndParent(l3Key, l3Locale, 3, l2Id);
+            Optional<String> existingL3 = categoryRepository.findCategoryIdByNameAndLocaleAndLevelAndParent(l3Key,
+                    l3Locale, 3, l2Id);
 
             if (existingL3.isPresent()) {
                 skipped++;
             } else {
-                Category l3 = Category.builder()
-                        .level(3)
-                        .parentId(l2Id)
-                        .translations(l3Translations)
-                        .build();
+                Category l3 = Category.builder().level(3).parentId(l2Id).translations(l3Translations).build();
                 categoryRepository.saveAndReturnId(l3);
                 created++;
             }
         }
 
-        return BulkCategoryResult.builder()
-                .created(created)
-                .skipped(skipped)
-                .totalRows(rows.size())
-                .build();
+        return BulkCategoryResult.builder().created(created).skipped(skipped).totalRows(rows.size()).build();
     }
 
     private List<Category> buildTree(List<Category> flatCategories) {
-        Map<String, Category> categoryMap = flatCategories.stream()
-                .collect(Collectors.toMap(Category::getId, c -> c));
+        Map<String, Category> categoryMap = flatCategories.stream().collect(Collectors.toMap(Category::getId, c -> c));
 
-        flatCategories.stream()
-                .filter(c -> c.getParentId() != null)
-                .forEach(child -> {
-                    Category parent = categoryMap.get(child.getParentId());
-                    if (parent != null) {
-                        parent.getSubCategories().add(child);
-                    }
-                });
+        flatCategories.stream().filter(c -> c.getParentId() != null).forEach(child -> {
+            Category parent = categoryMap.get(child.getParentId());
+            if (parent != null) {
+                parent.getSubCategories().add(child);
+            }
+        });
 
-        return flatCategories.stream()
-                .filter(c -> c.getParentId() == null)
-                .collect(Collectors.toList());
+        return flatCategories.stream().filter(c -> c.getParentId() == null).collect(Collectors.toList());
     }
 }

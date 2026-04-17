@@ -5,16 +5,15 @@ import com.backandwhite.domain.model.*;
 import com.backandwhite.infrastructure.client.cj.dto.CjInventoryDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductDetailDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjVariantDetailDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface CjProductDetailMapper {
@@ -88,34 +87,23 @@ public interface CjProductDetailMapper {
 
     default List<ProductDetailTranslation> buildTranslations(CjProductDetailDto cj) {
         List<ProductDetailTranslation> translations = new ArrayList<>();
-        translations.add(ProductDetailTranslation.builder()
-                .locale("en")
-                .productName(cj.getProductNameEn())
-                .entryName(cj.getEntryNameEn())
-                .materialName(cj.getMaterialNameEn())
-                .packingName(cj.getPackingNameEn())
-                .productKey(cj.getProductKeyEn())
-                .productPro(cj.getProductProEn())
-                .build());
+        translations.add(ProductDetailTranslation.builder().locale("en").productName(cj.getProductNameEn())
+                .entryName(cj.getEntryNameEn()).materialName(cj.getMaterialNameEn()).packingName(cj.getPackingNameEn())
+                .productKey(cj.getProductKeyEn()).productPro(cj.getProductProEn()).build());
         return translations;
     }
 
     default List<ProductDetailVariantTranslation> buildVariantTranslations(CjVariantDetailDto v) {
         List<ProductDetailVariantTranslation> translations = new ArrayList<>();
-        translations.add(ProductDetailVariantTranslation.builder()
-                .locale("en")
-                .variantName(v.getVariantNameEn())
-                .build());
+        translations
+                .add(ProductDetailVariantTranslation.builder().locale("en").variantName(v.getVariantNameEn()).build());
         return translations;
     }
 
     default List<ProductTranslation> buildProductTranslations(CjProductDetailDto cj) {
         String name = cj.getProductNameEn() != null ? cj.getProductNameEn() : "Unnamed Product";
         List<ProductTranslation> translations = new ArrayList<>();
-        translations.add(ProductTranslation.builder()
-                .locale("en")
-                .name(name)
-                .build());
+        translations.add(ProductTranslation.builder().locale("en").name(name).build());
         return translations;
     }
 

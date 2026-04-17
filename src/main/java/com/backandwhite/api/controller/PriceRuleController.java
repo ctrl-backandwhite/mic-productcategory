@@ -4,17 +4,18 @@ import com.backandwhite.api.dto.in.PriceRuleDtoIn;
 import com.backandwhite.api.dto.out.PriceRuleDtoOut;
 import com.backandwhite.api.mapper.PriceRuleApiMapper;
 import com.backandwhite.application.usecase.PriceRuleUseCase;
+import com.backandwhite.common.security.annotation.NxAdmin;
 import com.backandwhite.domain.model.PriceRule;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+@NxAdmin
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/price-rules")
@@ -48,8 +49,7 @@ public class PriceRuleController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update margin rule")
-    public ResponseEntity<PriceRuleDtoOut> update(@PathVariable String id,
-            @Valid @RequestBody PriceRuleDtoIn dto) {
+    public ResponseEntity<PriceRuleDtoOut> update(@PathVariable String id, @Valid @RequestBody PriceRuleDtoIn dto) {
         PriceRule domain = mapper.toDomain(dto);
         PriceRule updated = priceRuleUseCase.update(id, domain);
         return ResponseEntity.ok(mapper.toDto(updated));

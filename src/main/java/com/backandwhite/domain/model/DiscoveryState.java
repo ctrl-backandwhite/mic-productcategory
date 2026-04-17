@@ -2,13 +2,12 @@ package com.backandwhite.domain.model;
 
 import com.backandwhite.domain.valueobject.DiscoveryStateStatus;
 import com.backandwhite.domain.valueobject.DiscoveryStrategy;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
-
-import java.time.Instant;
 
 @Data
 @With

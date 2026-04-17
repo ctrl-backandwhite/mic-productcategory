@@ -2,11 +2,10 @@ package com.backandwhite.domain.repository;
 
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.valueobject.ProductStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ProductRepository {
 
@@ -37,12 +36,13 @@ public interface ProductRepository {
     Page<String> findProductIdsByCategoryIds(List<String> categoryIds, int page, int size);
 
     /**
-     * Bulk sync: receives a list of Products (already mapped from CJ).
-     * For each one, if it exists it updates it; if not, it creates it.
-     * Performs a single bulk read and a single saveAll.
+     * Bulk sync: receives a list of Products (already mapped from CJ). For each
+     * one, if it exists it updates it; if not, it creates it. Performs a single
+     * bulk read and a single saveAll.
      *
-     * @param forceOverwrite true = overwrite all fields; false = only update
-     *                       changed fields (skip unchanged)
+     * @param forceOverwrite
+     *            true = overwrite all fields; false = only update changed fields
+     *            (skip unchanged)
      * @return int[]{created, updated, skipped}
      */
     int[] bulkSyncProducts(List<Product> products, boolean forceOverwrite);

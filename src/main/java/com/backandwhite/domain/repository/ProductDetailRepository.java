@@ -3,10 +3,8 @@ package com.backandwhite.domain.repository;
 import com.backandwhite.domain.model.ProductDetail;
 import com.backandwhite.domain.model.ProductDetailVariant;
 import com.backandwhite.domain.valueobject.ProductStatus;
-
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

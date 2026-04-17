@@ -1,24 +1,5 @@
 package com.backandwhite.application.usecase.impl;
 
-import com.backandwhite.common.exception.EntityNotFoundException;
-import com.backandwhite.domain.model.BulkImportResult;
-import com.backandwhite.domain.model.Product;
-import com.backandwhite.domain.repository.ProductRepository;
-import com.backandwhite.domain.valueobject.ProductStatus;
-import com.backandwhite.application.port.out.CatalogEventPort;
-import com.backandwhite.application.port.out.ProductSearchIndexPort;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-
-import java.util.List;
-import java.util.Optional;
-
 import static com.backandwhite.provider.CategoryProvider.CATEGORY_ID;
 import static com.backandwhite.provider.ProductProvider.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +9,24 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.backandwhite.application.port.out.CatalogEventPort;
+import com.backandwhite.application.port.out.ProductSearchIndexPort;
+import com.backandwhite.common.exception.EntityNotFoundException;
+import com.backandwhite.domain.model.BulkImportResult;
+import com.backandwhite.domain.model.Product;
+import com.backandwhite.domain.repository.ProductRepository;
+import com.backandwhite.domain.valueobject.ProductStatus;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ProductUseCaseImplTest {
@@ -82,8 +81,7 @@ class ProductUseCaseImplTest {
     void findById_missingProduct_throwsEntityNotFoundException() {
         when(productRepository.findById("non-existent", "es")).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class,
-                () -> productUseCase.findById("non-existent", "es"));
+        assertThrows(EntityNotFoundException.class, () -> productUseCase.findById("non-existent", "es"));
         verify(productRepository).findById("non-existent", "es");
     }
 
@@ -133,8 +131,7 @@ class ProductUseCaseImplTest {
     void publishProduct_notFound_throwsEntityNotFoundException() {
         when(productRepository.findById("missing", null)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class,
-                () -> productUseCase.publishProduct("missing"));
+        assertThrows(EntityNotFoundException.class, () -> productUseCase.publishProduct("missing"));
     }
 
     @Test
@@ -158,8 +155,7 @@ class ProductUseCaseImplTest {
     @Test
     void bulkCreate_allSucceed_returnsResult() {
         List<Product> products = List.of(product(CATEGORY_ID), otherProduct(CATEGORY_ID));
-        when(productRepository.save(any(Product.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
 
         BulkImportResult result = productUseCase.bulkCreate(products);
 

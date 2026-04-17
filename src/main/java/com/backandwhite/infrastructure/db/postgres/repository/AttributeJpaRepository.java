@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AttributeJpaRepository extends JpaRepository<AttributeEntity, String>,
-        JpaSpecificationExecutor<AttributeEntity> {
+public interface AttributeJpaRepository
+        extends
+            JpaRepository<AttributeEntity, String>,
+            JpaSpecificationExecutor<AttributeEntity> {
 
     boolean existsBySlug(String slug);
 }
