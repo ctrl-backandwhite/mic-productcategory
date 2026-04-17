@@ -10,7 +10,6 @@ import com.backandwhite.api.mapper.ReviewApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.service.PricingService;
 import com.backandwhite.application.usecase.*;
-import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.annotation.NxPublic;
 import com.backandwhite.domain.model.*;
 import com.backandwhite.domain.valueobject.BrandStatus;
@@ -52,7 +51,6 @@ public class PublicProductController {
     @Operation(summary = "List published products with filters (public)")
     @GetMapping("/products")
     public ResponseEntity<PaginationDtoOut<ProductDtoOut>> listProducts(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @RequestParam(defaultValue = "en") String locale, @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) String name, @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size, @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -67,8 +65,8 @@ public class PublicProductController {
 
     @Operation(summary = "Get product detail by ID (public)")
     @GetMapping("/products/{id}")
-    public ResponseEntity<ProductDtoOut> getProduct(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id, @RequestParam(defaultValue = "en") String locale) {
+    public ResponseEntity<ProductDtoOut> getProduct(@PathVariable String id,
+            @RequestParam(defaultValue = "en") String locale) {
         Product product = productUseCase.findById(id, locale);
         pricingService.applyMarginsToProduct(product);
         return ResponseEntity.ok(productApiMapper.toDto(product));
@@ -76,8 +74,7 @@ public class PublicProductController {
 
     @Operation(summary = "Get product variants (public)")
     @GetMapping("/products/{pid}/variants")
-    public ResponseEntity<List<ProductDetailVariantDtoOut>> getProductVariants(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String pid,
+    public ResponseEntity<List<ProductDetailVariantDtoOut>> getProductVariants(@PathVariable String pid,
             @RequestParam(defaultValue = "en") String locale) {
         List<ProductDetailVariant> variants = productDetailUseCase.findVariantsByPid(pid, locale);
         return ResponseEntity.ok(variants.stream().map(productDetailApiMapper::toVariantDto).toList());
@@ -85,8 +82,7 @@ public class PublicProductController {
 
     @Operation(summary = "Check stock availability for a variant (public)")
     @GetMapping("/products/variants/{vid}/stock")
-    public ResponseEntity<StockDtoOut> checkStock(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String vid) {
+    public ResponseEntity<StockDtoOut> checkStock(@PathVariable String vid) {
         int available = inventoryUseCase.getAvailableStock(vid);
         return ResponseEntity
                 .ok(StockDtoOut.builder().variantId(vid).available(available).inStock(available > 0).build());
@@ -118,9 +114,7 @@ public class PublicProductController {
 
     @Operation(summary = "List active categories (public)")
     @GetMapping("/categories")
-    public ResponseEntity<List<CategoryDtoOut>> listCategories(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @RequestParam(defaultValue = "en") String locale,
+    public ResponseEntity<List<CategoryDtoOut>> listCategories(@RequestParam(defaultValue = "en") String locale,
             @RequestParam(required = false, defaultValue = "false") boolean featured) {
         List<Category> categories;
         if (featured) {
@@ -133,8 +127,8 @@ public class PublicProductController {
 
     @Operation(summary = "Get category by ID (public)")
     @GetMapping("/categories/{id}")
-    public ResponseEntity<CategoryDtoOut> getCategory(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id, @RequestParam(defaultValue = "en") String locale) {
+    public ResponseEntity<CategoryDtoOut> getCategory(@PathVariable String id,
+            @RequestParam(defaultValue = "en") String locale) {
         Category category = categoryUseCase.findById(id, locale);
         return ResponseEntity.ok(categoryApiMapper.toDto(category));
     }
@@ -143,8 +137,7 @@ public class PublicProductController {
 
     @Operation(summary = "List active brands (public)")
     @GetMapping("/brands")
-    public ResponseEntity<PaginationDtoOut<BrandDtoOut>> listBrands(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @RequestParam(required = false) String name,
+    public ResponseEntity<PaginationDtoOut<BrandDtoOut>> listBrands(@RequestParam(required = false) String name,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "50") int size) {
         Page<Brand> brands = brandUseCase.findAll(BrandStatus.ACTIVE, name, page, size, "name", true);
         List<BrandDtoOut> content = brands.getContent().stream().map(brandApiMapper::toDto).toList();
@@ -156,8 +149,7 @@ public class PublicProductController {
 
     @Operation(summary = "Get products by brand slug (public)")
     @GetMapping("/brands/{slug}/products")
-    public ResponseEntity<PaginationDtoOut<ProductDtoOut>> getProductsByBrand(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String slug,
+    public ResponseEntity<PaginationDtoOut<ProductDtoOut>> getProductsByBrand(@PathVariable String slug,
             @RequestParam(defaultValue = "en") String locale, @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size, @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "false") boolean ascending) {
@@ -175,8 +167,7 @@ public class PublicProductController {
 
     @Operation(summary = "Get reviews for a product (public)")
     @GetMapping("/products/{productId}/reviews")
-    public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> getProductReviews(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String productId,
+    public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> getProductReviews(@PathVariable String productId,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Page<Review> reviews = reviewUseCase.findByProductId(productId, page, size, "createdAt", false);
         return ResponseEntity.ok(PageableUtils.toResponse(reviews.map(reviewApiMapper::toDto)));
@@ -184,8 +175,7 @@ public class PublicProductController {
 
     @Operation(summary = "Get review stats for a product (public)")
     @GetMapping("/products/{productId}/reviews/stats")
-    public ResponseEntity<ReviewStatsDtoOut> getReviewStats(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String productId) {
+    public ResponseEntity<ReviewStatsDtoOut> getReviewStats(@PathVariable String productId) {
         ReviewStats stats = reviewUseCase.getStatsByProductId(productId);
         return ResponseEntity.ok(reviewApiMapper.toStatsDto(stats));
     }

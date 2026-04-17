@@ -9,7 +9,6 @@ import com.backandwhite.api.dto.out.ReviewStatsDtoOut;
 import com.backandwhite.api.mapper.ReviewApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.ReviewUseCase;
-import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.annotation.NxAdmin;
 import com.backandwhite.common.security.annotation.NxUser;
 import com.backandwhite.domain.model.Review;
@@ -39,7 +38,6 @@ public class ReviewController {
     @GetMapping("/product/{productId}")
     @Operation(summary = "List approved reviews for a product", description = "Returns paginated approved reviews for a given product")
     public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> findByProductId(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Product ID") @PathVariable String productId,
             @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size", example = "10") @RequestParam(defaultValue = "10") int size,
@@ -53,7 +51,6 @@ public class ReviewController {
     @GetMapping("/product/{productId}/stats")
     @Operation(summary = "Get review statistics", description = "Returns average rating and star distribution")
     public ResponseEntity<ReviewStatsDtoOut> getStatsByProductId(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Product ID") @PathVariable String productId) {
         return ResponseEntity.ok(reviewApiMapper.toStatsDto(reviewUseCase.getStatsByProductId(productId)));
     }
@@ -61,8 +58,7 @@ public class ReviewController {
     @NxUser
     @PostMapping("/product/{productId}")
     @Operation(summary = "Create review", description = "Creates a new review for a product. Stays in PENDING status until moderated")
-    public ResponseEntity<ReviewDtoOut> create(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Product ID") @PathVariable String productId,
+    public ResponseEntity<ReviewDtoOut> create(@Parameter(description = "Product ID") @PathVariable String productId,
             @Valid @RequestBody ReviewDtoIn dto) {
         Review review = reviewApiMapper.toDomain(dto);
         review.setProductId(productId);
@@ -73,8 +69,8 @@ public class ReviewController {
     @NxUser
     @PostMapping("/{id}/helpful")
     @Operation(summary = "Vote review as helpful", description = "Registers a helpfulness vote (idempotent by sessionId)")
-    public ResponseEntity<Void> voteHelpful(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Review ID") @PathVariable String id, @Valid @RequestBody ReviewHelpfulDtoIn dto) {
+    public ResponseEntity<Void> voteHelpful(@Parameter(description = "Review ID") @PathVariable String id,
+            @Valid @RequestBody ReviewHelpfulDtoIn dto) {
         reviewUseCase.voteHelpful(id, dto.getSessionId());
         return ResponseEntity.noContent().build();
     }
@@ -85,7 +81,6 @@ public class ReviewController {
     @GetMapping("/admin")
     @Operation(summary = "List all reviews (admin)", description = "Paginated listing with status and rating filters")
     public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> findAll(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Filter by status (PENDING, APPROVED, REJECTED)") @RequestParam(required = false) ReviewStatus status,
             @Parameter(description = "Filter by rating (1-5)") @RequestParam(required = false) Integer rating,
             @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
@@ -99,8 +94,7 @@ public class ReviewController {
     @NxAdmin
     @PatchMapping("/{id}/moderate")
     @Operation(summary = "Moderate review", description = "Changes the review status to APPROVED or REJECTED")
-    public ResponseEntity<Void> moderate(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Review ID") @PathVariable String id,
+    public ResponseEntity<Void> moderate(@Parameter(description = "Review ID") @PathVariable String id,
             @Valid @RequestBody ReviewModerateDtoIn dto) {
         reviewUseCase.moderate(id, dto.getStatus());
         return ResponseEntity.noContent().build();
@@ -109,8 +103,7 @@ public class ReviewController {
     @NxAdmin
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete review")
-    public ResponseEntity<Void> delete(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Review ID") @PathVariable String id) {
+    public ResponseEntity<Void> delete(@Parameter(description = "Review ID") @PathVariable String id) {
         reviewUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }

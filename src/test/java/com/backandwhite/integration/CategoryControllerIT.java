@@ -25,7 +25,7 @@ class CategoryControllerIT extends BaseIntegration {
     void create_returnsCreatedCategory() {
         CategoryDtoIn dtoIn = categoryDtoIn();
 
-        CategoryDtoOut response = webTestClient.post().uri(PATH)
+        CategoryDtoOut response = webTestClient.post().uri(PATH).header(NX_HEADER, NX_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(dtoIn).exchange().expectStatus().isCreated().expectHeader()
                 .contentType(MediaType.APPLICATION_JSON).expectBody(CategoryDtoOut.class).returnResult()
@@ -45,8 +45,8 @@ class CategoryControllerIT extends BaseIntegration {
 
         CategoryDtoOut response = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/" + created.getId()).queryParam("locale", "es").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
-                .expectBody(CategoryDtoOut.class).returnResult().getResponseBody();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isOk().expectBody(CategoryDtoOut.class).returnResult().getResponseBody();
 
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(created.getId());
@@ -59,7 +59,7 @@ class CategoryControllerIT extends BaseIntegration {
         createCategory();
 
         List<CategoryDtoOut> response = webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(PATH).queryParam("locale", "es").build())
+                .uri(uriBuilder -> uriBuilder.path(PATH).queryParam("locale", "es").build()).header(NX_HEADER, NX_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
                 .expectBodyList(CategoryDtoOut.class).returnResult().getResponseBody();
 
@@ -75,7 +75,7 @@ class CategoryControllerIT extends BaseIntegration {
                 com.backandwhite.api.dto.in.CategoryTranslationDtoIn.builder().locale("es").name("Tecnología").build()))
                 .build();
 
-        CategoryDtoOut response = webTestClient.put().uri(PATH + "/" + created.getId())
+        CategoryDtoOut response = webTestClient.put().uri(PATH + "/" + created.getId()).header(NX_HEADER, NX_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(updateDto).exchange().expectStatus().isOk().expectBody(CategoryDtoOut.class).returnResult()
                 .getResponseBody();
@@ -88,7 +88,7 @@ class CategoryControllerIT extends BaseIntegration {
     void delete_removesCategory() {
         CategoryDtoOut created = createCategory();
 
-        webTestClient.delete().uri(PATH + "/" + created.getId())
+        webTestClient.delete().uri(PATH + "/" + created.getId()).header(NX_HEADER, NX_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isNoContent();
 
         assertThat(categoryJpaRepository.existsById(created.getId())).isFalse();
@@ -96,8 +96,8 @@ class CategoryControllerIT extends BaseIntegration {
 
     @Test
     void getById_notFound_returns404() {
-        webTestClient.get().uri(PATH + "/non-existent-id").header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN)))
-                .exchange().expectStatus().isNotFound();
+        webTestClient.get().uri(PATH + "/non-existent-id").header(NX_HEADER, NX_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isNotFound();
     }
 
     @Test
@@ -107,7 +107,8 @@ class CategoryControllerIT extends BaseIntegration {
         webTestClient.patch()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/" + created.getId() + "/active")
                         .queryParam("active", "false").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isNoContent();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isNoContent();
 
         assertThat(categoryJpaRepository.findById(created.getId())).isPresent()
                 .hasValueSatisfying(entity -> assertThat(entity.getActive()).isFalse());
@@ -120,7 +121,8 @@ class CategoryControllerIT extends BaseIntegration {
         webTestClient.patch()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/" + created.getId() + "/featured")
                         .queryParam("featured", "true").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isNoContent();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isNoContent();
 
         assertThat(categoryJpaRepository.findById(created.getId())).isPresent()
                 .hasValueSatisfying(entity -> assertThat(entity.getFeatured()).isTrue());
@@ -132,8 +134,8 @@ class CategoryControllerIT extends BaseIntegration {
 
         CategoryDtoOut response = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/" + created.getId()).queryParam("locale", "en").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
-                .expectBody(CategoryDtoOut.class).returnResult().getResponseBody();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isOk().expectBody(CategoryDtoOut.class).returnResult().getResponseBody();
 
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo(CATEGORY_NAME_EN);
@@ -145,8 +147,8 @@ class CategoryControllerIT extends BaseIntegration {
 
         CategoryDtoOut response = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/" + created.getId()).queryParam("locale", "pt-BR").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
-                .expectBody(CategoryDtoOut.class).returnResult().getResponseBody();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isOk().expectBody(CategoryDtoOut.class).returnResult().getResponseBody();
 
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo(CATEGORY_NAME_PT);
@@ -155,8 +157,9 @@ class CategoryControllerIT extends BaseIntegration {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private CategoryDtoOut createCategory() {
-        return webTestClient.post().uri(PATH).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN)))
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(categoryDtoIn()).exchange().expectStatus()
-                .isCreated().expectBody(CategoryDtoOut.class).returnResult().getResponseBody();
+        return webTestClient.post().uri(PATH).header(NX_HEADER, NX_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(categoryDtoIn()).exchange().expectStatus().isCreated().expectBody(CategoryDtoOut.class)
+                .returnResult().getResponseBody();
     }
 }

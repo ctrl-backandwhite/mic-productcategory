@@ -41,8 +41,7 @@ class BrandControllerTest {
         when(brandUseCase.findAll(null, null, 0, 20, "name", true)).thenReturn(page);
         when(brandApiMapper.toDto(any(Brand.class))).thenReturn(brandDtoOut());
 
-        ResponseEntity<PaginationDtoOut<BrandDtoOut>> response = controller.findAll("token", null, null, 0, 20, "name",
-                true);
+        ResponseEntity<PaginationDtoOut<BrandDtoOut>> response = controller.findAll(null, null, 0, 20, "name", true);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -58,7 +57,7 @@ class BrandControllerTest {
         when(brandUseCase.findById(BRAND_ID)).thenReturn(model);
         when(brandApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<BrandDtoOut> response = controller.getById("token", BRAND_ID);
+        ResponseEntity<BrandDtoOut> response = controller.getById(BRAND_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -74,7 +73,7 @@ class BrandControllerTest {
         when(brandUseCase.findBySlug(BRAND_SLUG)).thenReturn(model);
         when(brandApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<BrandDtoOut> response = controller.getBySlug("token", BRAND_SLUG);
+        ResponseEntity<BrandDtoOut> response = controller.getBySlug(BRAND_SLUG);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -92,7 +91,7 @@ class BrandControllerTest {
         when(brandUseCase.create(model)).thenReturn(model);
         when(brandApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<BrandDtoOut> response = controller.create("token", dtoIn);
+        ResponseEntity<BrandDtoOut> response = controller.create(dtoIn);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -111,7 +110,7 @@ class BrandControllerTest {
         when(brandUseCase.update(BRAND_ID, model)).thenReturn(model);
         when(brandApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<BrandDtoOut> response = controller.update("token", BRAND_ID, dtoIn);
+        ResponseEntity<BrandDtoOut> response = controller.update(BRAND_ID, dtoIn);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -122,7 +121,7 @@ class BrandControllerTest {
 
     @Test
     void delete_returnsNoContent() {
-        ResponseEntity<Void> response = controller.delete("token", BRAND_ID);
+        ResponseEntity<Void> response = controller.delete(BRAND_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(brandUseCase).delete(BRAND_ID);
@@ -130,7 +129,7 @@ class BrandControllerTest {
 
     @Test
     void toggleStatus_returnsNoContent() {
-        ResponseEntity<Void> response = controller.toggleStatus("token", BRAND_ID);
+        ResponseEntity<Void> response = controller.toggleStatus(BRAND_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(brandUseCase).toggleStatus(BRAND_ID);

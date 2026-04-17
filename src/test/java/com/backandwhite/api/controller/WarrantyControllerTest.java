@@ -41,8 +41,7 @@ class WarrantyControllerTest {
         when(warrantyUseCase.findAll(null, null, 0, 20, "name", true)).thenReturn(page);
         when(warrantyApiMapper.toDto(any(Warranty.class))).thenReturn(warrantyDtoOut());
 
-        ResponseEntity<PaginationDtoOut<WarrantyDtoOut>> response = controller.findAll("token", null, null, 0, 20,
-                "name", true);
+        ResponseEntity<PaginationDtoOut<WarrantyDtoOut>> response = controller.findAll(null, null, 0, 20, "name", true);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -58,7 +57,7 @@ class WarrantyControllerTest {
         when(warrantyUseCase.findById(WARRANTY_ID)).thenReturn(model);
         when(warrantyApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<WarrantyDtoOut> response = controller.getById("token", WARRANTY_ID);
+        ResponseEntity<WarrantyDtoOut> response = controller.getById(WARRANTY_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -76,7 +75,7 @@ class WarrantyControllerTest {
         when(warrantyUseCase.create(model)).thenReturn(model);
         when(warrantyApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<WarrantyDtoOut> response = controller.create("token", dtoIn);
+        ResponseEntity<WarrantyDtoOut> response = controller.create(dtoIn);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -95,7 +94,7 @@ class WarrantyControllerTest {
         when(warrantyUseCase.update(WARRANTY_ID, model)).thenReturn(model);
         when(warrantyApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<WarrantyDtoOut> response = controller.update("token", WARRANTY_ID, dtoIn);
+        ResponseEntity<WarrantyDtoOut> response = controller.update(WARRANTY_ID, dtoIn);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -106,7 +105,7 @@ class WarrantyControllerTest {
 
     @Test
     void delete_returnsNoContent() {
-        ResponseEntity<Void> response = controller.delete("token", WARRANTY_ID);
+        ResponseEntity<Void> response = controller.delete(WARRANTY_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(warrantyUseCase).delete(WARRANTY_ID);
@@ -114,7 +113,7 @@ class WarrantyControllerTest {
 
     @Test
     void toggleActive_returnsNoContent() {
-        ResponseEntity<Void> response = controller.toggleActive("token", WARRANTY_ID);
+        ResponseEntity<Void> response = controller.toggleActive(WARRANTY_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(warrantyUseCase).toggleActive(WARRANTY_ID);

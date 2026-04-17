@@ -6,7 +6,6 @@ import com.backandwhite.api.dto.out.AttributeDtoOut;
 import com.backandwhite.api.mapper.AttributeApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.AttributeUseCase;
-import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.annotation.NxAdmin;
 import com.backandwhite.common.security.annotation.NxUser;
 import com.backandwhite.domain.model.Attribute;
@@ -35,7 +34,6 @@ public class AttributeController {
     @GetMapping
     @Operation(summary = "List paginated attributes", description = "Returns paginated attributes with their values")
     public ResponseEntity<PaginationDtoOut<AttributeDtoOut>> findAll(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Search by name (partial, case-insensitive)") @RequestParam(required = false) String name,
             @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
@@ -50,16 +48,14 @@ public class AttributeController {
     @NxUser
     @GetMapping("/{id}")
     @Operation(summary = "Get attribute by ID", description = "Returns the attribute with its values")
-    public ResponseEntity<AttributeDtoOut> getById(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Attribute ID") @PathVariable String id) {
+    public ResponseEntity<AttributeDtoOut> getById(@Parameter(description = "Attribute ID") @PathVariable String id) {
         return ResponseEntity.ok(attributeApiMapper.toDto(attributeUseCase.findById(id)));
     }
 
     @NxAdmin
     @PostMapping
     @Operation(summary = "Create attribute with values")
-    public ResponseEntity<AttributeDtoOut> create(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Valid @RequestBody AttributeDtoIn dto) {
+    public ResponseEntity<AttributeDtoOut> create(@Valid @RequestBody AttributeDtoIn dto) {
         Attribute created = attributeUseCase.create(attributeApiMapper.toDomain(dto));
         return ResponseEntity.status(HttpStatus.CREATED).body(attributeApiMapper.toDto(created));
     }
@@ -67,8 +63,7 @@ public class AttributeController {
     @NxAdmin
     @PutMapping("/{id}")
     @Operation(summary = "Update attribute", description = "Syncs values: adds new, updates existing, deletes absent")
-    public ResponseEntity<AttributeDtoOut> update(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id, @Valid @RequestBody AttributeDtoIn dto) {
+    public ResponseEntity<AttributeDtoOut> update(@PathVariable String id, @Valid @RequestBody AttributeDtoIn dto) {
         Attribute updated = attributeUseCase.update(id, attributeApiMapper.toDomain(dto));
         return ResponseEntity.ok(attributeApiMapper.toDto(updated));
     }
@@ -76,8 +71,7 @@ public class AttributeController {
     @NxAdmin
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete attribute")
-    public ResponseEntity<Void> delete(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         attributeUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }

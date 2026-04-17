@@ -6,7 +6,6 @@ import com.backandwhite.api.dto.out.BrandDtoOut;
 import com.backandwhite.api.mapper.BrandApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.BrandUseCase;
-import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.annotation.NxAdmin;
 import com.backandwhite.common.security.annotation.NxUser;
 import com.backandwhite.domain.model.Brand;
@@ -36,7 +35,6 @@ public class BrandController {
     @GetMapping
     @Operation(summary = "List paginated brands", description = "Returns paginated brands with optional filters by status and name")
     public ResponseEntity<PaginationDtoOut<BrandDtoOut>> findAll(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Filter by status (ACTIVE, INACTIVE)") @RequestParam(required = false) BrandStatus status,
             @Parameter(description = "Search by name (partial, case-insensitive)") @RequestParam(required = false) String name,
             @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
@@ -52,15 +50,14 @@ public class BrandController {
     @NxUser
     @GetMapping("/{id}")
     @Operation(summary = "Get brand by ID")
-    public ResponseEntity<BrandDtoOut> getById(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Brand ID") @PathVariable String id) {
+    public ResponseEntity<BrandDtoOut> getById(@Parameter(description = "Brand ID") @PathVariable String id) {
         return ResponseEntity.ok(brandApiMapper.toDto(brandUseCase.findById(id)));
     }
 
     @NxUser
     @GetMapping("/slug/{slug}")
     @Operation(summary = "Get brand by slug", description = "Searches a brand by its URL-friendly slug")
-    public ResponseEntity<BrandDtoOut> getBySlug(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+    public ResponseEntity<BrandDtoOut> getBySlug(
             @Parameter(description = "Brand slug", example = "nike") @PathVariable String slug) {
         return ResponseEntity.ok(brandApiMapper.toDto(brandUseCase.findBySlug(slug)));
     }
@@ -68,8 +65,7 @@ public class BrandController {
     @NxAdmin
     @PostMapping
     @Operation(summary = "Create brand")
-    public ResponseEntity<BrandDtoOut> create(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Valid @RequestBody BrandDtoIn dto) {
+    public ResponseEntity<BrandDtoOut> create(@Valid @RequestBody BrandDtoIn dto) {
         Brand created = brandUseCase.create(brandApiMapper.toDomain(dto));
         return ResponseEntity.status(HttpStatus.CREATED).body(brandApiMapper.toDto(created));
     }
@@ -77,8 +73,7 @@ public class BrandController {
     @NxAdmin
     @PutMapping("/{id}")
     @Operation(summary = "Update brand")
-    public ResponseEntity<BrandDtoOut> update(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id, @Valid @RequestBody BrandDtoIn dto) {
+    public ResponseEntity<BrandDtoOut> update(@PathVariable String id, @Valid @RequestBody BrandDtoIn dto) {
         Brand updated = brandUseCase.update(id, brandApiMapper.toDomain(dto));
         return ResponseEntity.ok(brandApiMapper.toDto(updated));
     }
@@ -86,8 +81,7 @@ public class BrandController {
     @NxAdmin
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete brand")
-    public ResponseEntity<Void> delete(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         brandUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -98,8 +92,7 @@ public class BrandController {
     @NxAdmin
     @PatchMapping("/{id}/status")
     @Operation(summary = "Toggle brand status (ACTIVE ↔ INACTIVE)")
-    public ResponseEntity<Void> toggleStatus(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id) {
+    public ResponseEntity<Void> toggleStatus(@PathVariable String id) {
         brandUseCase.toggleStatus(id);
         return ResponseEntity.noContent().build();
     }

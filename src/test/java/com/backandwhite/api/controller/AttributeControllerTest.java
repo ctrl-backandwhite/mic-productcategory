@@ -41,8 +41,7 @@ class AttributeControllerTest {
         when(attributeUseCase.findAll(null, 0, 20, "name", true)).thenReturn(page);
         when(attributeApiMapper.toDto(any(Attribute.class))).thenReturn(attributeDtoOut());
 
-        ResponseEntity<PaginationDtoOut<AttributeDtoOut>> response = controller.findAll("token", null, 0, 20, "name",
-                true);
+        ResponseEntity<PaginationDtoOut<AttributeDtoOut>> response = controller.findAll(null, 0, 20, "name", true);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -58,7 +57,7 @@ class AttributeControllerTest {
         when(attributeUseCase.findById(ATTRIBUTE_ID)).thenReturn(model);
         when(attributeApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<AttributeDtoOut> response = controller.getById("token", ATTRIBUTE_ID);
+        ResponseEntity<AttributeDtoOut> response = controller.getById(ATTRIBUTE_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -76,7 +75,7 @@ class AttributeControllerTest {
         when(attributeUseCase.create(model)).thenReturn(model);
         when(attributeApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<AttributeDtoOut> response = controller.create("token", dtoIn);
+        ResponseEntity<AttributeDtoOut> response = controller.create(dtoIn);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -95,7 +94,7 @@ class AttributeControllerTest {
         when(attributeUseCase.update(ATTRIBUTE_ID, model)).thenReturn(model);
         when(attributeApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<AttributeDtoOut> response = controller.update("token", ATTRIBUTE_ID, dtoIn);
+        ResponseEntity<AttributeDtoOut> response = controller.update(ATTRIBUTE_ID, dtoIn);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -106,7 +105,7 @@ class AttributeControllerTest {
 
     @Test
     void delete_returnsNoContent() {
-        ResponseEntity<Void> response = controller.delete("token", ATTRIBUTE_ID);
+        ResponseEntity<Void> response = controller.delete(ATTRIBUTE_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(attributeUseCase).delete(ATTRIBUTE_ID);

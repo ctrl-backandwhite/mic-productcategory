@@ -6,7 +6,6 @@ import com.backandwhite.api.dto.out.WarrantyDtoOut;
 import com.backandwhite.api.mapper.WarrantyApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.WarrantyUseCase;
-import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.annotation.NxAdmin;
 import com.backandwhite.common.security.annotation.NxUser;
 import com.backandwhite.domain.model.Warranty;
@@ -36,7 +35,6 @@ public class WarrantyController {
     @GetMapping
     @Operation(summary = "List paginated warranties", description = "Returns warranties with optional filters by active status and type")
     public ResponseEntity<PaginationDtoOut<WarrantyDtoOut>> findAll(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Filter by active status") @RequestParam(required = false) Boolean active,
             @Parameter(description = "Filter by type (MANUFACTURER, STORE, EXTENDED, LIMITED)") @RequestParam(required = false) WarrantyType type,
             @Parameter(description = "Page number", example = "0") @RequestParam(defaultValue = "0") int page,
@@ -52,16 +50,14 @@ public class WarrantyController {
     @NxUser
     @GetMapping("/{id}")
     @Operation(summary = "Get warranty by ID")
-    public ResponseEntity<WarrantyDtoOut> getById(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Warranty ID") @PathVariable String id) {
+    public ResponseEntity<WarrantyDtoOut> getById(@Parameter(description = "Warranty ID") @PathVariable String id) {
         return ResponseEntity.ok(warrantyApiMapper.toDto(warrantyUseCase.findById(id)));
     }
 
     @NxAdmin
     @PostMapping
     @Operation(summary = "Create warranty")
-    public ResponseEntity<WarrantyDtoOut> create(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Valid @RequestBody WarrantyDtoIn dto) {
+    public ResponseEntity<WarrantyDtoOut> create(@Valid @RequestBody WarrantyDtoIn dto) {
         Warranty created = warrantyUseCase.create(warrantyApiMapper.toDomain(dto));
         return ResponseEntity.status(HttpStatus.CREATED).body(warrantyApiMapper.toDto(created));
     }
@@ -69,8 +65,7 @@ public class WarrantyController {
     @NxAdmin
     @PutMapping("/{id}")
     @Operation(summary = "Update warranty")
-    public ResponseEntity<WarrantyDtoOut> update(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id, @Valid @RequestBody WarrantyDtoIn dto) {
+    public ResponseEntity<WarrantyDtoOut> update(@PathVariable String id, @Valid @RequestBody WarrantyDtoIn dto) {
         Warranty updated = warrantyUseCase.update(id, warrantyApiMapper.toDomain(dto));
         return ResponseEntity.ok(warrantyApiMapper.toDto(updated));
     }
@@ -78,8 +73,7 @@ public class WarrantyController {
     @NxAdmin
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete warranty")
-    public ResponseEntity<Void> delete(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         warrantyUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -90,8 +84,7 @@ public class WarrantyController {
     @NxAdmin
     @PatchMapping("/{id}/active")
     @Operation(summary = "Toggle warranty active/inactive status")
-    public ResponseEntity<Void> toggleActive(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id) {
+    public ResponseEntity<Void> toggleActive(@PathVariable String id) {
         warrantyUseCase.toggleActive(id);
         return ResponseEntity.noContent().build();
     }

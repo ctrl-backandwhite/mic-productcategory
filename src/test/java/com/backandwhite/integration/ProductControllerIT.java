@@ -31,7 +31,7 @@ class ProductControllerIT extends BaseIntegration {
         String categoryId = createCategory().getId();
         ProductDtoIn dtoIn = productDtoIn(categoryId);
 
-        ProductDtoOut response = webTestClient.post().uri(PATH)
+        ProductDtoOut response = webTestClient.post().uri(PATH).header(NX_HEADER, NX_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(dtoIn).exchange().expectStatus().isCreated().expectHeader()
                 .contentType(MediaType.APPLICATION_JSON).expectBody(ProductDtoOut.class).returnResult()
@@ -51,8 +51,8 @@ class ProductControllerIT extends BaseIntegration {
 
         ProductDtoOut response = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/" + created.getId()).queryParam("locale", "es").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
-                .expectBody(ProductDtoOut.class).returnResult().getResponseBody();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isOk().expectBody(ProductDtoOut.class).returnResult().getResponseBody();
 
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(created.getId());
@@ -68,8 +68,8 @@ class ProductControllerIT extends BaseIntegration {
         PaginationDtoOut<ProductDtoOut> response = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH).queryParam("locale", "es").queryParam("page", "0")
                         .queryParam("size", "20").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
-                .expectBody(new ParameterizedTypeReference<PaginationDtoOut<ProductDtoOut>>() {
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isOk().expectBody(new ParameterizedTypeReference<PaginationDtoOut<ProductDtoOut>>() {
                 }).returnResult().getResponseBody();
 
         assertThat(response).isNotNull();
@@ -84,7 +84,7 @@ class ProductControllerIT extends BaseIntegration {
 
         ProductDtoIn updateDto = otherProductDtoIn(categoryId);
 
-        ProductDtoOut response = webTestClient.put().uri(PATH + "/" + created.getId())
+        ProductDtoOut response = webTestClient.put().uri(PATH + "/" + created.getId()).header(NX_HEADER, NX_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(updateDto).exchange().expectStatus().isOk().expectBody(ProductDtoOut.class).returnResult()
                 .getResponseBody();
@@ -99,7 +99,7 @@ class ProductControllerIT extends BaseIntegration {
         String categoryId = createCategory().getId();
         ProductDtoOut created = createProduct(categoryId);
 
-        webTestClient.method(org.springframework.http.HttpMethod.DELETE).uri(PATH)
+        webTestClient.method(org.springframework.http.HttpMethod.DELETE).uri(PATH).header(NX_HEADER, NX_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(List.of(created.getId())).exchange().expectStatus().isNoContent();
 
@@ -108,8 +108,8 @@ class ProductControllerIT extends BaseIntegration {
 
     @Test
     void getById_notFound_returns404() {
-        webTestClient.get().uri(PATH + "/non-existent-id").header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN)))
-                .exchange().expectStatus().isNotFound();
+        webTestClient.get().uri(PATH + "/non-existent-id").header(NX_HEADER, NX_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isNotFound();
     }
 
     @Test
@@ -119,8 +119,8 @@ class ProductControllerIT extends BaseIntegration {
 
         List<ProductDtoOut> response = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/category/" + categoryId).queryParam("locale", "es").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
-                .expectBodyList(ProductDtoOut.class).returnResult().getResponseBody();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isOk().expectBodyList(ProductDtoOut.class).returnResult().getResponseBody();
 
         assertThat(response).isNotNull().isNotEmpty();
         assertThat(response.getFirst().getCategoryId()).isEqualTo(categoryId);
@@ -133,8 +133,8 @@ class ProductControllerIT extends BaseIntegration {
 
         ProductDtoOut response = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/" + created.getId()).queryParam("locale", "en").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
-                .expectBody(ProductDtoOut.class).returnResult().getResponseBody();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isOk().expectBody(ProductDtoOut.class).returnResult().getResponseBody();
 
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo(PRODUCT_NAME_EN);
@@ -147,8 +147,8 @@ class ProductControllerIT extends BaseIntegration {
 
         ProductDtoOut response = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH + "/" + created.getId()).queryParam("locale", "pt-BR").build())
-                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange().expectStatus().isOk()
-                .expectBody(ProductDtoOut.class).returnResult().getResponseBody();
+                .header(NX_HEADER, NX_VALUE).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).exchange()
+                .expectStatus().isOk().expectBody(ProductDtoOut.class).returnResult().getResponseBody();
 
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo(PRODUCT_NAME_PT);
@@ -157,14 +157,16 @@ class ProductControllerIT extends BaseIntegration {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private CategoryDtoOut createCategory() {
-        return webTestClient.post().uri(CAT_PATH).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN)))
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(categoryDtoIn()).exchange().expectStatus()
-                .isCreated().expectBody(CategoryDtoOut.class).returnResult().getResponseBody();
+        return webTestClient.post().uri(CAT_PATH).header(NX_HEADER, NX_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(categoryDtoIn()).exchange().expectStatus().isCreated().expectBody(CategoryDtoOut.class)
+                .returnResult().getResponseBody();
     }
 
     private ProductDtoOut createProduct(String categoryId) {
-        return webTestClient.post().uri(PATH).header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN)))
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(productDtoIn(categoryId)).exchange().expectStatus()
-                .isCreated().expectBody(ProductDtoOut.class).returnResult().getResponseBody();
+        return webTestClient.post().uri(PATH).header(NX_HEADER, NX_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, getToken(List.of(ADMIN))).contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(productDtoIn(categoryId)).exchange().expectStatus().isCreated()
+                .expectBody(ProductDtoOut.class).returnResult().getResponseBody();
     }
 }

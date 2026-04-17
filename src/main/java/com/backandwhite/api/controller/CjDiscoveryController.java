@@ -5,7 +5,6 @@ import com.backandwhite.api.dto.out.DiscoveryStatsDtoOut;
 import com.backandwhite.api.dto.out.DiscoveryStatusDtoOut;
 import com.backandwhite.application.strategy.DiscoveryResult;
 import com.backandwhite.application.usecase.ProductDiscoveryUseCase;
-import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.annotation.NxAdmin;
 import com.backandwhite.domain.model.DiscoveryState;
 import com.backandwhite.domain.repository.DiscoveredPidRepository;
@@ -32,7 +31,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/run/full")
     @Operation(summary = "Trigger full discovery (all strategies)")
-    public ResponseEntity<DiscoveryResultDtoOut> runFull(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
+    public ResponseEntity<DiscoveryResultDtoOut> runFull() {
         DiscoveryResult result = productDiscoveryUseCase.runFullDiscovery();
         return ResponseEntity.ok(toDto(result));
     }
@@ -40,8 +39,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/run/incremental")
     @Operation(summary = "Trigger incremental discovery (BY_TIME only)")
-    public ResponseEntity<DiscoveryResultDtoOut> runIncremental(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
+    public ResponseEntity<DiscoveryResultDtoOut> runIncremental() {
         DiscoveryResult result = productDiscoveryUseCase.runIncremental();
         return ResponseEntity.ok(toDto(result));
     }
@@ -49,8 +47,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/run/{strategy}")
     @Operation(summary = "Trigger a specific discovery strategy")
-    public ResponseEntity<DiscoveryResultDtoOut> runStrategy(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable DiscoveryStrategy strategy) {
+    public ResponseEntity<DiscoveryResultDtoOut> runStrategy(@PathVariable DiscoveryStrategy strategy) {
         DiscoveryResult result = productDiscoveryUseCase.runStrategy(strategy);
         return ResponseEntity.ok(toDto(result));
     }
@@ -58,8 +55,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/enrich")
     @Operation(summary = "Trigger enrichment batch for discovered PIDs")
-    public ResponseEntity<String> enrich(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @RequestParam(defaultValue = "500") int batchSize) {
+    public ResponseEntity<String> enrich(@RequestParam(defaultValue = "500") int batchSize) {
         int synced = productDiscoveryUseCase.enrichDiscoveredPids(batchSize);
         return ResponseEntity.ok("Enriched " + synced + " PIDs");
     }
@@ -67,8 +63,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/pause/{strategy}")
     @Operation(summary = "Pause a running discovery strategy")
-    public ResponseEntity<Void> pause(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable DiscoveryStrategy strategy) {
+    public ResponseEntity<Void> pause(@PathVariable DiscoveryStrategy strategy) {
         productDiscoveryUseCase.pause(strategy);
         return ResponseEntity.ok().build();
     }
@@ -76,8 +71,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @PostMapping("/resume/{strategy}")
     @Operation(summary = "Resume a paused discovery strategy")
-    public ResponseEntity<Void> resume(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable DiscoveryStrategy strategy) {
+    public ResponseEntity<Void> resume(@PathVariable DiscoveryStrategy strategy) {
         productDiscoveryUseCase.resume(strategy);
         return ResponseEntity.ok().build();
     }
@@ -85,8 +79,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @GetMapping("/status")
     @Operation(summary = "Get status of all discovery strategies")
-    public ResponseEntity<List<DiscoveryStatusDtoOut>> getStatus(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
+    public ResponseEntity<List<DiscoveryStatusDtoOut>> getStatus() {
         List<DiscoveryState> states = productDiscoveryUseCase.getStatus();
         List<DiscoveryStatusDtoOut> dtos = states.stream()
                 .map(s -> DiscoveryStatusDtoOut.builder().strategy(s.getStrategy()).status(s.getStatus())
@@ -100,7 +93,7 @@ public class CjDiscoveryController {
     @NxAdmin
     @GetMapping("/stats")
     @Operation(summary = "Get discovery statistics")
-    public ResponseEntity<DiscoveryStatsDtoOut> getStats(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
+    public ResponseEntity<DiscoveryStatsDtoOut> getStats() {
         DiscoveryStatsDtoOut stats = DiscoveryStatsDtoOut.builder().totalDiscovered(discoveredPidRepository.countAll())
                 .statusNew(discoveredPidRepository.countByStatus(DiscoveryStatus.NEW))
                 .statusQueued(discoveredPidRepository.countByStatus(DiscoveryStatus.QUEUED))

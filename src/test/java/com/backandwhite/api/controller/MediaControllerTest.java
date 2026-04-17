@@ -50,8 +50,7 @@ class MediaControllerTest {
         when(mediaAssetUseCase.upload(file, MEDIA_CATEGORY, MEDIA_ALT, MEDIA_TAGS)).thenReturn(model);
         when(mediaAssetApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<MediaAssetDtoOut> response = controller.upload("token", file, MEDIA_CATEGORY, MEDIA_ALT,
-                MEDIA_TAGS);
+        ResponseEntity<MediaAssetDtoOut> response = controller.upload(file, MEDIA_CATEGORY, MEDIA_ALT, MEDIA_TAGS);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -65,8 +64,8 @@ class MediaControllerTest {
         when(mediaAssetUseCase.findAll(null, null, null, 0, 20, "createdAt", false)).thenReturn(page);
         when(mediaAssetApiMapper.toDto(any(MediaAsset.class))).thenReturn(mediaAssetDtoOut());
 
-        ResponseEntity<PaginationDtoOut<MediaAssetDtoOut>> response = controller.findAll("token", null, null, null, 0,
-                20, "createdAt", false);
+        ResponseEntity<PaginationDtoOut<MediaAssetDtoOut>> response = controller.findAll(null, null, null, 0, 20,
+                "createdAt", false);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -82,7 +81,7 @@ class MediaControllerTest {
         when(mediaAssetUseCase.findById(MEDIA_ID)).thenReturn(model);
         when(mediaAssetApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<MediaAssetDtoOut> response = controller.getById("token", MEDIA_ID);
+        ResponseEntity<MediaAssetDtoOut> response = controller.getById(MEDIA_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -101,7 +100,7 @@ class MediaControllerTest {
                 .thenReturn(model);
         when(mediaAssetApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<MediaAssetDtoOut> response = controller.updateMetadata("token", MEDIA_ID, dto);
+        ResponseEntity<MediaAssetDtoOut> response = controller.updateMetadata(MEDIA_ID, dto);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -111,7 +110,7 @@ class MediaControllerTest {
 
     @Test
     void delete_returnsNoContent() {
-        ResponseEntity<Void> response = controller.delete("token", MEDIA_ID);
+        ResponseEntity<Void> response = controller.delete(MEDIA_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(mediaAssetUseCase).delete(MEDIA_ID);
@@ -125,7 +124,7 @@ class MediaControllerTest {
         when(mediaAssetUseCase.findByFilename(MEDIA_FILENAME)).thenReturn(model);
         when(mediaAssetUseCase.loadFile(MEDIA_FILENAME)).thenReturn(inputStream);
 
-        ResponseEntity<InputStreamResource> response = controller.serveImage("token", MEDIA_FILENAME);
+        ResponseEntity<InputStreamResource> response = controller.serveImage(MEDIA_FILENAME);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();

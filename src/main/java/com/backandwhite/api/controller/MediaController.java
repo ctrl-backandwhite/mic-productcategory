@@ -6,7 +6,6 @@ import com.backandwhite.api.dto.out.MediaAssetDtoOut;
 import com.backandwhite.api.mapper.MediaAssetApiMapper;
 import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.MediaAssetUseCase;
-import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.annotation.NxAdmin;
 import com.backandwhite.common.security.annotation.NxPublic;
 import com.backandwhite.common.security.annotation.NxUser;
@@ -42,7 +41,7 @@ public class MediaController {
     @NxAdmin
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload file", description = "Uploads a multimedia file (max 10MB). Generates thumbnail for images")
-    public ResponseEntity<MediaAssetDtoOut> upload(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+    public ResponseEntity<MediaAssetDtoOut> upload(
             @Parameter(description = "File to upload") @RequestParam("file") MultipartFile file,
             @Parameter(description = "Asset category") @RequestParam(required = false) MediaCategory category,
             @Parameter(description = "Alternative text") @RequestParam(required = false) String alt,
@@ -57,7 +56,6 @@ public class MediaController {
     @GetMapping
     @Operation(summary = "List media assets", description = "Returns paginated assets with optional filters")
     public ResponseEntity<PaginationDtoOut<MediaAssetDtoOut>> findAll(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Filter by category") @RequestParam(required = false) MediaCategory category,
             @Parameter(description = "Filter by MIME type (partial)") @RequestParam(required = false) String mimeType,
             @Parameter(description = "Filter by tag") @RequestParam(required = false) String tag,
@@ -74,8 +72,7 @@ public class MediaController {
     @NxUser
     @GetMapping("/{id}")
     @Operation(summary = "Get media asset by ID")
-    public ResponseEntity<MediaAssetDtoOut> getById(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Asset ID") @PathVariable String id) {
+    public ResponseEntity<MediaAssetDtoOut> getById(@Parameter(description = "Asset ID") @PathVariable String id) {
         return ResponseEntity.ok(mediaAssetApiMapper.toDto(mediaAssetUseCase.findById(id)));
     }
 
@@ -84,8 +81,8 @@ public class MediaController {
     @NxAdmin
     @PutMapping("/{id}")
     @Operation(summary = "Update metadata", description = "Updates category, alt text and tags of an asset")
-    public ResponseEntity<MediaAssetDtoOut> updateMetadata(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @PathVariable String id, @Valid @RequestBody MediaAssetUpdateDtoIn dto) {
+    public ResponseEntity<MediaAssetDtoOut> updateMetadata(@PathVariable String id,
+            @Valid @RequestBody MediaAssetUpdateDtoIn dto) {
         MediaAsset updated = mediaAssetUseCase.updateMetadata(id, dto.getCategory(), dto.getAlt(), dto.getTags());
         return ResponseEntity.ok(mediaAssetApiMapper.toDto(updated));
     }
@@ -95,8 +92,7 @@ public class MediaController {
     @NxAdmin
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete media asset", description = "Deletes the file, thumbnail and DB record")
-    public ResponseEntity<Void> delete(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-            @Parameter(description = "Asset ID") @PathVariable String id) {
+    public ResponseEntity<Void> delete(@Parameter(description = "Asset ID") @PathVariable String id) {
         mediaAssetUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -106,7 +102,7 @@ public class MediaController {
     @NxPublic
     @GetMapping("/images/{filename}")
     @Operation(summary = "Serve image", description = "Serves the image by filename (public, cacheable)")
-    public ResponseEntity<InputStreamResource> serveImage(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+    public ResponseEntity<InputStreamResource> serveImage(
             @Parameter(description = "File name") @PathVariable String filename) {
         MediaAsset asset = mediaAssetUseCase.findByFilename(filename);
         InputStream inputStream = mediaAssetUseCase.loadFile(asset.getFilename());

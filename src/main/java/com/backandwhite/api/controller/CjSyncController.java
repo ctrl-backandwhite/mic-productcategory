@@ -6,7 +6,6 @@ import com.backandwhite.application.usecase.CjInventorySyncUseCase;
 import com.backandwhite.application.usecase.CjProductFullSyncUseCase;
 import com.backandwhite.application.usecase.CjReviewSyncUseCase;
 import com.backandwhite.application.usecase.ProductSearchReindexUseCase;
-import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.annotation.NxAdmin;
 import com.backandwhite.domain.model.CjSyncResult;
 import com.backandwhite.domain.model.SyncLog;
@@ -38,7 +37,6 @@ public class CjSyncController {
     @PostMapping("/inventory/all")
     @Operation(summary = "Sync inventory for all products", description = "Launches an inventory sync for all products with outdated data (>4h)")
     public ResponseEntity<CjSyncResultDtoOut> syncAllInventory(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Force re-sync even if inventory is recent") @RequestParam(defaultValue = "false") boolean force) {
         return ResponseEntity.ok(toDto(cjInventorySyncUseCase.syncAll(force)));
     }
@@ -46,8 +44,7 @@ public class CjSyncController {
     @NxAdmin
     @PostMapping("/inventory/product/{pid}")
     @Operation(summary = "Sync inventory for a specific product")
-    public ResponseEntity<CjSyncResultDtoOut> syncInventoryByPid(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String pid) {
+    public ResponseEntity<CjSyncResultDtoOut> syncInventoryByPid(@PathVariable String pid) {
         return ResponseEntity.ok(toDto(cjInventorySyncUseCase.syncByPid(pid)));
     }
 
@@ -57,7 +54,6 @@ public class CjSyncController {
     @PostMapping("/product/all")
     @Operation(summary = "Sync full data for all products", description = "Launches a full sync (name, description, images, variants) for outdated products")
     public ResponseEntity<CjSyncResultDtoOut> syncAllProducts(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Force re-sync even if product is recent") @RequestParam(defaultValue = "false") boolean force) {
         return ResponseEntity.ok(toDto(cjProductFullSyncUseCase.syncAll(force)));
     }
@@ -65,8 +61,7 @@ public class CjSyncController {
     @NxAdmin
     @PostMapping("/product/{pid}")
     @Operation(summary = "Sync full data for a specific product")
-    public ResponseEntity<CjSyncResultDtoOut> syncProductByPid(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String pid) {
+    public ResponseEntity<CjSyncResultDtoOut> syncProductByPid(@PathVariable String pid) {
         return ResponseEntity.ok(toDto(cjProductFullSyncUseCase.syncByPid(pid)));
     }
 
@@ -76,7 +71,6 @@ public class CjSyncController {
     @PostMapping("/reviews/all")
     @Operation(summary = "Sync CJ reviews for all products", description = "Imports new reviews from CJ for products without a sync today")
     public ResponseEntity<CjSyncResultDtoOut> syncAllReviews(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
             @Parameter(description = "Force re-sync even if product was already synced today") @RequestParam(defaultValue = "false") boolean force) {
         return ResponseEntity.ok(toDto(cjReviewSyncUseCase.syncAll(force)));
     }
@@ -84,8 +78,7 @@ public class CjSyncController {
     @NxAdmin
     @PostMapping("/reviews/product/{pid}")
     @Operation(summary = "Sync CJ reviews for a specific product")
-    public ResponseEntity<CjSyncResultDtoOut> syncReviewsByPid(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth, @PathVariable String pid) {
+    public ResponseEntity<CjSyncResultDtoOut> syncReviewsByPid(@PathVariable String pid) {
         return ResponseEntity.ok(toDto(cjReviewSyncUseCase.syncByPid(pid)));
     }
 
@@ -94,7 +87,7 @@ public class CjSyncController {
     @NxAdmin
     @GetMapping("/log/{syncType}")
     @Operation(summary = "View recent sync history", description = "Returns the last 10 sync records for the specified type")
-    public ResponseEntity<List<SyncLogDtoOut>> getSyncLog(@RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
+    public ResponseEntity<List<SyncLogDtoOut>> getSyncLog(
             @Parameter(description = "Sync type: INVENTORY, PRODUCT_FULL, REVIEWS, CATEGORIES") @PathVariable String syncType) {
         List<SyncLog> logs = syncLogRepository.findRecentByType(SyncType.valueOf(syncType.toUpperCase()), 10);
         return ResponseEntity.ok(logs.stream().map(this::toLogDto).toList());
@@ -105,8 +98,7 @@ public class CjSyncController {
     @NxAdmin
     @PostMapping("/reindex/elasticsearch")
     @Operation(summary = "Reindex all products in Elasticsearch", description = "Drops the index, recreates it and reindexes all products from PostgreSQL")
-    public ResponseEntity<java.util.Map<String, Object>> reindexElasticsearch(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
+    public ResponseEntity<java.util.Map<String, Object>> reindexElasticsearch() {
         long indexed = productSearchReindexUseCase.reindexAll();
         return ResponseEntity.accepted()
                 .body(java.util.Map.of("status", "completed", "operation", "full-reindex", "totalIndexed", indexed));
@@ -116,8 +108,7 @@ public class CjSyncController {
     @PostMapping("/reindex/elasticsearch/from-db")
     @Operation(summary = "Reindex products from DB (incremental)", description = "Bulk upsert from PostgreSQL without dropping the index. "
             + "Useful for syncing without losing existing documents.")
-    public ResponseEntity<java.util.Map<String, Object>> reindexFromDb(
-            @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth) {
+    public ResponseEntity<java.util.Map<String, Object>> reindexFromDb() {
         long indexed = productSearchReindexUseCase.reindexFromDb();
         return ResponseEntity.accepted().body(
                 java.util.Map.of("status", "completed", "operation", "incremental-reindex", "totalIndexed", indexed));

@@ -46,8 +46,8 @@ class ReviewControllerTest {
         when(reviewUseCase.findByProductId(REVIEW_PRODUCT_ID, 0, 10, "createdAt", false)).thenReturn(page);
         when(reviewApiMapper.toDto(any(Review.class))).thenReturn(reviewDtoOut());
 
-        ResponseEntity<PaginationDtoOut<ReviewDtoOut>> response = controller.findByProductId("token", REVIEW_PRODUCT_ID,
-                0, 10, "createdAt", false);
+        ResponseEntity<PaginationDtoOut<ReviewDtoOut>> response = controller.findByProductId(REVIEW_PRODUCT_ID, 0, 10,
+                "createdAt", false);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -63,7 +63,7 @@ class ReviewControllerTest {
         when(reviewUseCase.getStatsByProductId(REVIEW_PRODUCT_ID)).thenReturn(stats);
         when(reviewApiMapper.toStatsDto(stats)).thenReturn(statsDto);
 
-        ResponseEntity<ReviewStatsDtoOut> response = controller.getStatsByProductId("token", REVIEW_PRODUCT_ID);
+        ResponseEntity<ReviewStatsDtoOut> response = controller.getStatsByProductId(REVIEW_PRODUCT_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(statsDto);
@@ -81,7 +81,7 @@ class ReviewControllerTest {
         when(reviewUseCase.create(model)).thenReturn(model);
         when(reviewApiMapper.toDto(model)).thenReturn(dtoOut);
 
-        ResponseEntity<ReviewDtoOut> response = controller.create("token", REVIEW_PRODUCT_ID, dtoIn);
+        ResponseEntity<ReviewDtoOut> response = controller.create(REVIEW_PRODUCT_ID, dtoIn);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isEqualTo(dtoOut);
@@ -94,7 +94,7 @@ class ReviewControllerTest {
     void voteHelpful_returnsNoContent() {
         ReviewHelpfulDtoIn dto = ReviewHelpfulDtoIn.builder().sessionId("session-123").build();
 
-        ResponseEntity<Void> response = controller.voteHelpful("token", REVIEW_ID, dto);
+        ResponseEntity<Void> response = controller.voteHelpful(REVIEW_ID, dto);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(reviewUseCase).voteHelpful(REVIEW_ID, "session-123");
@@ -106,8 +106,8 @@ class ReviewControllerTest {
         when(reviewUseCase.findAll(null, null, 0, 20, "createdAt", false)).thenReturn(page);
         when(reviewApiMapper.toDto(any(Review.class))).thenReturn(reviewDtoOut());
 
-        ResponseEntity<PaginationDtoOut<ReviewDtoOut>> response = controller.findAll("token", null, null, 0, 20,
-                "createdAt", false);
+        ResponseEntity<PaginationDtoOut<ReviewDtoOut>> response = controller.findAll(null, null, 0, 20, "createdAt",
+                false);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -118,7 +118,7 @@ class ReviewControllerTest {
     void moderate_returnsNoContent() {
         ReviewModerateDtoIn dto = ReviewModerateDtoIn.builder().status(ReviewStatus.APPROVED).build();
 
-        ResponseEntity<Void> response = controller.moderate("token", REVIEW_ID, dto);
+        ResponseEntity<Void> response = controller.moderate(REVIEW_ID, dto);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(reviewUseCase).moderate(REVIEW_ID, ReviewStatus.APPROVED);
@@ -126,7 +126,7 @@ class ReviewControllerTest {
 
     @Test
     void delete_returnsNoContent() {
-        ResponseEntity<Void> response = controller.delete("token", REVIEW_ID);
+        ResponseEntity<Void> response = controller.delete(REVIEW_ID);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(reviewUseCase).delete(REVIEW_ID);
