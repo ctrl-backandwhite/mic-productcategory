@@ -44,7 +44,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @PactFolder("src/test/resources/pacts")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import({ TestContainersConfiguration.class, PactAuthConfiguration.class })
+@Import({TestContainersConfiguration.class, PactAuthConfiguration.class})
 class CatalogProviderPactTest {
 
     @LocalServerPort
