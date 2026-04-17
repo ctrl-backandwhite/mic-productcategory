@@ -38,6 +38,13 @@
         </repository>
     </repositories>
 
+    <properties>
+        <sonar.organization>ctrl-backandwhite</sonar.organization>
+        <sonar.sources>src/main/java</sonar.sources>
+        <sonar.tests>src/test/java</sonar.tests>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <!--
@@ -54,6 +61,30 @@
                 <version>4.0.5</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Security: override vulnerable transitive jackson-core (CWE-770, CVSS 8.7) -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.21.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Security: pin Jackson 3.x (tools.jackson.core) — fixes CWE-770 CVSS 8.7 -->
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>3.1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>3.1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>3.1.2</version>
             </dependency>
             <!-- Explicit pin as safety net in case BOM import ordering varies -->
             <dependency>
