@@ -37,23 +37,23 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
     @Override
     @Transactional
     public MediaAsset upload(MultipartFile file, MediaCategory category, String alt, List<String> tags) {
-        // Validar tamaño
+        // Validate size
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("El archivo excede el tamaño máximo de 10MB");
+            throw new IllegalArgumentException("File exceeds the maximum size of 10MB");
         }
 
-        // Validar tipo MIME
+        // Validate MIME type
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType)) {
-            throw new IllegalArgumentException("Tipo de archivo no permitido: " + contentType);
+            throw new IllegalArgumentException("File type not allowed: " + contentType);
         }
 
         try {
-            // Almacenar archivo principal
+            // Store main file
             String filename = storageService.store(file.getOriginalFilename(), contentType, file.getInputStream());
             String url = storageService.getUrl(filename);
 
-            // Generar thumbnail si es imagen
+            // Generate thumbnail if it's an image
             String thumbnailUrl = null;
             if (IMAGE_MIME_TYPES.contains(contentType)) {
                 InputStream thumbStream = file.getInputStream();
@@ -80,7 +80,7 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
 
         } catch (Exception e) {
             log.error("Error uploading media asset: {}", file.getOriginalFilename(), e);
-            throw new RuntimeException("Error al subir el archivo", e);
+            throw new RuntimeException("Error uploading file", e);
         }
     }
 
@@ -113,10 +113,10 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
     @Transactional
     public void delete(String id) {
         MediaAsset asset = findById(id);
-        // Eliminar archivos del storage
+        // Delete files from storage
         storageService.delete(asset.getFilename());
         if (asset.getThumbnailUrl() != null) {
-            // Extraer nombre del thumbnail de la URL
+            // Extract thumbnail name from URL
             String thumbFilename = asset.getThumbnailUrl().substring(asset.getThumbnailUrl().lastIndexOf('/') + 1);
             storageService.deleteThumbnail(thumbFilename);
         }

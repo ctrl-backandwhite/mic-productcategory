@@ -16,17 +16,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Gestiona el ciclo de vida del token de CJ Dropshipping con persistencia en
- * DB:
+ * Manages the CJ Dropshipping token lifecycle with DB persistence:
  * <ul>
- * <li>Persiste accessToken, refreshToken y fechas de expiración en tabla
- * cj_tokens</li>
- * <li>Al iniciar, carga el último token de la DB (sobrevive a reinicios)</li>
- * <li>Si el token está vigente, lo reutiliza sin llamar a CJ</li>
- * <li>Si le falta poco para vencer (&lt;30 min), hace refresh proactivo</li>
- * <li>Si está vencido, solicita un token nuevo</li>
- * <li>Respeta el cooldown de 5 minutos de CJ para nuevos tokens</li>
- * <li>Refresca automáticamente cada hora (vía @Scheduled)</li>
+ * <li>Persists accessToken, refreshToken and expiration dates in the cj_tokens
+ * table</li>
+ * <li>On startup, loads the last token from DB (survives restarts)</li>
+ * <li>If the token is still valid, reuses it without calling CJ</li>
+ * <li>If it is close to expiring (&lt;30 min), performs proactive refresh</li>
+ * <li>If it is expired, requests a new token</li>
+ * <li>Respects the CJ 5-minute cooldown for new tokens</li>
+ * <li>Automatically refreshes every hour (via @Scheduled)</li>
  * </ul>
  */
 @Log4j2
@@ -35,16 +34,16 @@ public class CjTokenManager {
 
     private static final String SINGLETON_ID = "SINGLETON";
     private static final DateTimeFormatter CJ_DATE_FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-    /** CJ solo permite solicitar un token nuevo cada 5 minutos */
+    /** CJ only allows requesting a new token every 5 minutes */
     private static final long TOKEN_REQUEST_COOLDOWN_SECONDS = 5 * 60;
-    /** Margen para refresh proactivo: 30 minutos antes del vencimiento */
+    /** Margin for proactive refresh: 30 minutes before expiry */
     private static final long PROACTIVE_REFRESH_MINUTES = 30;
 
     private final CjAuthClient cjAuthClient;
     private final CjTokenJpaRepository tokenRepository;
     private final ReentrantLock lock = new ReentrantLock();
 
-    // Caché en memoria sincronizada con la DB
+    // In-memory cache synchronized with the DB
     private String cachedAccessToken;
     private String cachedRefreshToken;
     private Instant accessTokenExpiry;
@@ -58,21 +57,21 @@ public class CjTokenManager {
     }
 
     /**
-     * Devuelve un access token válido.
-     * 1. Si hay token en caché y es válido → lo retorna.
-     * 2. Si le falta poco para vencer → intenta refresh proactivo.
-     * 3. Si está vencido → solicita uno nuevo (respetando cooldown).
+     * Returns a valid access token.
+     * 1. If there is a cached token and it is valid → returns it.
+     * 2. If it is close to expiring → attempts proactive refresh.
+     * 3. If it is expired → requests a new one (respecting cooldown).
      */
     public String getValidAccessToken() {
         lock.lock();
         try {
-            // Cargar de DB en el primer acceso
+            // Load from DB on first access
             if (!loadedFromDb) {
                 loadFromDatabase();
                 loadedFromDb = true;
             }
 
-            // Token válido y lejos de vencer → reusar
+            // Valid token far from expiry → reuse
             if (cachedAccessToken != null && !isExpired()) {
                 if (isAboutToExpire()) {
                     log.info("Access token about to expire in <{} min, attempting proactive refresh...",
@@ -89,7 +88,7 @@ public class CjTokenManager {
                 return cachedAccessToken;
             }
 
-            // Token vencido → intentar refresh si hay refresh token válido
+            // Token expired → attempt refresh if refresh token is valid
             if (cachedRefreshToken != null && !isRefreshTokenExpired()) {
                 log.info("Access token expired, attempting refresh...");
                 try {
@@ -99,7 +98,7 @@ public class CjTokenManager {
                 }
             }
 
-            // Sin token válido → solicitar nuevo
+            // No valid token → request new one
             log.info("No valid access token available, requesting new token...");
             return doNewToken();
         } finally {
@@ -108,8 +107,8 @@ public class CjTokenManager {
     }
 
     /**
-     * Tarea programada: se ejecuta cada hora (3_600_000 ms).
-     * Refresca el token proactivamente y loguea el estado.
+     * Scheduled task: runs every hour (3_600_000 ms).
+     * Proactively refreshes the token and logs its status.
      */
     @Scheduled(fixedRate = 3_600_000, initialDelay = 10_000)
     public void scheduledRefresh() {
@@ -153,10 +152,10 @@ public class CjTokenManager {
         }
     }
 
-    // ── Persistencia DB ─────────────────────────────────────────
+    // ── DB Persistence ─────────────────────────────────────────
 
     /**
-     * Carga el token persistido de la base de datos al caché en memoria.
+     * Loads the persisted token from the database into the in-memory cache.
      */
     private void loadFromDatabase() {
         try {
@@ -182,7 +181,7 @@ public class CjTokenManager {
     }
 
     /**
-     * Persiste el estado actual del token en la base de datos.
+     * Persists the current token state to the database.
      */
     private void saveToDatabase() {
         try {
@@ -198,11 +197,11 @@ public class CjTokenManager {
             log.debug("CJ token persisted to DB");
         } catch (Exception e) {
             log.error("Failed to persist CJ token to DB: {}", e.getMessage());
-            // No lanzar — el token en memoria sigue funcionando
+            // Do not throw — in-memory token still works
         }
     }
 
-    // ── Métodos internos ────────────────────────────────────────
+    // ── Internal methods ────────────────────────────────────────
 
     private String doRefresh() {
         CjAccessTokenDataDto data = cjAuthClient.refreshAccessToken(cachedRefreshToken);
@@ -211,7 +210,7 @@ public class CjTokenManager {
     }
 
     private String doNewToken() {
-        // Cooldown: CJ solo permite pedir token cada 5 minutos
+        // Cooldown: CJ only allows requesting a token every 5 minutes
         if (lastTokenRequestTime != null) {
             long elapsed = ChronoUnit.SECONDS.between(lastTokenRequestTime, Instant.now());
             if (elapsed < TOKEN_REQUEST_COOLDOWN_SECONDS) {
@@ -237,7 +236,7 @@ public class CjTokenManager {
         this.cachedRefreshToken = data.getRefreshToken();
         this.accessTokenExpiry = parseToInstant(data.getAccessTokenExpiryDate());
         this.refreshTokenExpiry = parseToInstant(data.getRefreshTokenExpiryDate());
-        // Persistir en DB
+        // Persist in DB
         saveToDatabase();
     }
 

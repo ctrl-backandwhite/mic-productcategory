@@ -11,28 +11,28 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para crear o actualizar una marca")
+@Schema(description = "DTO for creating or updating a brand")
 public class BrandDtoIn {
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(max = 255, message = "El nombre no puede exceder 255 caracteres")
-    @Schema(description = "Nombre de la marca", example = "Nike")
+    @NotBlank(message = "Name is required")
+    @Size(max = 255, message = "Name must not exceed 255 characters")
+    @Schema(description = "Brand name", example = "Nike")
     private String name;
 
-    @NotBlank(message = "El slug es obligatorio")
-    @Size(max = 255, message = "El slug no puede exceder 255 caracteres")
-    @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$", message = "El slug debe ser alfanumérico en minúsculas separado por guiones")
-    @Schema(description = "Slug URL-friendly de la marca", example = "nike")
+    @NotBlank(message = "Slug is required")
+    @Size(max = 255, message = "Slug must not exceed 255 characters")
+    @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$", message = "Slug must be lowercase alphanumeric separated by hyphens")
+    @Schema(description = "URL-friendly brand slug", example = "nike")
     private String slug;
 
-    @Size(max = 500, message = "La URL del logo no puede exceder 500 caracteres")
-    @Schema(description = "URL del logotipo de la marca", example = "https://cdn.example.com/logos/nike.png")
+    @Size(max = 500, message = "Logo URL must not exceed 500 characters")
+    @Schema(description = "Brand logo URL", example = "https://cdn.example.com/logos/nike.png")
     private String logoUrl;
 
-    @Size(max = 500, message = "La URL del sitio web no puede exceder 500 caracteres")
-    @Schema(description = "Sitio web oficial de la marca", example = "https://www.nike.com")
+    @Size(max = 500, message = "Website URL must not exceed 500 characters")
+    @Schema(description = "Brand official website", example = "https://www.nike.com")
     private String websiteUrl;
 
-    @Schema(description = "Descripción de la marca", example = "Marca líder en calzado y ropa deportiva")
+    @Schema(description = "Brand description", example = "Leading brand in footwear and sportswear")
     private String description;
 }

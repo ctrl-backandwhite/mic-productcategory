@@ -3,43 +3,43 @@ package com.backandwhite.application.service;
 import java.io.InputStream;
 
 /**
- * Interfaz para el servicio de almacenamiento de archivos.
- * Permite abstraer el almacenamiento (local, S3, MinIO).
+ * Interface for the file storage service.
+ * Allows abstracting the storage (local, S3, MinIO).
  */
 public interface StorageService {
 
     /**
-     * Almacena un archivo y devuelve el nombre de archivo generado (único).
+     * Stores a file and returns the generated (unique) filename.
      */
     String store(String originalFilename, String contentType, InputStream inputStream);
 
     /**
-     * Almacena un thumbnail redimensionado y devuelve el nombre de archivo.
+     * Stores a resized thumbnail and returns the filename.
      */
     String storeThumbnail(String originalFilename, String contentType, InputStream inputStream);
 
     /**
-     * Elimina un archivo por nombre.
+     * Deletes a file by name.
      */
     void delete(String filename);
 
     /**
-     * Elimina un thumbnail por nombre.
+     * Deletes a thumbnail by name.
      */
     void deleteThumbnail(String filename);
 
     /**
-     * Devuelve la URL pública para acceder a un archivo.
+     * Returns the public URL for accessing a file.
      */
     String getUrl(String filename);
 
     /**
-     * Devuelve la URL pública del thumbnail.
+     * Returns the public thumbnail URL.
      */
     String getThumbnailUrl(String filename);
 
     /**
-     * Obtiene el InputStream de un archivo almacenado.
+     * Gets the InputStream of a stored file.
      */
     InputStream load(String filename);
 }

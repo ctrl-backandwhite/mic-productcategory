@@ -7,6 +7,7 @@ import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import com.backandwhite.application.port.out.CatalogEventPort;
+import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
 
     private final ProductRepository productRepository;
     private final CatalogEventPort catalogEventPort;
+    private final ProductSearchIndexPort productSearchIndexPort;
 
     @Override
     @Transactional(readOnly = true)
@@ -70,6 +72,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
                 saved.getId(), saved.getName(), saved.getSku(),
                 saved.getSellPrice(),
                 saved.getCategoryId(), null);
+        productSearchIndexPort.indexProduct(saved);
         return saved;
     }
 
@@ -83,6 +86,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
                 updated.getSellPrice(),
                 updated.getCategoryId(), null,
                 updated.getStatus() == ProductStatus.PUBLISHED);
+        productSearchIndexPort.indexProduct(updated);
         return updated;
     }
 
@@ -95,6 +99,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
                 ? ProductStatus.DRAFT
                 : ProductStatus.PUBLISHED;
         productRepository.updateStatus(productId, newStatus);
+        productSearchIndexPort.updateStatus(productId, newStatus);
     }
 
     @Override
@@ -104,18 +109,21 @@ public class ProductUseCaseImpl implements ProductUseCase {
             return;
         ProductStatus productStatus = ProductStatus.valueOf(status.toUpperCase());
         productRepository.bulkUpdateStatus(productIds, productStatus);
+        productIds.forEach(id -> productSearchIndexPort.updateStatus(id, productStatus));
     }
 
     @Override
     @Transactional
     public void delete(String productId) {
         productRepository.delete(productId);
+        productSearchIndexPort.removeProduct(productId);
     }
 
     @Override
     @Transactional
     public void deleteAll(List<String> productIds) {
         productRepository.deleteAll(productIds);
+        productSearchIndexPort.removeBulk(productIds);
     }
 
     @Override
@@ -123,10 +131,12 @@ public class ProductUseCaseImpl implements ProductUseCase {
     public BulkImportResult bulkCreate(List<Product> products) {
         int created = 0;
         List<BulkImportResult.RowError> errors = new ArrayList<>();
+        List<Product> savedProducts = new ArrayList<>();
 
         for (int i = 0; i < products.size(); i++) {
             try {
-                productRepository.save(products.get(i));
+                Product saved = productRepository.save(products.get(i));
+                savedProducts.add(saved);
                 created++;
             } catch (Exception e) {
                 log.warn("Bulk product row {} failed: {}", i, e.getMessage());
@@ -135,6 +145,10 @@ public class ProductUseCaseImpl implements ProductUseCase {
                         .message(e.getMessage())
                         .build());
             }
+        }
+
+        if (!savedProducts.isEmpty()) {
+            productSearchIndexPort.indexBulk(savedProducts);
         }
 
         log.info("Bulk product import: created={}, failed={}, total={}", created, errors.size(), products.size());

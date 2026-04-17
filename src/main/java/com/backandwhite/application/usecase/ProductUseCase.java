@@ -28,8 +28,8 @@ public interface ProductUseCase {
     void deleteAll(List<String> productIds);
 
     /**
-     * Carga masiva de productos. Crea cada producto individualmente,
-     * acumulando errores por fila sin abortar el lote completo.
+     * Bulk product creation. Creates each product individually,
+     * accumulating errors per row without aborting the entire batch.
      */
     BulkImportResult bulkCreate(List<Product> products);
 }

@@ -12,45 +12,45 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Reseña de producto")
+@Schema(description = "Product review")
 public class ReviewDtoOut {
 
-    @Schema(description = "ID de la reseña")
+    @Schema(description = "Review ID")
     private String id;
 
-    @Schema(description = "ID del producto")
+    @Schema(description = "Product ID")
     private String productId;
 
-    @Schema(description = "ID del usuario (si autenticado)")
+    @Schema(description = "User ID (if authenticated)")
     private String userId;
 
-    @Schema(description = "Nombre del autor")
+    @Schema(description = "Author name")
     private String authorName;
 
-    @Schema(description = "Calificación (1-5)")
+    @Schema(description = "Rating (1-5)")
     private Integer rating;
 
-    @Schema(description = "Título de la reseña")
+    @Schema(description = "Review title")
     private String title;
 
-    @Schema(description = "Cuerpo de la reseña")
+    @Schema(description = "Review body")
     private String body;
 
-    @Schema(description = "Indica si es un comprador verificado")
+    @Schema(description = "Whether the reviewer is a verified buyer")
     private Boolean verified;
 
-    @Schema(description = "Estado de moderación")
+    @Schema(description = "Moderation status")
     private ReviewStatus status;
 
-    @Schema(description = "Cantidad de votos de utilidad")
+    @Schema(description = "Helpfulness vote count")
     private Integer helpfulCount;
 
-    @Schema(description = "URLs de imágenes adjuntas")
+    @Schema(description = "Attached image URLs")
     private List<String> images;
 
-    @Schema(description = "Fecha de creación")
+    @Schema(description = "Creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de última actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 }

@@ -1,6 +1,7 @@
 package com.backandwhite.application.usecase.impl;
 
 import com.backandwhite.application.port.out.CatalogEventPort;
+import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import com.backandwhite.application.usecase.InventoryUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.ProductDetailVariant;
@@ -10,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -22,6 +26,7 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
     private final InventoryRepository inventoryRepository;
     private final ProductDetailRepository productDetailRepository;
     private final CatalogEventPort catalogEventPort;
+    private final ProductSearchIndexPort productSearchIndexPort;
 
     @Override
     @Transactional
@@ -40,6 +45,7 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
         catalogEventPort.publishStockReserved(pid, variantId, orderId, quantity, remaining);
         checkLowStock(pid, variantId, remaining);
+        updateEsStock(pid);
 
         log.info("Stock reserved: vid={}, orderId={}, qty={}, remaining={}", variantId, orderId, quantity, remaining);
         return remaining;
@@ -71,6 +77,7 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
             catalogEventPort.publishStockDepleted(pid, variantId, productName);
         }
 
+        updateEsStock(pid);
         log.info("Stock deducted: vid={}, orderId={}, qty={}, remaining={}", variantId, orderId, quantity, remaining);
         return remaining;
     }
@@ -83,11 +90,13 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
         inventoryRepository.incrementStock(variantId, country, quantity);
         int remaining = inventoryRepository.getTotalStockByVid(variantId);
+        String pid = getProductIdForVariant(variantId);
 
         // Note: We do NOT re-publish stock.released — the orderservice already
         // published the command event. Re-publishing would create an infinite Kafka
         // loop.
 
+        updateEsStock(pid);
         log.info("Stock released: vid={}, orderId={}, qty={}, remaining={}", variantId, orderId, quantity, remaining);
         return remaining;
     }
@@ -100,11 +109,13 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
         inventoryRepository.incrementStock(variantId, country, quantity);
         int remaining = inventoryRepository.getTotalStockByVid(variantId);
+        String pid = getProductIdForVariant(variantId);
 
         // Note: We do NOT re-publish stock.restored — the orderservice already
         // published the command event. Re-publishing would create an infinite Kafka
         // loop.
 
+        updateEsStock(pid);
         log.info("Stock restored: vid={}, orderId={}, qty={}, remaining={}", variantId, orderId, quantity, remaining);
         return remaining;
     }
@@ -151,5 +162,20 @@ public class InventoryUseCaseImpl implements InventoryUseCase {
 
     private String resolveCountry(String countryCode) {
         return (countryCode != null && !countryCode.isBlank()) ? countryCode : DEFAULT_COUNTRY;
+    }
+
+    private void updateEsStock(String pid) {
+        try {
+            Map<String, Integer> variantStockMap = productDetailRepository
+                    .findVariantsByPid(pid, null)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            ProductDetailVariant::getVid,
+                            v -> inventoryRepository.getTotalStockByVid(v.getVid())));
+            productSearchIndexPort.updateStock(pid, variantStockMap);
+            log.debug("ES stock updated for pid={}, variants={}", pid, variantStockMap.size());
+        } catch (Exception e) {
+            log.warn("Failed to update ES stock for pid={}: {}", pid, e.getMessage());
+        }
     }
 }

@@ -13,12 +13,12 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para carga masiva de productos (CSV / JSON)")
+@Schema(description = "DTO for bulk product upload (CSV / JSON)")
 public class BulkProductDtoIn {
 
-    @NotNull(message = "Los productos son obligatorios")
-    @Size(min = 1, message = "Se requiere al menos un producto")
+    @NotNull(message = "Products are required")
+    @Size(min = 1, message = "At least one product is required")
     @Valid
-    @Schema(description = "Lista de productos a crear")
+    @Schema(description = "List of products to create")
     private List<ProductDtoIn> rows;
 }

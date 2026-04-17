@@ -31,7 +31,7 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
 
     private static final int PAGE_SIZE = 100;
     private static final long DELAY_BETWEEN_PAGES_MS = 10_000;
-    /** Máximo de requests paralelos a CJ para no saturar el rate limit */
+    /** Maximum parallel requests to CJ to avoid saturating the rate limit */
     private static final int PARALLEL_FETCH_THREADS = 5;
 
     private final ExecutorService fetchExecutor = Executors.newFixedThreadPool(
@@ -68,7 +68,7 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
             log.info("Processing page {} with {} local products (parallel={})...",
                     page, productIds.size(), PARALLEL_FETCH_THREADS);
 
-            // Fetch en paralelo — máx PARALLEL_FETCH_THREADS requests concurrentes a CJ
+            // Parallel fetch — max PARALLEL_FETCH_THREADS concurrent requests to CJ
             List<CompletableFuture<Optional<Product>>> futures = productIds.stream()
                     .map(pid -> CompletableFuture.supplyAsync(() -> {
                         try {
@@ -159,7 +159,7 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
         log.info("Processing {} local products (page {}, parallel={})...",
                 productIds.size(), page, PARALLEL_FETCH_THREADS);
 
-        // Fetch en paralelo — máx PARALLEL_FETCH_THREADS requests concurrentes a CJ
+        // Parallel fetch — max PARALLEL_FETCH_THREADS concurrent requests to CJ
         List<CompletableFuture<Optional<Product>>> futures = productIds.stream()
                 .map(pid -> CompletableFuture.supplyAsync(() -> {
                     try {

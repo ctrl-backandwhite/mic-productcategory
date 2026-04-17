@@ -13,33 +13,33 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Regla de impuesto por país")
+@Schema(description = "Tax rule by country")
 public class CountryTaxDtoOut {
 
-    @Schema(description = "ID de la regla")
+    @Schema(description = "Rule ID")
     private String id;
 
-    @Schema(description = "Código ISO del país")
+    @Schema(description = "ISO country code")
     private String country;
 
-    @Schema(description = "Estado o región")
+    @Schema(description = "State or region")
     private String region;
 
-    @Schema(description = "Tasa de impuesto (decimal)", example = "0.21")
+    @Schema(description = "Tax rate (decimal)", example = "0.21")
     private BigDecimal rate;
 
-    @Schema(description = "Tipo: PERCENTAGE o FIXED")
+    @Schema(description = "Type: PERCENTAGE or FIXED")
     private String type;
 
-    @Schema(description = "Categorías a las que aplica")
+    @Schema(description = "Categories to which it applies")
     private List<String> appliesToCategories;
 
-    @Schema(description = "Si la regla está activa")
+    @Schema(description = "Whether the rule is active")
     private Boolean active;
 
-    @Schema(description = "Fecha de creación")
+    @Schema(description = "Creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 }

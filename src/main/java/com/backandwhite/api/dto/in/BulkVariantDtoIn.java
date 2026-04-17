@@ -13,12 +13,12 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para carga masiva de variantes (CSV / JSON)")
+@Schema(description = "DTO for bulk variant upload (CSV / JSON)")
 public class BulkVariantDtoIn {
 
-    @NotNull(message = "Las variantes son obligatorias")
-    @Size(min = 1, message = "Se requiere al menos una variante")
+    @NotNull(message = "Variants are required")
+    @Size(min = 1, message = "At least one variant is required")
     @Valid
-    @Schema(description = "Lista de variantes a crear")
+    @Schema(description = "List of variants to create")
     private List<ProductDetailVariantDtoIn> rows;
 }

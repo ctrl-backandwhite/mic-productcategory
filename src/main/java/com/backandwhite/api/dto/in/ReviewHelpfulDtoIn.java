@@ -9,10 +9,10 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para votar una reseña como útil")
+@Schema(description = "DTO for voting a review as helpful")
 public class ReviewHelpfulDtoIn {
 
-    @NotBlank(message = "El sessionId es obligatorio")
-    @Schema(description = "ID de sesión del votante (para idempotencia)")
+    @NotBlank(message = "sessionId is required")
+    @Schema(description = "Voter session ID (for idempotency)")
     private String sessionId;
 }

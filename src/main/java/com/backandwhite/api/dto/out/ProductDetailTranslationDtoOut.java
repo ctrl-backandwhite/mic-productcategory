@@ -8,27 +8,27 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Traducción del detalle de producto")
+@Schema(description = "Product detail translation")
 public class ProductDetailTranslationDtoOut {
 
-    @Schema(description = "Código de idioma", example = "en")
+    @Schema(description = "Language code", example = "en")
     private String locale;
 
-    @Schema(description = "Nombre del producto traducido")
+    @Schema(description = "Translated product name")
     private String productName;
 
-    @Schema(description = "Nombre de entrada traducido")
+    @Schema(description = "Translated entry name")
     private String entryName;
 
-    @Schema(description = "Nombre del material traducido")
+    @Schema(description = "Translated material name")
     private String materialName;
 
-    @Schema(description = "Nombre del empaque traducido")
+    @Schema(description = "Translated packing name")
     private String packingName;
 
-    @Schema(description = "Clave del producto traducida")
+    @Schema(description = "Translated product key")
     private String productKey;
 
-    @Schema(description = "Propiedades del producto traducidas")
+    @Schema(description = "Translated product properties")
     private String productPro;
 }

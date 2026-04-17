@@ -8,12 +8,12 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Traducción de la variante del detalle")
+@Schema(description = "Product detail variant translation")
 public class ProductDetailVariantTranslationDtoOut {
 
-    @Schema(description = "Código de idioma", example = "en")
+    @Schema(description = "Language code", example = "en")
     private String locale;
 
-    @Schema(description = "Nombre de la variante traducido")
+    @Schema(description = "Translated variant name")
     private String variantName;
 }

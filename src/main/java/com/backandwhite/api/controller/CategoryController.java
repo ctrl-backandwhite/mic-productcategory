@@ -34,7 +34,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/categories")
-@Tag(name = "Categories", description = "Endpoints para gestión de categorías")
+@Tag(name = "Categories", description = "Endpoints for category management")
 public class CategoryController {
 
     private final CategoryUseCase categoryUseCase;
@@ -44,28 +44,28 @@ public class CategoryController {
     // ── Listados ─────────────────────────────────────────────────────────────
 
     @GetMapping
-    @Operation(summary = "Listar categorías en árbol", description = "Devuelve categorías en estructura jerárquica, con filtros opcionales por estado, activo y locale")
+    @Operation(summary = "List categories as tree", description = "Returns categories in hierarchical structure, with optional filters by status, active and locale")
     public ResponseEntity<List<CategoryDtoOut>> findByLocale(
-            @Parameter(description = "Código de idioma (ej: es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "en") String locale,
-            @Parameter(description = "Filtrar por estado de publicación (DRAFT, PUBLISHED)") @RequestParam(required = false) CategoryStatus status,
-            @Parameter(description = "Filtrar por activo (true o false)") @RequestParam(required = false) Boolean active) {
+            @Parameter(description = "Language code (e.g. es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "en") String locale,
+            @Parameter(description = "Filter by publication status (DRAFT, PUBLISHED)") @RequestParam(required = false) CategoryStatus status,
+            @Parameter(description = "Filter by active (true or false)") @RequestParam(required = false) Boolean active) {
 
         List<Category> categories = categoryUseCase.findCategories(locale, status, active);
         return ResponseEntity.ok(categoryApiMapper.toDtoList(categories));
     }
 
     @GetMapping("/paged")
-    @Operation(summary = "Listar categorías paginadas", description = "Devuelve categorías paginadas con filtros opcionales. Usa PageableUtils internamente.")
+    @Operation(summary = "List paginated categories", description = "Returns paginated categories with optional filters. Uses PageableUtils internally.")
     public ResponseEntity<PaginationDtoOut<CategoryDtoOut>> findPaged(
-            @Parameter(description = "Código de idioma", example = "es") @RequestParam(defaultValue = "en") String locale,
-            @Parameter(description = "Filtrar por estado (DRAFT, PUBLISHED)") @RequestParam(required = false) CategoryStatus status,
-            @Parameter(description = "Filtrar por activo") @RequestParam(required = false) Boolean active,
-            @Parameter(description = "Buscar por nombre (parcial, case-insensitive)") @RequestParam(required = false) String name,
-            @Parameter(description = "Filtrar por nivel (1, 2, 3)") @RequestParam(required = false) Integer level,
-            @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Campo de ordenamiento", example = "level") @RequestParam(defaultValue = "level") String sortBy,
-            @Parameter(description = "Orden ascendente", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+            @Parameter(description = "Language code", example = "es") @RequestParam(defaultValue = "en") String locale,
+            @Parameter(description = "Filter by status (DRAFT, PUBLISHED)") @RequestParam(required = false) CategoryStatus status,
+            @Parameter(description = "Filter by active") @RequestParam(required = false) Boolean active,
+            @Parameter(description = "Search by name (partial, case-insensitive)") @RequestParam(required = false) String name,
+            @Parameter(description = "Filter by level (1, 2, 3)") @RequestParam(required = false) Integer level,
+            @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Sort field", example = "level") @RequestParam(defaultValue = "level") String sortBy,
+            @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
 
         Pageable pageable = PageableUtils.toPageable(page, size, sortBy, ascending);
         Page<Category> result = categoryUseCase.findCategoriesPaged(locale, status, active, name, level,
@@ -75,12 +75,12 @@ public class CategoryController {
     }
 
     @PostMapping("/search")
-    @Operation(summary = "Búsqueda paginada con filtros dinámicos", description = """
-            Listado paginado de categorías con filtros dinámicos vía reflexión.
-            Solo los campos no nulos del objeto `filters` se aplican como predicados de igualdad.
-            Soporta filtrado por locale (traducciones) + cualquier propiedad del DTO.
+    @Operation(summary = "Paginated search with dynamic filters", description = """
+            Paginated category listing with dynamic filters via reflection.
+            Only non-null fields from the `filters` object are applied as equality predicates.
+            Supports locale filtering (translations) + any DTO property.
 
-            Ejemplo de body:
+            Example body:
             ```json
             {
               "page": 0, "size": 20, "sortBy": "level", "ascending": true,
@@ -94,9 +94,9 @@ public class CategoryController {
 
         Pageable pageable = PageableUtils.toPageable(request);
 
-        // toFilterMap extrae via reflexión solo los campos no nulos del DTO de filtros
-        // El mapa resultante: { status → PUBLISHED, active → true, level → 1 }
-        // Se pasa al use case que lo convierte a Specification con
+        // toFilterMap extracts via reflection only non-null fields from the filter DTO
+        // Resulting map: { status → PUBLISHED, active → true, level → 1 }
+        // Passed to the use case which converts it to Specification with
         // FilterUtils.buildSpecification()
         Page<Category> result = categoryUseCase.findCategoriesPaged(
                 request.getLocale(),
@@ -113,23 +113,23 @@ public class CategoryController {
     // ── CRUD ─────────────────────────────────────────────────────────────────
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener categoría por ID")
+    @Operation(summary = "Get category by ID")
     public ResponseEntity<CategoryDtoOut> getById(
-            @Parameter(description = "ID de la categoría") @PathVariable String id,
-            @Parameter(description = "Código de idioma", example = "es") @RequestParam(defaultValue = "en") String locale) {
+            @Parameter(description = "Category ID") @PathVariable String id,
+            @Parameter(description = "Language code", example = "es") @RequestParam(defaultValue = "en") String locale) {
 
         return ResponseEntity.ok(categoryApiMapper.toDto(categoryUseCase.findById(id, locale)));
     }
 
     @PostMapping
-    @Operation(summary = "Crear categoría")
+    @Operation(summary = "Create category")
     public ResponseEntity<CategoryDtoOut> create(@Valid @RequestBody CategoryDtoIn dto) {
         Category created = categoryUseCase.create(categoryApiMapper.toDomain(dto));
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryApiMapper.toDto(created));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar categoría")
+    @Operation(summary = "Update category")
     public ResponseEntity<CategoryDtoOut> update(
             @PathVariable String id,
             @Valid @RequestBody CategoryDtoIn dto) {
@@ -139,14 +139,14 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar categoría")
+    @Operation(summary = "Delete category")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         categoryUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping
-    @Operation(summary = "Eliminar categorías masivo")
+    @Operation(summary = "Bulk delete categories")
     public ResponseEntity<Void> deleteAll(@RequestBody List<String> ids) {
         categoryUseCase.deleteAll(ids);
         return ResponseEntity.noContent().build();
@@ -155,28 +155,28 @@ public class CategoryController {
     // ── Estado / flags ───────────────────────────────────────────────────────
 
     @PatchMapping("/{id}/publish")
-    @Operation(summary = "Publicar / despublicar categoría")
+    @Operation(summary = "Publish / unpublish category")
     public ResponseEntity<Void> publish(@PathVariable String id) {
         categoryUseCase.publishCategory(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/bulk-status")
-    @Operation(summary = "Cambiar estado masivo de categorías")
+    @Operation(summary = "Bulk update category status")
     public ResponseEntity<Void> bulkUpdateStatus(@Valid @RequestBody BulkStatusUpdateDtoIn body) {
         categoryUseCase.bulkUpdateStatus(body.getIds(), body.getStatus());
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/publish-all-drafts")
-    @Operation(summary = "Publicar todas las categorías en borrador")
+    @Operation(summary = "Publish all draft categories")
     public ResponseEntity<java.util.Map<String, Integer>> publishAllDrafts() {
         int count = categoryUseCase.publishAllDrafts();
         return ResponseEntity.ok(java.util.Map.of("updated", count));
     }
 
     @PatchMapping("/{id}/active")
-    @Operation(summary = "Activar / desactivar categoría")
+    @Operation(summary = "Activate / deactivate category")
     public ResponseEntity<Void> toggleActive(
             @PathVariable String id,
             @RequestParam boolean active) {
@@ -185,7 +185,7 @@ public class CategoryController {
     }
 
     @PatchMapping("/{id}/featured")
-    @Operation(summary = "Marcar / desmarcar categoría como destacada")
+    @Operation(summary = "Mark / unmark category as featured")
     public ResponseEntity<Void> toggleFeatured(
             @PathVariable String id,
             @RequestParam boolean featured) {
@@ -194,7 +194,7 @@ public class CategoryController {
     }
 
     @GetMapping("/featured")
-    @Operation(summary = "Listar categorías destacadas")
+    @Operation(summary = "List featured categories")
     public ResponseEntity<List<CategoryDtoOut>> findFeatured(
             @RequestParam(defaultValue = "en") String locale) {
         return ResponseEntity.ok(categoryApiMapper.toDtoList(categoryUseCase.findFeatured(locale)));
@@ -203,7 +203,7 @@ public class CategoryController {
     // ── Bulk / Sync ──────────────────────────────────────────────────────────
 
     @PostMapping("/bulk")
-    @Operation(summary = "Carga masiva de categorías")
+    @Operation(summary = "Bulk category upload")
     public ResponseEntity<BulkCategoryResultDtoOut> bulkCreate(@Valid @RequestBody BulkCategoryDtoIn dto) {
 
         List<CategoryUseCase.BulkCategoryRow> rows = dto.getRows().stream()
@@ -223,7 +223,7 @@ public class CategoryController {
     }
 
     @PostMapping("/sync")
-    @Operation(summary = "Sincronizar categorías desde CJ Dropshipping")
+    @Operation(summary = "Sync categories from CJ Dropshipping")
     public ResponseEntity<CategorySyncResultDtoOut> syncFromCjDropshipping() {
         CategorySyncResult result = categorySyncUseCase.syncFromCjDropshipping();
         return ResponseEntity.ok(CategorySyncResultDtoOut.builder()

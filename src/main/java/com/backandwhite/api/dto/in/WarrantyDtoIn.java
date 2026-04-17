@@ -10,46 +10,46 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para crear o actualizar una garantía")
+@Schema(description = "DTO for creating or updating a warranty")
 public class WarrantyDtoIn {
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(max = 255, message = "El nombre no puede exceder 255 caracteres")
-    @Schema(description = "Nombre del plan de garantía", example = "Garantía Extendida Premium")
+    @NotBlank(message = "Name is required")
+    @Size(max = 255, message = "Name must not exceed 255 characters")
+    @Schema(description = "Warranty plan name", example = "Extended Premium Warranty")
     private String name;
 
-    @NotNull(message = "El tipo es obligatorio")
-    @Schema(description = "Tipo de garantía", example = "EXTENDED")
+    @NotNull(message = "Type is required")
+    @Schema(description = "Warranty type", example = "EXTENDED")
     private WarrantyType type;
 
-    @NotNull(message = "La duración en meses es obligatoria")
-    @Min(value = 1, message = "La duración mínima es 1 mes")
-    @Schema(description = "Duración en meses", example = "24")
+    @NotNull(message = "Duration in months is required")
+    @Min(value = 1, message = "Minimum duration is 1 month")
+    @Schema(description = "Duration in months", example = "24")
     private Integer durationMonths;
 
-    @Schema(description = "Cobertura del plan", example = "Cubre defectos de fabricación y fallos de hardware")
+    @Schema(description = "Plan coverage", example = "Covers manufacturing defects and hardware failures")
     private String coverage;
 
-    @Schema(description = "Condiciones del plan", example = "No cubre daños por agua o caídas")
+    @Schema(description = "Plan conditions", example = "Does not cover water or drop damage")
     private String conditions;
 
-    @Schema(description = "Incluye mano de obra", example = "true")
+    @Schema(description = "Includes labor", example = "true")
     private Boolean includesLabor;
 
-    @Schema(description = "Incluye piezas", example = "true")
+    @Schema(description = "Includes parts", example = "true")
     private Boolean includesParts;
 
-    @Schema(description = "Incluye recogida a domicilio", example = "false")
+    @Schema(description = "Includes home pickup", example = "false")
     private Boolean includesPickup;
 
-    @Schema(description = "Límite de reparaciones", example = "3")
+    @Schema(description = "Repair limit", example = "3")
     private Integer repairLimit;
 
-    @Size(max = 32, message = "El teléfono no puede exceder 32 caracteres")
-    @Schema(description = "Teléfono de contacto", example = "+34 900 123 456")
+    @Size(max = 32, message = "Phone must not exceed 32 characters")
+    @Schema(description = "Contact phone", example = "+34 900 123 456")
     private String contactPhone;
 
-    @Email(message = "Email no válido")
-    @Schema(description = "Email de contacto", example = "garantias@example.com")
+    @Email(message = "Invalid email")
+    @Schema(description = "Contact email", example = "warranties@example.com")
     private String contactEmail;
 }

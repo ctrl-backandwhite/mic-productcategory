@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/taxes")
-@Tag(name = "Country Taxes", description = "Gestión de impuestos (IVA/VAT) por país")
+@Tag(name = "Country Taxes", description = "Country tax (VAT) management")
 public class CountryTaxController {
 
     private final CountryTaxUseCase countryTaxUseCase;
@@ -29,21 +29,21 @@ public class CountryTaxController {
     private final CountryTaxApiMapper mapper;
 
     @GetMapping
-    @Operation(summary = "Listar todas las reglas fiscales")
+    @Operation(summary = "List all tax rules")
     public ResponseEntity<List<CountryTaxDtoOut>> findAll() {
         List<CountryTax> taxes = countryTaxUseCase.findAll();
         return ResponseEntity.ok(mapper.toDtoList(taxes));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener regla fiscal por ID")
+    @Operation(summary = "Get tax rule by ID")
     public ResponseEntity<CountryTaxDtoOut> findById(@PathVariable String id) {
         CountryTax tax = countryTaxUseCase.findById(id);
         return ResponseEntity.ok(mapper.toDto(tax));
     }
 
     @PostMapping
-    @Operation(summary = "Crear nueva regla fiscal")
+    @Operation(summary = "Create new tax rule")
     public ResponseEntity<CountryTaxDtoOut> create(@Valid @RequestBody CountryTaxDtoIn dto) {
         CountryTax domain = mapper.toDomain(dto);
         CountryTax created = countryTaxUseCase.create(domain);
@@ -51,7 +51,7 @@ public class CountryTaxController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar regla fiscal")
+    @Operation(summary = "Update tax rule")
     public ResponseEntity<CountryTaxDtoOut> update(@PathVariable String id,
             @Valid @RequestBody CountryTaxDtoIn dto) {
         CountryTax domain = mapper.toDomain(dto);
@@ -60,14 +60,14 @@ public class CountryTaxController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar regla fiscal")
+    @Operation(summary = "Delete tax rule")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         countryTaxUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/calculate")
-    @Operation(summary = "Calcular impuesto para un subtotal y país")
+    @Operation(summary = "Calculate tax for a subtotal and country")
     public ResponseEntity<TaxCalculationDtoOut> calculate(
             @RequestParam BigDecimal subtotal,
             @RequestParam String country,

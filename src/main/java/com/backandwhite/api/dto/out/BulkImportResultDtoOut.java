@@ -10,32 +10,32 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Resultado de la carga masiva")
+@Schema(description = "Bulk import result")
 public class BulkImportResultDtoOut {
 
-    @Schema(description = "Cantidad de registros creados exitosamente", example = "15")
+    @Schema(description = "Number of successfully created records", example = "15")
     private int created;
 
-    @Schema(description = "Cantidad de registros que fallaron", example = "2")
+    @Schema(description = "Number of failed records", example = "2")
     private int failed;
 
-    @Schema(description = "Total de filas procesadas", example = "17")
+    @Schema(description = "Total processed rows", example = "17")
     private int totalRows;
 
     @Builder.Default
-    @Schema(description = "Errores detallados por fila")
+    @Schema(description = "Detailed errors per row")
     private List<RowError> errors = new ArrayList<>();
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Error de una fila específica")
+    @Schema(description = "Error for a specific row")
     public static class RowError {
-        @Schema(description = "Índice de la fila (0-based)", example = "3")
+        @Schema(description = "Row index (0-based)", example = "3")
         private int row;
 
-        @Schema(description = "Mensaje de error", example = "El categoryId es obligatorio")
+        @Schema(description = "Error message", example = "categoryId is required")
         private String message;
     }
 }

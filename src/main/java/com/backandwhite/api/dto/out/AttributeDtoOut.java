@@ -12,30 +12,30 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Atributo con sus valores")
+@Schema(description = "Attribute with its values")
 public class AttributeDtoOut {
 
-    @Schema(description = "ID del atributo")
+    @Schema(description = "Attribute ID")
     private String id;
 
-    @Schema(description = "Nombre del atributo", example = "Color")
+    @Schema(description = "Attribute name", example = "Color")
     private String name;
 
-    @Schema(description = "Slug URL-friendly", example = "color")
+    @Schema(description = "URL-friendly slug", example = "color")
     private String slug;
 
-    @Schema(description = "Tipo de atributo (TEXT, COLOR, SIZE, SELECT)")
+    @Schema(description = "Attribute type (TEXT, COLOR, SIZE, SELECT)")
     private AttributeType type;
 
-    @Schema(description = "Cantidad de productos que usan este atributo")
+    @Schema(description = "Number of products using this attribute")
     private Long usedInProducts;
 
-    @Schema(description = "Fecha de creación")
+    @Schema(description = "Creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de última actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 
-    @Schema(description = "Valores del atributo")
+    @Schema(description = "Attribute values")
     private List<AttributeValueDtoOut> values;
 }

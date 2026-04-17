@@ -10,35 +10,35 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Resultado del cálculo de impuestos")
+@Schema(description = "Tax calculation result")
 public class TaxCalculationDtoOut {
 
-    @Schema(description = "Subtotal antes de impuestos")
+    @Schema(description = "Subtotal before taxes")
     private BigDecimal subtotal;
 
-    @Schema(description = "Monto total del impuesto")
+    @Schema(description = "Total tax amount")
     private BigDecimal taxAmount;
 
-    @Schema(description = "Total con impuesto incluido")
+    @Schema(description = "Total with tax included")
     private BigDecimal total;
 
-    @Schema(description = "Tasas aplicadas")
+    @Schema(description = "Applied rates")
     private List<AppliedRateDto> appliedRates;
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Detalle de tasa aplicada")
+    @Schema(description = "Applied rate detail")
     public static class AppliedRateDto {
 
-        @Schema(description = "Nombre de la tasa", example = "IVA General 21%")
+        @Schema(description = "Rate name", example = "General VAT 21%")
         private String name;
 
-        @Schema(description = "Tasa aplicada (decimal)", example = "0.21")
+        @Schema(description = "Applied rate (decimal)", example = "0.21")
         private double rate;
 
-        @Schema(description = "Monto calculado", example = "21.00")
+        @Schema(description = "Calculated amount", example = "21.00")
         private double amount;
     }
 }

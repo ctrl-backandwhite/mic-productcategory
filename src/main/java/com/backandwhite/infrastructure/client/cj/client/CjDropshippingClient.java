@@ -34,8 +34,8 @@ public class CjDropshippingClient implements DropshippingPort {
     private final CjTokenManager cjTokenManager;
 
     /**
-     * Obtiene las categorías de CJ.
-     * El token se resuelve automáticamente desde CjTokenManager.
+     * Fetches categories from CJ.
+     * The token is automatically resolved from CjTokenManager.
      */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
@@ -76,8 +76,8 @@ public class CjDropshippingClient implements DropshippingPort {
     }
 
     /**
-     * Obtiene el detalle de un producto por su pid.
-     * El token se resuelve automáticamente desde CjTokenManager.
+     * Fetches the detail of a product by its pid.
+     * The token is automatically resolved from CjTokenManager.
      */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
@@ -122,8 +122,8 @@ public class CjDropshippingClient implements DropshippingPort {
     }
 
     /**
-     * Obtiene una página de productos de CJ usando el endpoint listV2.
-     * El token se resuelve automáticamente desde CjTokenManager.
+     * Fetches a page of CJ products using the listV2 endpoint.
+     * The token is automatically resolved from CjTokenManager.
      */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)

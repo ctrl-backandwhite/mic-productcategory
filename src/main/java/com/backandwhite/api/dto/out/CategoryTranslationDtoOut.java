@@ -8,12 +8,12 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Traducción de una categoría")
+@Schema(description = "Category translation")
 public class CategoryTranslationDtoOut {
 
-    @Schema(description = "Código de idioma", example = "es")
+    @Schema(description = "Language code", example = "es")
     private String locale;
 
-    @Schema(description = "Nombre traducido", example = "Electrónica")
+    @Schema(description = "Translated name", example = "Electronics")
     private String name;
 }

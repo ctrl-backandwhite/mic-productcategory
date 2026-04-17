@@ -9,13 +9,13 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Traducción de variante")
+@Schema(description = "Variant translation")
 public class ProductDetailVariantTranslationDtoIn {
 
-    @NotBlank(message = "El locale es obligatorio")
-    @Schema(description = "Código de idioma", example = "en")
+    @NotBlank(message = "Locale is required")
+    @Schema(description = "Language code", example = "en")
     private String locale;
 
-    @Schema(description = "Nombre de la variante traducido")
+    @Schema(description = "Translated variant name")
     private String variantName;
 }

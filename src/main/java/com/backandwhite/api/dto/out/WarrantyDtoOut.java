@@ -11,54 +11,54 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Plan de garantía")
+@Schema(description = "Warranty plan")
 public class WarrantyDtoOut {
 
-    @Schema(description = "ID de la garantía")
+    @Schema(description = "Warranty ID")
     private String id;
 
-    @Schema(description = "Nombre del plan")
+    @Schema(description = "Plan name")
     private String name;
 
-    @Schema(description = "Tipo de garantía")
+    @Schema(description = "Warranty type")
     private WarrantyType type;
 
-    @Schema(description = "Duración en meses")
+    @Schema(description = "Duration in months")
     private Integer durationMonths;
 
-    @Schema(description = "Cobertura")
+    @Schema(description = "Coverage")
     private String coverage;
 
-    @Schema(description = "Condiciones")
+    @Schema(description = "Conditions")
     private String conditions;
 
-    @Schema(description = "Incluye mano de obra")
+    @Schema(description = "Includes labor")
     private Boolean includesLabor;
 
-    @Schema(description = "Incluye piezas")
+    @Schema(description = "Includes parts")
     private Boolean includesParts;
 
-    @Schema(description = "Incluye recogida a domicilio")
+    @Schema(description = "Includes home pickup")
     private Boolean includesPickup;
 
-    @Schema(description = "Límite de reparaciones")
+    @Schema(description = "Repair limit")
     private Integer repairLimit;
 
-    @Schema(description = "Teléfono de contacto")
+    @Schema(description = "Contact phone")
     private String contactPhone;
 
-    @Schema(description = "Email de contacto")
+    @Schema(description = "Contact email")
     private String contactEmail;
 
-    @Schema(description = "Estado activo/inactivo")
+    @Schema(description = "Active/inactive status")
     private Boolean active;
 
-    @Schema(description = "Cantidad de productos asociados")
+    @Schema(description = "Number of associated products")
     private Long productsCount;
 
-    @Schema(description = "Fecha de creación")
+    @Schema(description = "Creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de última actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 }

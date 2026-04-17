@@ -18,28 +18,28 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/price-rules")
-@Tag(name = "Price Rules", description = "Gestión de reglas de margen de ganancia")
+@Tag(name = "Price Rules", description = "Profit margin rules management")
 public class PriceRuleController {
 
     private final PriceRuleUseCase priceRuleUseCase;
     private final PriceRuleApiMapper mapper;
 
     @GetMapping
-    @Operation(summary = "Listar todas las reglas de margen")
+    @Operation(summary = "List all margin rules")
     public ResponseEntity<List<PriceRuleDtoOut>> findAll() {
         List<PriceRule> rules = priceRuleUseCase.findAll();
         return ResponseEntity.ok(mapper.toDtoList(rules));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener regla por ID")
+    @Operation(summary = "Get rule by ID")
     public ResponseEntity<PriceRuleDtoOut> findById(@PathVariable String id) {
         PriceRule rule = priceRuleUseCase.findById(id);
         return ResponseEntity.ok(mapper.toDto(rule));
     }
 
     @PostMapping
-    @Operation(summary = "Crear nueva regla de margen")
+    @Operation(summary = "Create new margin rule")
     public ResponseEntity<PriceRuleDtoOut> create(@Valid @RequestBody PriceRuleDtoIn dto) {
         PriceRule domain = mapper.toDomain(dto);
         PriceRule created = priceRuleUseCase.create(domain);
@@ -47,7 +47,7 @@ public class PriceRuleController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar regla de margen")
+    @Operation(summary = "Update margin rule")
     public ResponseEntity<PriceRuleDtoOut> update(@PathVariable String id,
             @Valid @RequestBody PriceRuleDtoIn dto) {
         PriceRule domain = mapper.toDomain(dto);
@@ -56,7 +56,7 @@ public class PriceRuleController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar regla de margen")
+    @Operation(summary = "Delete margin rule")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         priceRuleUseCase.delete(id);
         return ResponseEntity.noContent().build();

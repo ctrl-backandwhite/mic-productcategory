@@ -8,24 +8,24 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Inventario de variante por país")
+@Schema(description = "Variant inventory by country")
 public class ProductDetailVariantInventoryDtoOut {
 
-    @Schema(description = "ID del inventario")
+    @Schema(description = "Inventory ID")
     private Long id;
 
-    @Schema(description = "Código de país", example = "US")
+    @Schema(description = "Country code", example = "US")
     private String countryCode;
 
-    @Schema(description = "Inventario total")
+    @Schema(description = "Total inventory")
     private Integer totalInventory;
 
-    @Schema(description = "Inventario CJ")
+    @Schema(description = "CJ inventory")
     private Integer cjInventory;
 
-    @Schema(description = "Inventario de fábrica")
+    @Schema(description = "Factory inventory")
     private Integer factoryInventory;
 
-    @Schema(description = "Almacén verificado")
+    @Schema(description = "Verified warehouse")
     private Integer verifiedWarehouse;
 }

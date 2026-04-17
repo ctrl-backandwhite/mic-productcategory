@@ -11,27 +11,27 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para crear una reseña de producto")
+@Schema(description = "DTO for creating a product review")
 public class ReviewDtoIn {
 
-    @NotBlank(message = "El nombre del autor es obligatorio")
-    @Size(max = 255, message = "El nombre no puede exceder 255 caracteres")
-    @Schema(description = "Nombre del autor", example = "Juan García")
+    @NotBlank(message = "Author name is required")
+    @Size(max = 255, message = "Name must not exceed 255 characters")
+    @Schema(description = "Author name", example = "John Smith")
     private String authorName;
 
-    @NotNull(message = "La calificación es obligatoria")
-    @Min(value = 1, message = "La calificación mínima es 1")
-    @Max(value = 5, message = "La calificación máxima es 5")
-    @Schema(description = "Calificación de 1 a 5 estrellas", example = "4")
+    @NotNull(message = "Rating is required")
+    @Min(value = 1, message = "Minimum rating is 1")
+    @Max(value = 5, message = "Maximum rating is 5")
+    @Schema(description = "Rating from 1 to 5 stars", example = "4")
     private Integer rating;
 
-    @Size(max = 500, message = "El título no puede exceder 500 caracteres")
-    @Schema(description = "Título de la reseña", example = "Excelente producto")
+    @Size(max = 500, message = "Title must not exceed 500 characters")
+    @Schema(description = "Review title", example = "Excellent product")
     private String title;
 
-    @Schema(description = "Cuerpo de la reseña", example = "La calidad superó mis expectativas...")
+    @Schema(description = "Review body", example = "The quality exceeded my expectations...")
     private String body;
 
-    @Schema(description = "URLs de imágenes adjuntas")
+    @Schema(description = "Attached image URLs")
     private List<String> images;
 }

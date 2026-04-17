@@ -11,16 +11,16 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Resultado de facetas para filtrado de productos")
+@Schema(description = "Facet results for product filtering")
 public class ProductFacetsDtoOut {
 
-    @Schema(description = "Marcas disponibles con conteo de productos")
+    @Schema(description = "Available brands with product count")
     private List<FacetBrandDto> brands;
 
-    @Schema(description = "Precio mínimo encontrado")
+    @Schema(description = "Minimum price found")
     private BigDecimal priceMin;
 
-    @Schema(description = "Precio máximo encontrado")
+    @Schema(description = "Maximum price found")
     private BigDecimal priceMax;
 
     @Data
@@ -28,16 +28,16 @@ public class ProductFacetsDtoOut {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Marca con conteo de productos")
+    @Schema(description = "Brand with product count")
     public static class FacetBrandDto {
 
-        @Schema(description = "ID de la marca")
+        @Schema(description = "Brand ID")
         private String id;
 
-        @Schema(description = "Nombre de la marca")
+        @Schema(description = "Brand name")
         private String name;
 
-        @Schema(description = "Cantidad de productos")
+        @Schema(description = "Product count")
         private Long count;
     }
 }

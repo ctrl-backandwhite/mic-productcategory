@@ -37,6 +37,7 @@ public class PublicProductController {
 
         private final ProductUseCase productUseCase;
         private final ProductDetailUseCase productDetailUseCase;
+        private final ProductSearchUseCase productSearchUseCase;
         private final CategoryUseCase categoryUseCase;
         private final BrandUseCase brandUseCase;
         private final ReviewUseCase reviewUseCase;
@@ -103,6 +104,34 @@ public class PublicProductController {
                                 .available(available)
                                 .inStock(available > 0)
                                 .build());
+        }
+
+        // ── Search ───────────────────────────────────────────────────────────────
+
+        @Operation(summary = "Full-text product search powered by Elasticsearch (public)")
+        @GetMapping("/search")
+        public ResponseEntity<ProductSearchResponse> search(
+                        @RequestParam String q,
+                        @RequestParam(required = false) List<String> categoryId,
+                        @RequestParam(required = false) String brand,
+                        @RequestParam(required = false) Float minPrice,
+                        @RequestParam(required = false) Float maxPrice,
+                        @RequestParam(required = false) Boolean inStock,
+                        @RequestParam(defaultValue = "relevance") String sortBy,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "24") int size) {
+                ProductSearchResponse response = productSearchUseCase.search(
+                                q, categoryId, brand, minPrice, maxPrice, inStock, sortBy, page, size);
+                return ResponseEntity.ok(response);
+        }
+
+        @Operation(summary = "Autocomplete product suggestions (public)")
+        @GetMapping("/search/autocomplete")
+        public ResponseEntity<List<AutocompleteSuggestion>> autocomplete(
+                        @RequestParam String q,
+                        @RequestParam(defaultValue = "8") int limit) {
+                List<AutocompleteSuggestion> suggestions = productSearchUseCase.autocomplete(q, limit);
+                return ResponseEntity.ok(suggestions);
         }
 
         // ── Categories ───────────────────────────────────────────────────────────

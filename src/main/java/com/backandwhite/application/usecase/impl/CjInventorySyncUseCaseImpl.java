@@ -1,6 +1,7 @@
 package com.backandwhite.application.usecase.impl;
 
 import com.backandwhite.application.port.out.DropshippingPort;
+import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import com.backandwhite.application.usecase.CjInventorySyncUseCase;
 import com.backandwhite.domain.model.CjSyncResult;
 import com.backandwhite.domain.model.SyncFailure;
@@ -19,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Log4j2
@@ -34,6 +37,7 @@ public class CjInventorySyncUseCaseImpl implements CjInventorySyncUseCase {
     private final SyncLogRepository syncLogRepository;
     private final SyncFailureRepository syncFailureRepository;
     private final InventoryJpaRepository inventoryJpaRepository;
+    private final ProductSearchIndexPort productSearchIndexPort;
 
     @Override
     public CjSyncResult syncAll(boolean force) {
@@ -134,6 +138,7 @@ public class CjInventorySyncUseCaseImpl implements CjInventorySyncUseCase {
     @Transactional
     protected void syncInventoryForPid(String pid) {
         List<CjInventoryByPidItemDto> items = cjClient.getInventoryByPid(pid);
+        Map<String, Integer> variantStock = new HashMap<>();
 
         for (CjInventoryByPidItemDto item : items) {
             if (item.getVid() == null)
@@ -157,9 +162,14 @@ public class CjInventorySyncUseCaseImpl implements CjInventorySyncUseCase {
                         .factoryInventory(item.getFactoryInventory())
                         .build());
             }
+
+            variantStock.merge(item.getVid(),
+                    item.getTotalInventory() != null ? item.getTotalInventory() : 0,
+                    Integer::sum);
         }
 
         productDetailRepository.markInventorySynced(pid);
+        productSearchIndexPort.updateStock(pid, variantStock);
         log.debug("Inventory synced for pid={}, items={}", pid, items.size());
     }
 }

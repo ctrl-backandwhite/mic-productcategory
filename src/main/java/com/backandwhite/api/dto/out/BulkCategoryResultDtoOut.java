@@ -7,15 +7,15 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Resultado de la carga masiva de categorías")
+@Schema(description = "Bulk category upload result")
 public class BulkCategoryResultDtoOut {
 
-    @Schema(description = "Cantidad de categorías creadas", example = "15")
+    @Schema(description = "Number of categories created", example = "15")
     private int created;
 
-    @Schema(description = "Cantidad de categorías que ya existían (omitidas)", example = "3")
+    @Schema(description = "Number of categories that already existed (skipped)", example = "3")
     private int skipped;
 
-    @Schema(description = "Total de filas procesadas", example = "10")
+    @Schema(description = "Total rows processed", example = "10")
     private int totalRows;
 }

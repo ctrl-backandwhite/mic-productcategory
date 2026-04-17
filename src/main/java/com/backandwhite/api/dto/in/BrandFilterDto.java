@@ -9,12 +9,12 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Filtros dinámicos para búsqueda de marcas")
+@Schema(description = "Dynamic filters for brand search")
 public class BrandFilterDto {
 
-    @Schema(description = "Filtrar por estado (ACTIVE, INACTIVE)")
+    @Schema(description = "Filter by status (ACTIVE, INACTIVE)")
     private BrandStatus status;
 
-    @Schema(description = "Buscar por nombre (parcial, case-insensitive)")
+    @Schema(description = "Search by name (partial, case-insensitive)")
     private String name;
 }

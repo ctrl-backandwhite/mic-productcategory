@@ -31,7 +31,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/media")
-@Tag(name = "Media", description = "Endpoints para gestión de la biblioteca de medios")
+@Tag(name = "Media", description = "Endpoints for media library management")
 public class MediaController {
 
         private final MediaAssetUseCase mediaAssetUseCase;
@@ -40,13 +40,13 @@ public class MediaController {
         // ── Upload ───────────────────────────────────────────────────────────────
 
         @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-        @Operation(summary = "Subir archivo", description = "Sube un archivo multimedia (max 10MB). Genera thumbnail para imágenes")
+        @Operation(summary = "Upload file", description = "Uploads a multimedia file (max 10MB). Generates thumbnail for images")
         public ResponseEntity<MediaAssetDtoOut> upload(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "Archivo a subir") @RequestParam("file") MultipartFile file,
-                        @Parameter(description = "Categoría del asset") @RequestParam(required = false) MediaCategory category,
-                        @Parameter(description = "Texto alternativo") @RequestParam(required = false) String alt,
-                        @Parameter(description = "Etiquetas (comma-separated)") @RequestParam(required = false) List<String> tags) {
+                        @Parameter(description = "File to upload") @RequestParam("file") MultipartFile file,
+                        @Parameter(description = "Asset category") @RequestParam(required = false) MediaCategory category,
+                        @Parameter(description = "Alternative text") @RequestParam(required = false) String alt,
+                        @Parameter(description = "Tags (comma-separated)") @RequestParam(required = false) List<String> tags) {
                 MediaAsset saved = mediaAssetUseCase.upload(file, category, alt, tags);
                 return ResponseEntity.status(HttpStatus.CREATED).body(mediaAssetApiMapper.toDto(saved));
         }
@@ -54,16 +54,16 @@ public class MediaController {
         // ── Listado ──────────────────────────────────────────────────────────────
 
         @GetMapping
-        @Operation(summary = "Listar media assets", description = "Devuelve assets paginados con filtros opcionales")
+        @Operation(summary = "List media assets", description = "Returns paginated assets with optional filters")
         public ResponseEntity<PaginationDtoOut<MediaAssetDtoOut>> findAll(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "Filtrar por categoría") @RequestParam(required = false) MediaCategory category,
-                        @Parameter(description = "Filtrar por tipo MIME (parcial)") @RequestParam(required = false) String mimeType,
-                        @Parameter(description = "Filtrar por etiqueta") @RequestParam(required = false) String tag,
-                        @Parameter(description = "Número de página", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
-                        @Parameter(description = "Campo de ordenamiento", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
-                        @Parameter(description = "Orden ascendente", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
+                        @Parameter(description = "Filter by category") @RequestParam(required = false) MediaCategory category,
+                        @Parameter(description = "Filter by MIME type (partial)") @RequestParam(required = false) String mimeType,
+                        @Parameter(description = "Filter by tag") @RequestParam(required = false) String tag,
+                        @Parameter(description = "Page number", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
+                        @Parameter(description = "Sort field", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
+                        @Parameter(description = "Ascending order", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
                 Page<MediaAsset> result = mediaAssetUseCase.findAll(category, mimeType, tag, page, size, sortBy,
                                 ascending);
                 return ResponseEntity.ok(PageableUtils.toResponse(result.map(mediaAssetApiMapper::toDto)));
@@ -72,17 +72,17 @@ public class MediaController {
         // ── Detalle ──────────────────────────────────────────────────────────────
 
         @GetMapping("/{id}")
-        @Operation(summary = "Obtener media asset por ID")
+        @Operation(summary = "Get media asset by ID")
         public ResponseEntity<MediaAssetDtoOut> getById(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID del asset") @PathVariable String id) {
+                        @Parameter(description = "Asset ID") @PathVariable String id) {
                 return ResponseEntity.ok(mediaAssetApiMapper.toDto(mediaAssetUseCase.findById(id)));
         }
 
         // ── Actualizar metadata ──────────────────────────────────────────────────
 
         @PutMapping("/{id}")
-        @Operation(summary = "Actualizar metadatos", description = "Actualiza categoría, alt text y tags de un asset")
+        @Operation(summary = "Update metadata", description = "Updates category, alt text and tags of an asset")
         public ResponseEntity<MediaAssetDtoOut> updateMetadata(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id,
@@ -92,13 +92,13 @@ public class MediaController {
                 return ResponseEntity.ok(mediaAssetApiMapper.toDto(updated));
         }
 
-        // ── Eliminar ─────────────────────────────────────────────────────────────
+        // ── Delete ─────────────────────────────────────────────────────────────
 
         @DeleteMapping("/{id}")
-        @Operation(summary = "Eliminar media asset", description = "Elimina el archivo, thumbnail y registro de la BD")
+        @Operation(summary = "Delete media asset", description = "Deletes the file, thumbnail and DB record")
         public ResponseEntity<Void> delete(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID del asset") @PathVariable String id) {
+                        @Parameter(description = "Asset ID") @PathVariable String id) {
                 mediaAssetUseCase.delete(id);
                 return ResponseEntity.noContent().build();
         }
@@ -106,10 +106,10 @@ public class MediaController {
         // ── Servir imagen ────────────────────────────────────────────────────────
 
         @GetMapping("/images/{filename}")
-        @Operation(summary = "Servir imagen", description = "Sirve la imagen por filename (público, cacheable)")
+        @Operation(summary = "Serve image", description = "Serves the image by filename (public, cacheable)")
         public ResponseEntity<InputStreamResource> serveImage(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "Nombre del archivo") @PathVariable String filename) {
+                        @Parameter(description = "File name") @PathVariable String filename) {
                 MediaAsset asset = mediaAssetUseCase.findByFilename(filename);
                 InputStream inputStream = mediaAssetUseCase.loadFile(asset.getFilename());
                 return ResponseEntity.ok()

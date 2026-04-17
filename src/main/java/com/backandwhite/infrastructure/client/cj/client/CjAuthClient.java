@@ -18,9 +18,9 @@ import java.time.Duration;
 import static com.backandwhite.domain.exception.Message.EXTERNAL_SERVICE_TOKEN_ERROR;
 
 /**
- * Cliente exclusivo para los endpoints de autenticación de CJ Dropshipping.
- * Separado de CjDropshippingClient para romper la dependencia circular
- * con CjTokenManager.
+ * Dedicated client for CJ Dropshipping authentication endpoints.
+ * Separated from CjDropshippingClient to break the circular dependency
+ * with CjTokenManager.
  */
 @Log4j2
 @Component
@@ -33,7 +33,7 @@ public class CjAuthClient {
     private final CjDropshippingProperties properties;
 
     /**
-     * Solicita un token nuevo usando la apiKey.
+     * Requests a new token using the apiKey.
      */
     public CjAccessTokenDataDto requestNewToken() {
         log.info("Requesting CJ Dropshipping access token...");
@@ -66,7 +66,7 @@ public class CjAuthClient {
     }
 
     /**
-     * Refresca el access token usando el refreshToken.
+     * Refreshes the access token using the refreshToken.
      */
     public CjAccessTokenDataDto refreshAccessToken(String refreshToken) {
         log.info("Refreshing CJ Dropshipping access token...");

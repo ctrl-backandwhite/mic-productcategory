@@ -56,15 +56,14 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
             throw Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetail", pid);
         }
 
-        // 3. Mapear CJ response -> domain model (MapStruct)
+        // 3. Map CJ response -> domain model (MapStruct)
         ProductDetail detail = cjProductDetailMapper.toDomain(cjProduct);
 
-        // 4. Persistir en la BD
+        // 4. Persist in the DB
         log.info("Persisting CJ product detail pid={} (name={}) to local DB...", pid, cjProduct.getProductNameEn());
         productDetailRepository.save(detail);
 
-        // 5. Devolver desde la BD (para asegurar que se devuelve con los datos
-        // persistidos)
+        // 5. Return from the DB (to ensure the persisted data is returned)
         return productDetailRepository.findByPid(pid)
                 .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetail", pid));
     }
@@ -184,7 +183,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
 
                 if (!productDetailRepository.existsByPid(v.getPid())) {
                     throw new IllegalArgumentException(
-                            "ProductDetail pid=" + v.getPid() + " no existe");
+                            "ProductDetail pid=" + v.getPid() + " does not exist");
                 }
 
                 String vid = UUID.randomUUID().toString().toUpperCase();

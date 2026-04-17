@@ -14,6 +14,7 @@ import com.backandwhite.api.mapper.ProductApiMapper;
 import com.backandwhite.application.usecase.CategorySyncUseCase;
 import com.backandwhite.application.usecase.CategoryUseCase;
 import com.backandwhite.application.usecase.ProductUseCase;
+import com.backandwhite.application.service.PricingService;
 import com.backandwhite.config.TestContainersConfiguration;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.Product;
@@ -64,6 +65,9 @@ class CatalogProviderPactTest {
 
     @MockitoBean
     ProductApiMapper productApiMapper;
+
+    @MockitoBean
+    PricingService pricingService;
 
     @BeforeEach
     void setUp(PactVerificationContext context) {

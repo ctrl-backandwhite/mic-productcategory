@@ -15,45 +15,45 @@ import java.util.List;
 @Schema(description = "Media asset")
 public class MediaAssetDtoOut {
 
-    @Schema(description = "ID del asset")
+    @Schema(description = "Asset ID")
     private String id;
 
-    @Schema(description = "Nombre de archivo generado")
+    @Schema(description = "Generated filename")
     private String filename;
 
-    @Schema(description = "Nombre de archivo original")
+    @Schema(description = "Original filename")
     private String originalName;
 
-    @Schema(description = "Tipo MIME", example = "image/jpeg")
+    @Schema(description = "MIME type", example = "image/jpeg")
     private String mimeType;
 
-    @Schema(description = "Tamaño en bytes")
+    @Schema(description = "Size in bytes")
     private Long sizeBytes;
 
-    @Schema(description = "URL del archivo")
+    @Schema(description = "File URL")
     private String url;
 
-    @Schema(description = "URL del thumbnail")
+    @Schema(description = "Thumbnail URL")
     private String thumbnailUrl;
 
-    @Schema(description = "Categoría")
+    @Schema(description = "Category")
     private MediaCategory category;
 
-    @Schema(description = "Etiquetas")
+    @Schema(description = "Tags")
     private List<String> tags;
 
-    @Schema(description = "Texto alternativo")
+    @Schema(description = "Alternative text")
     private String alt;
 
-    @Schema(description = "Ancho en píxeles")
+    @Schema(description = "Width in pixels")
     private Integer width;
 
-    @Schema(description = "Alto en píxeles")
+    @Schema(description = "Height in pixels")
     private Integer height;
 
-    @Schema(description = "Fecha de creación")
+    @Schema(description = "Creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de última actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 }

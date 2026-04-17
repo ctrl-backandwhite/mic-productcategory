@@ -4,9 +4,9 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 /**
- * Mensajes específicos del dominio de integración con CJ Dropshipping.
- * Para mensajes genéricos (ENTITY_NOT_FOUND, VALIDATION_ERROR, etc.)
- * usa {@link com.backandwhite.common.exception.Message} del core.
+ * Domain-specific messages for CJ Dropshipping integration.
+ * For generic messages (ENTITY_NOT_FOUND, VALIDATION_ERROR, etc.)
+ * use {@link com.backandwhite.common.exception.Message} from core.
  */
 @Log4j2
 @Getter

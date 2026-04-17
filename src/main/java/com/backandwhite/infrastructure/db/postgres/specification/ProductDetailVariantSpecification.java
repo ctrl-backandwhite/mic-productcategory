@@ -13,7 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 public final class ProductDetailVariantSpecification {
 
     /**
-     * Filtra variantes por estado (DRAFT / PUBLISHED).
+     * Filters variants by status (DRAFT / PUBLISHED).
      */
     public static Specification<ProductDetailVariantEntity> hasStatus(
             com.backandwhite.domain.valueobject.ProductStatus status) {
@@ -25,7 +25,7 @@ public final class ProductDetailVariantSpecification {
     }
 
     /**
-     * Filtra variantes que pertenezcan exactamente al PID indicado.
+     * Filters variants that belong exactly to the given PID.
      */
     public static Specification<ProductDetailVariantEntity> hasPid(String pid) {
         return (root, query, cb) -> {
@@ -35,8 +35,8 @@ public final class ProductDetailVariantSpecification {
     }
 
     /**
-     * Busca variantes cuyo VID, PID, nombre de variante, SKU, key o nombre
-     * del producto padre contengan el término (case-insensitive).
+     * Searches variants whose VID, PID, variant name, SKU, key or parent
+     * product name contain the term (case-insensitive).
      */
     public static Specification<ProductDetailVariantEntity> searchByTerm(String term) {
         return (root, query, cb) -> {

@@ -19,7 +19,7 @@ public class RestClientConfig {
 
     @Bean
     public WebClient cjWebClient(CjDropshippingProperties properties) {
-        // Pool de conexiones: máximo 50 conexiones, idle 20s, vida máx 5min
+        // Connection pool: max 50 connections, idle 20s, max life 5min
         ConnectionProvider connectionProvider = ConnectionProvider.builder("cj-pool")
                 .maxConnections(50)
                 .maxIdleTime(Duration.ofSeconds(20))
@@ -28,9 +28,9 @@ public class RestClientConfig {
                 .build();
 
         HttpClient httpClient = HttpClient.create(connectionProvider)
-                // Timeout de conexión TCP: 10 segundos
+                // TCP connection timeout: 10 seconds
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
-                // Timeout de respuesta: 30 segundos
+                // Response timeout: 30 seconds
                 .responseTimeout(Duration.ofSeconds(30))
                 .doOnConnected(conn -> conn
                         .addHandlerLast(new ReadTimeoutHandler(30, TimeUnit.SECONDS))

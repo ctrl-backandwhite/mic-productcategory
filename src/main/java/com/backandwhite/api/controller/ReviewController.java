@@ -28,40 +28,40 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/reviews")
-@Tag(name = "Reviews", description = "Endpoints para gestión de reseñas de productos")
+@Tag(name = "Reviews", description = "Endpoints for product review management")
 public class ReviewController {
 
         private final ReviewUseCase reviewUseCase;
         private final ReviewApiMapper reviewApiMapper;
 
-        // ── Público ──────────────────────────────────────────────────────────────
+        // ── Public ──────────────────────────────────────────────────────────────
 
         @GetMapping("/product/{productId}")
-        @Operation(summary = "Listar reseñas aprobadas de un producto", description = "Devuelve las reseñas aprobadas paginadas para un producto dado")
+        @Operation(summary = "List approved reviews for a product", description = "Returns paginated approved reviews for a given product")
         public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> findByProductId(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID del producto") @PathVariable String productId,
-                        @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Tamaño de página", example = "10") @RequestParam(defaultValue = "10") int size,
-                        @Parameter(description = "Campo de ordenamiento", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
-                        @Parameter(description = "Orden ascendente", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
+                        @Parameter(description = "Product ID") @PathVariable String productId,
+                        @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Page size", example = "10") @RequestParam(defaultValue = "10") int size,
+                        @Parameter(description = "Sort field", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
+                        @Parameter(description = "Ascending order", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
                 Page<Review> result = reviewUseCase.findByProductId(productId, page, size, sortBy, ascending);
                 return ResponseEntity.ok(PageableUtils.toResponse(result.map(reviewApiMapper::toDto)));
         }
 
         @GetMapping("/product/{productId}/stats")
-        @Operation(summary = "Obtener estadísticas de reseñas", description = "Devuelve promedio de calificación y distribución por estrellas")
+        @Operation(summary = "Get review statistics", description = "Returns average rating and star distribution")
         public ResponseEntity<ReviewStatsDtoOut> getStatsByProductId(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID del producto") @PathVariable String productId) {
+                        @Parameter(description = "Product ID") @PathVariable String productId) {
                 return ResponseEntity.ok(reviewApiMapper.toStatsDto(reviewUseCase.getStatsByProductId(productId)));
         }
 
         @PostMapping("/product/{productId}")
-        @Operation(summary = "Crear reseña", description = "Crea una nueva reseña para un producto. Queda en estado PENDING hasta ser moderada")
+        @Operation(summary = "Create review", description = "Creates a new review for a product. Stays in PENDING status until moderated")
         public ResponseEntity<ReviewDtoOut> create(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID del producto") @PathVariable String productId,
+                        @Parameter(description = "Product ID") @PathVariable String productId,
                         @Valid @RequestBody ReviewDtoIn dto) {
                 Review review = reviewApiMapper.toDomain(dto);
                 review.setProductId(productId);
@@ -70,10 +70,10 @@ public class ReviewController {
         }
 
         @PostMapping("/{id}/helpful")
-        @Operation(summary = "Votar reseña como útil", description = "Registra un voto de utilidad (idempotente por sessionId)")
+        @Operation(summary = "Vote review as helpful", description = "Registers a helpfulness vote (idempotent by sessionId)")
         public ResponseEntity<Void> voteHelpful(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID de la reseña") @PathVariable String id,
+                        @Parameter(description = "Review ID") @PathVariable String id,
                         @Valid @RequestBody ReviewHelpfulDtoIn dto) {
                 reviewUseCase.voteHelpful(id, dto.getSessionId());
                 return ResponseEntity.noContent().build();
@@ -82,34 +82,34 @@ public class ReviewController {
         // ── Admin ────────────────────────────────────────────────────────────────
 
         @GetMapping("/admin")
-        @Operation(summary = "Listar todas las reseñas (admin)", description = "Listado paginado con filtros por estado y calificación")
+        @Operation(summary = "List all reviews (admin)", description = "Paginated listing with status and rating filters")
         public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> findAll(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "Filtrar por estado (PENDING, APPROVED, REJECTED)") @RequestParam(required = false) ReviewStatus status,
-                        @Parameter(description = "Filtrar por calificación (1-5)") @RequestParam(required = false) Integer rating,
-                        @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
-                        @Parameter(description = "Campo de ordenamiento", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
-                        @Parameter(description = "Orden ascendente", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
+                        @Parameter(description = "Filter by status (PENDING, APPROVED, REJECTED)") @RequestParam(required = false) ReviewStatus status,
+                        @Parameter(description = "Filter by rating (1-5)") @RequestParam(required = false) Integer rating,
+                        @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
+                        @Parameter(description = "Sort field", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
+                        @Parameter(description = "Ascending order", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
                 Page<Review> result = reviewUseCase.findAll(status, rating, page, size, sortBy, ascending);
                 return ResponseEntity.ok(PageableUtils.toResponse(result.map(reviewApiMapper::toDto)));
         }
 
         @PatchMapping("/{id}/moderate")
-        @Operation(summary = "Moderar reseña", description = "Cambia el estado de la reseña a APPROVED o REJECTED")
+        @Operation(summary = "Moderate review", description = "Changes the review status to APPROVED or REJECTED")
         public ResponseEntity<Void> moderate(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID de la reseña") @PathVariable String id,
+                        @Parameter(description = "Review ID") @PathVariable String id,
                         @Valid @RequestBody ReviewModerateDtoIn dto) {
                 reviewUseCase.moderate(id, dto.getStatus());
                 return ResponseEntity.noContent().build();
         }
 
         @DeleteMapping("/{id}")
-        @Operation(summary = "Eliminar reseña")
+        @Operation(summary = "Delete review")
         public ResponseEntity<Void> delete(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID de la reseña") @PathVariable String id) {
+                        @Parameter(description = "Review ID") @PathVariable String id) {
                 reviewUseCase.delete(id);
                 return ResponseEntity.noContent().build();
         }

@@ -9,14 +9,14 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Traducción del nombre de un producto")
+@Schema(description = "Product name translation")
 public class ProductTranslationDtoIn {
 
-    @NotBlank(message = "El locale es obligatorio")
-    @Schema(description = "Código de idioma (ej: es, en, pt-BR)", example = "es")
+    @NotBlank(message = "Locale is required")
+    @Schema(description = "Language code (e.g.: es, en, pt-BR)", example = "es")
     private String locale;
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Schema(description = "Nombre del producto en el idioma indicado", example = "Camiseta de algodón")
+    @NotBlank(message = "Name is required")
+    @Schema(description = "Product name in the specified language", example = "Cotton T-shirt")
     private String name;
 }

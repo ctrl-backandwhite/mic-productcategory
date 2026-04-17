@@ -13,12 +13,12 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para carga masiva de categorías con hasta 3 niveles de jerarquía")
+@Schema(description = "DTO for bulk category upload with up to 3 hierarchy levels")
 public class BulkCategoryDtoIn {
 
-    @NotNull(message = "Las filas son obligatorias")
-    @Size(min = 1, message = "Se requiere al menos una fila")
+    @NotNull(message = "Rows are required")
+    @Size(min = 1, message = "At least one row is required")
     @Valid
-    @Schema(description = "Lista de filas, cada una representa una ruta de categorías nivel 1 → 2 → 3")
+    @Schema(description = "List of rows, each representing a category path level 1 → 2 → 3")
     private List<BulkCategoryRowDtoIn> rows;
 }

@@ -9,14 +9,14 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Traducción del nombre de la categoría")
+@Schema(description = "Category name translation")
 public class CategoryTranslationDtoIn {
 
-    @NotBlank(message = "El locale es obligatorio")
-    @Schema(description = "Código de idioma (ej: es, en, pt-BR)", example = "es")
+    @NotBlank(message = "Locale is required")
+    @Schema(description = "Language code (e.g.: es, en, pt-BR)", example = "es")
     private String locale;
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Schema(description = "Nombre de la categoría en el idioma indicado", example = "Electrónica")
+    @NotBlank(message = "Name is required")
+    @Schema(description = "Category name in the specified language", example = "Electronics")
     private String name;
 }

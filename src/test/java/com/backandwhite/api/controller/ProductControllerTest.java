@@ -7,6 +7,7 @@ import com.backandwhite.api.mapper.ProductDetailApiMapper;
 import com.backandwhite.application.usecase.ProductDetailUseCase;
 import com.backandwhite.application.usecase.ProductSyncUseCase;
 import com.backandwhite.application.usecase.ProductUseCase;
+import com.backandwhite.application.service.PricingService;
 import com.backandwhite.domain.model.Product;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,9 @@ class ProductControllerTest {
 
     @Mock
     private ProductDetailApiMapper productDetailApiMapper;
+
+    @Mock
+    private PricingService pricingService;
 
     @InjectMocks
     private ProductController controller;

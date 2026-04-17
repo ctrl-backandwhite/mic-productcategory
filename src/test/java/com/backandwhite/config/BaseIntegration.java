@@ -15,10 +15,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 @Log4j2
 @Testcontainers
 @ActiveProfiles("test")
@@ -28,8 +24,28 @@ import java.util.regex.Pattern;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class BaseIntegration {
 
-    private static final Pattern VALID_TABLE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
-    private static final Set<String> EXCLUDED_TABLE_PREFIXES = Set.of("hibernate_", "flyway_", "liquibase_");
+    /**
+     * PL/pgSQL block that truncates every public table except infrastructure ones
+     * (Hibernate, Flyway, Liquibase). All dynamic SQL stays inside PL/pgSQL using
+     * {@code quote_ident()}, so Java never builds a dynamic query string.
+     */
+    private static final String TRUNCATE_ALL_SQL = """
+            DO $$
+            DECLARE
+                _tables text;
+            BEGIN
+                SELECT string_agg(quote_ident(tablename), ', ')
+                  INTO _tables
+                  FROM pg_tables
+                 WHERE schemaname = 'public'
+                   AND tablename NOT LIKE 'hibernate\\_%'
+                   AND tablename NOT LIKE 'flyway\\_%'
+                   AND tablename NOT LIKE 'liquibase\\_%';
+                IF _tables IS NOT NULL THEN
+                    EXECUTE 'TRUNCATE TABLE ' || _tables || ' RESTART IDENTITY CASCADE';
+                END IF;
+            END $$;
+            """;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -51,39 +67,13 @@ public abstract class BaseIntegration {
                     .baseUrl("http://localhost:" + port)
                     .build();
         }
-        log.debug("Iniciando limpieza de todas las tablas...");
+        log.debug("Starting cleanup of all tables...");
 
-        List<String> tableNames;
         try {
-            tableNames = jdbcTemplate.queryForList(
-                    "SELECT tablename FROM pg_tables WHERE schemaname = 'public'", String.class);
+            jdbcTemplate.execute(TRUNCATE_ALL_SQL);
         } catch (Exception e) {
-            log.error("Error al obtener nombres de tablas: {}", e.getMessage());
-            throw new IllegalStateException("No se pudieron obtener los nombres de las tablas.", e);
+            log.error("Error truncating tables: {}", e.getMessage());
         }
-
-        List<String> tablesToTruncate = tableNames.stream()
-                .filter(t -> EXCLUDED_TABLE_PREFIXES.stream().noneMatch(t::startsWith))
-                .filter(t -> {
-                    if (!VALID_TABLE_NAME_PATTERN.matcher(t).matches()) {
-                        log.warn("Nombre de tabla inválido ignorado: '{}'", t);
-                        return false;
-                    }
-                    return true;
-                })
-                .toList();
-
-        if (tablesToTruncate.isEmpty()) {
-            return;
-        }
-
-        for (String tableName : tablesToTruncate) {
-            try {
-                jdbcTemplate.execute("TRUNCATE TABLE " + tableName + " RESTART IDENTITY CASCADE");
-            } catch (Exception e) {
-                log.error("Error al truncar la tabla '{}': {}", tableName, e.getMessage());
-            }
-        }
-        log.debug("Limpieza de tablas finalizada.");
+        log.debug("Table cleanup completed.");
     }
 }

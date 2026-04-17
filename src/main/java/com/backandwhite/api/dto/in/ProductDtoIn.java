@@ -13,43 +13,43 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para crear o actualizar un producto")
+@Schema(description = "DTO for creating or updating a product")
 public class ProductDtoIn {
 
-    @Schema(description = "SKU del producto", example = "SKU-001")
+    @Schema(description = "Product SKU", example = "SKU-001")
     private String sku;
 
-    @NotNull(message = "El categoryId es obligatorio")
-    @Schema(description = "ID de la categoría a la que pertenece", example = "cat-001")
+    @NotNull(message = "categoryId is required")
+    @Schema(description = "Category ID the product belongs to", example = "cat-001")
     private String categoryId;
 
-    @Schema(description = "URL de la imagen principal")
+    @Schema(description = "Main image URL")
     private String bigImage;
 
-    @Schema(description = "Precio de venta", example = "19.99")
+    @Schema(description = "Sell price", example = "19.99")
     private String sellPrice;
 
-    @Schema(description = "Tipo de producto (ej: NORMAL)", example = "NORMAL")
+    @Schema(description = "Product type (e.g. NORMAL)", example = "NORMAL")
     private String productType;
 
-    @Schema(description = "Cantidad listada", example = "100")
+    @Schema(description = "Listed quantity", example = "100")
     private Integer listedNum;
 
-    @Schema(description = "Inventario en almacén", example = "500")
+    @Schema(description = "Warehouse inventory", example = "500")
     private Integer warehouseInventoryNum;
 
-    @Schema(description = "Descripción del producto")
+    @Schema(description = "Product description")
     private String description;
 
-    @Schema(description = "URLs de imágenes del producto (separadas por coma)")
+    @Schema(description = "Product image URLs (comma-separated)")
     private String productImageSet;
 
-    @Schema(description = "Tiene video", example = "false")
+    @Schema(description = "Has video", example = "false")
     private Boolean isVideo;
 
-    @NotNull(message = "Las traducciones son obligatorias")
-    @Size(min = 1, message = "Se requiere al menos una traducción")
+    @NotNull(message = "Translations are required")
+    @Size(min = 1, message = "At least one translation is required")
     @Valid
-    @Schema(description = "Traducciones del producto")
+    @Schema(description = "Product translations")
     private List<ProductTranslationDtoIn> translations;
 }

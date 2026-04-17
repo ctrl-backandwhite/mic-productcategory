@@ -10,17 +10,17 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para crear o actualizar un valor de atributo")
+@Schema(description = "DTO for creating or updating an attribute value")
 public class AttributeValueDtoIn {
 
-    @Schema(description = "ID del valor (null para nuevos, presente para actualización)")
+    @Schema(description = "Value ID (null for new, present for update)")
     private String id;
 
-    @Size(max = 255, message = "El valor no puede exceder 255 caracteres")
-    @Schema(description = "Valor del atributo", example = "Rojo")
+    @Size(max = 255, message = "Value must not exceed 255 characters")
+    @Schema(description = "Attribute value", example = "Red")
     private String value;
 
-    @Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "El color HEX debe tener formato #RRGGBB")
-    @Schema(description = "Color HEX (solo para atributos tipo COLOR)", example = "#FF0000")
+    @Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "HEX color must follow #RRGGBB format")
+    @Schema(description = "HEX color (only for COLOR type attributes)", example = "#FF0000")
     private String colorHex;
 }

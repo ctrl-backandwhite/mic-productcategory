@@ -16,25 +16,25 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para crear o actualizar un atributo")
+@Schema(description = "DTO for creating or updating an attribute")
 public class AttributeDtoIn {
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(max = 255, message = "El nombre no puede exceder 255 caracteres")
-    @Schema(description = "Nombre del atributo", example = "Color")
+    @NotBlank(message = "Name is required")
+    @Size(max = 255, message = "Name must not exceed 255 characters")
+    @Schema(description = "Attribute name", example = "Color")
     private String name;
 
-    @NotBlank(message = "El slug es obligatorio")
-    @Size(max = 255, message = "El slug no puede exceder 255 caracteres")
-    @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$", message = "El slug debe ser alfanumérico en minúsculas separado por guiones")
-    @Schema(description = "Slug URL-friendly del atributo", example = "color")
+    @NotBlank(message = "Slug is required")
+    @Size(max = 255, message = "Slug must not exceed 255 characters")
+    @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$", message = "Slug must be lowercase alphanumeric separated by hyphens")
+    @Schema(description = "URL-friendly attribute slug", example = "color")
     private String slug;
 
-    @NotNull(message = "El tipo es obligatorio")
-    @Schema(description = "Tipo de atributo (TEXT, COLOR, SIZE, SELECT)", example = "COLOR")
+    @NotNull(message = "Type is required")
+    @Schema(description = "Attribute type (TEXT, COLOR, SIZE, SELECT)", example = "COLOR")
     private AttributeType type;
 
     @Valid
-    @Schema(description = "Valores del atributo")
+    @Schema(description = "Attribute values")
     private List<AttributeValueDtoIn> values;
 }

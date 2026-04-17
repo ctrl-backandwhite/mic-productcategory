@@ -12,117 +12,117 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Detalle completo de producto (CJ)")
+@Schema(description = "Full product detail (CJ)")
 public class ProductDetailDtoOut {
 
     @Schema(description = "CJ Product ID", example = "pid-001")
     private String pid;
 
-    @Schema(description = "Nombre en inglés del producto")
+    @Schema(description = "Product name in English")
     private String productNameEn;
 
-    @Schema(description = "SKU del producto")
+    @Schema(description = "Product SKU")
     private String productSku;
 
-    @Schema(description = "URL de la imagen principal")
+    @Schema(description = "Main image URL")
     private String bigImage;
 
-    @Schema(description = "URL de imagen del producto")
+    @Schema(description = "Product image URL")
     private String productImage;
 
-    @Schema(description = "Conjunto de URLs de imágenes (separadas por coma)")
+    @Schema(description = "Image URL set (comma-separated)")
     private String productImageSet;
 
-    @Schema(description = "Peso del producto")
+    @Schema(description = "Product weight")
     private String productWeight;
 
-    @Schema(description = "Unidad del producto")
+    @Schema(description = "Product unit")
     private String productUnit;
 
-    @Schema(description = "Tipo de producto")
+    @Schema(description = "Product type")
     private String productType;
 
-    @Schema(description = "ID de la categoría")
+    @Schema(description = "Category ID")
     private String categoryId;
 
-    @Schema(description = "Nombre de la categoría")
+    @Schema(description = "Category name")
     private String categoryName;
 
-    @Schema(description = "Código de entrada")
+    @Schema(description = "Entry code")
     private String entryCode;
 
-    @Schema(description = "Nombre de entrada (EN)")
+    @Schema(description = "Entry name (EN)")
     private String entryNameEn;
 
-    @Schema(description = "Nombre del material (EN)")
+    @Schema(description = "Material name (EN)")
     private String materialNameEn;
 
-    @Schema(description = "Clave del material")
+    @Schema(description = "Material key")
     private String materialKey;
 
-    @Schema(description = "Peso del empaque")
+    @Schema(description = "Packing weight")
     private String packingWeight;
 
-    @Schema(description = "Nombre del empaque (EN)")
+    @Schema(description = "Packing name (EN)")
     private String packingNameEn;
 
-    @Schema(description = "Clave del empaque")
+    @Schema(description = "Packing key")
     private String packingKey;
 
-    @Schema(description = "Clave del producto (EN)")
+    @Schema(description = "Product key (EN)")
     private String productKeyEn;
 
-    @Schema(description = "Propiedades del producto (EN)")
+    @Schema(description = "Product properties (EN)")
     private String productProEn;
 
-    @Schema(description = "Precio de venta", example = "19.99")
+    @Schema(description = "Sell price", example = "19.99")
     private String sellPrice;
 
-    @Schema(description = "Descripción HTML del producto")
+    @Schema(description = "Product HTML description")
     private String description;
 
-    @Schema(description = "Precio sugerido de venta")
+    @Schema(description = "Suggested sell price")
     private String suggestSellPrice;
 
-    @Schema(description = "Cantidad listada")
+    @Schema(description = "Listed quantity")
     private Integer listedNum;
 
-    @Schema(description = "Estado del producto")
+    @Schema(description = "Product status")
     private String status;
 
-    @Schema(description = "Nombre del proveedor")
+    @Schema(description = "Supplier name")
     private String supplierName;
 
-    @Schema(description = "ID del proveedor")
+    @Schema(description = "Supplier ID")
     private String supplierId;
 
-    @Schema(description = "Fecha de creación en CJ")
+    @Schema(description = "CJ creation date")
     private Instant createrTime;
 
-    @Schema(description = "Fecha de creación local")
+    @Schema(description = "Local creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de última actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 
-    @Schema(description = "Código de moneda (ISO 4217)", example = "USD")
+    @Schema(description = "Currency code (ISO 4217)", example = "USD")
     private String currencyCode;
 
-    @Schema(description = "Símbolo de la moneda", example = "$")
+    @Schema(description = "Currency symbol", example = "$")
     private String currencySymbol;
 
-    @Schema(description = "Precio de venta numérico (convertido a la moneda del usuario)")
+    @Schema(description = "Numeric sell price (converted to user currency)")
     private BigDecimal sellPriceRaw;
 
-    @Schema(description = "Precio de costo numérico (convertido a la moneda del usuario)")
+    @Schema(description = "Numeric cost price (converted to user currency)")
     private BigDecimal costPriceRaw;
 
-    @Schema(description = "Precio de costo (string, puede ser rango)")
+    @Schema(description = "Cost price (string, may be a range)")
     private String costPrice;
 
-    @Schema(description = "Traducciones del detalle")
+    @Schema(description = "Detail translations")
     private List<ProductDetailTranslationDtoOut> translations;
 
-    @Schema(description = "Variantes del detalle")
+    @Schema(description = "Detail variants")
     private List<ProductDetailVariantDtoOut> variants;
 }

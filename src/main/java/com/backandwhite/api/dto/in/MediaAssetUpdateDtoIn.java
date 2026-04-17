@@ -12,16 +12,16 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para actualizar metadatos de un media asset")
+@Schema(description = "DTO for updating media asset metadata")
 public class MediaAssetUpdateDtoIn {
 
-    @NotNull(message = "La categoría es obligatoria")
-    @Schema(description = "Categoría del asset", example = "PRODUCT")
+    @NotNull(message = "Category is required")
+    @Schema(description = "Asset category", example = "PRODUCT")
     private MediaCategory category;
 
-    @Schema(description = "Texto alternativo para accesibilidad", example = "Producto Nike Air Max")
+    @Schema(description = "Alternative text for accessibility", example = "Nike Air Max Product")
     private String alt;
 
-    @Schema(description = "Etiquetas del asset")
+    @Schema(description = "Asset tags")
     private List<String> tags;
 }

@@ -8,29 +8,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO de filtros para el listado paginado de categorías.
- * Solo los campos con valor no nulo se aplican como predicados.
- * Compatible con {@code PageableUtils.toFilterMap()} + {@code FilterUtils.buildSpecification()}.
+ * Filter DTO for paginated category listing.
+ * Only non-null fields are applied as predicates.
+ * Compatible with {@code PageableUtils.toFilterMap()} + {@code FilterUtils.buildSpecification()}.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Filtros para el listado de categorías")
+@Schema(description = "Category listing filters")
 public class CategoryFilterDto {
 
-    @Schema(description = "Estado de publicación", example = "PUBLISHED")
+    @Schema(description = "Publication status", example = "PUBLISHED")
     private CategoryStatus status;
 
-    @Schema(description = "Filtrar por activo", example = "true")
+    @Schema(description = "Filter by active", example = "true")
     private Boolean active;
 
-    @Schema(description = "Filtrar por destacada", example = "false")
+    @Schema(description = "Filter by featured", example = "false")
     private Boolean featured;
 
-    @Schema(description = "Filtrar por nivel jerárquico (1, 2, 3)", example = "1")
+    @Schema(description = "Filter by hierarchy level (1, 2, 3)", example = "1")
     private Integer level;
 
-    @Schema(description = "ID del padre (para listar subcategorías de un nodo)", example = "abc123")
+    @Schema(description = "Parent ID (to list subcategories of a node)", example = "abc123")
     private String parentId;
 }

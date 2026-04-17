@@ -10,10 +10,10 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para moderar una reseña")
+@Schema(description = "DTO for moderating a review")
 public class ReviewModerateDtoIn {
 
-    @NotNull(message = "El estado es obligatorio")
-    @Schema(description = "Nuevo estado (APPROVED o REJECTED)", example = "APPROVED")
+    @NotNull(message = "Status is required")
+    @Schema(description = "New status (APPROVED or REJECTED)", example = "APPROVED")
     private ReviewStatus status;
 }

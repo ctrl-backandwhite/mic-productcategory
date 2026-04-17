@@ -11,36 +11,36 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Marca con datos completos")
+@Schema(description = "Brand with full details")
 public class BrandDtoOut {
 
-    @Schema(description = "ID de la marca")
+    @Schema(description = "Brand ID")
     private String id;
 
-    @Schema(description = "Nombre de la marca", example = "Nike")
+    @Schema(description = "Brand name", example = "Nike")
     private String name;
 
-    @Schema(description = "Slug URL-friendly", example = "nike")
+    @Schema(description = "URL-friendly slug", example = "nike")
     private String slug;
 
-    @Schema(description = "URL del logotipo")
+    @Schema(description = "Logo URL")
     private String logoUrl;
 
-    @Schema(description = "Sitio web oficial")
+    @Schema(description = "Official website")
     private String websiteUrl;
 
-    @Schema(description = "Descripción de la marca")
+    @Schema(description = "Brand description")
     private String description;
 
-    @Schema(description = "Estado de la marca (ACTIVE, INACTIVE)")
+    @Schema(description = "Brand status (ACTIVE, INACTIVE)")
     private BrandStatus status;
 
-    @Schema(description = "Cantidad de productos asociados")
+    @Schema(description = "Number of associated products")
     private Long productCount;
 
-    @Schema(description = "Fecha de creación")
+    @Schema(description = "Creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de última actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 }

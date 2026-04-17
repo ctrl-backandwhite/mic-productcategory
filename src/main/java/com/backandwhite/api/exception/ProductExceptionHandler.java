@@ -14,8 +14,8 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 
 /**
- * Handlers específicos del servicio productcategory.
- * Se ejecuta antes que GlobalExceptionHandler del core.
+ * Handlers specific to the productcategory service.
+ * Runs before the core GlobalExceptionHandler.
  */
 @Log4j2
 @Order(1)

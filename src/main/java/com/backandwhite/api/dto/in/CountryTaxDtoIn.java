@@ -14,28 +14,28 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Regla de impuesto por país")
+@Schema(description = "Tax rule by country")
 public class CountryTaxDtoIn {
 
     @NotBlank
-    @Schema(description = "Código ISO del país (2-3 caracteres)", example = "ES")
+    @Schema(description = "ISO country code (2-3 characters)", example = "ES")
     private String country;
 
-    @Schema(description = "Estado o región (null = todo el país)", example = "Cataluña")
+    @Schema(description = "State or region (null = entire country)", example = "Catalonia")
     private String region;
 
     @NotNull
     @DecimalMin("0.00")
-    @Schema(description = "Tasa de impuesto (decimal, 0.21 = 21%)", example = "0.21")
+    @Schema(description = "Tax rate (decimal, 0.21 = 21%)", example = "0.21")
     private BigDecimal rate;
 
     @NotNull
-    @Schema(description = "Tipo de impuesto: PERCENTAGE o FIXED", example = "PERCENTAGE")
+    @Schema(description = "Tax type: PERCENTAGE or FIXED", example = "PERCENTAGE")
     private TaxType type;
 
-    @Schema(description = "Categorías a las que aplica", example = "[\"General\"]")
+    @Schema(description = "Categories to which it applies", example = "[\"General\"]")
     private List<String> appliesToCategories;
 
-    @Schema(description = "Si la regla está activa", example = "true")
+    @Schema(description = "Whether the rule is active", example = "true")
     private Boolean active;
 }

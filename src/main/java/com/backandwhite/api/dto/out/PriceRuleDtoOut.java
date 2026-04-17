@@ -13,39 +13,39 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Regla de margen de ganancia")
+@Schema(description = "Profit margin rule")
 public class PriceRuleDtoOut {
 
-    @Schema(description = "ID de la regla")
+    @Schema(description = "Rule ID")
     private String id;
 
-    @Schema(description = "Ámbito: GLOBAL, CATEGORY, PRODUCT, VARIANT")
+    @Schema(description = "Scope: GLOBAL, CATEGORY, PRODUCT, VARIANT")
     private PriceRuleScope scope;
 
-    @Schema(description = "ID del ámbito")
+    @Schema(description = "Scope ID")
     private String scopeId;
 
-    @Schema(description = "Tipo de margen: PERCENTAGE o FIXED")
+    @Schema(description = "Margin type: PERCENTAGE or FIXED")
     private MarginType marginType;
 
-    @Schema(description = "Valor del margen", example = "40.00")
+    @Schema(description = "Margin value", example = "40.00")
     private BigDecimal marginValue;
 
-    @Schema(description = "Precio mínimo del rango")
+    @Schema(description = "Minimum price range")
     private BigDecimal minPrice;
 
-    @Schema(description = "Precio máximo del rango")
+    @Schema(description = "Maximum price range")
     private BigDecimal maxPrice;
 
-    @Schema(description = "Prioridad")
+    @Schema(description = "Priority")
     private Integer priority;
 
-    @Schema(description = "Si la regla está activa")
+    @Schema(description = "Whether the rule is active")
     private Boolean active;
 
-    @Schema(description = "Fecha de creación")
+    @Schema(description = "Creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 }

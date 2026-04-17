@@ -12,39 +12,39 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Categoría con sus subcategorías traducidas")
+@Schema(description = "Category with its translated subcategories")
 public class CategoryDtoOut {
 
-    @Schema(description = "ID de la categoría", example = "electronics")
+    @Schema(description = "Category ID", example = "electronics")
     private String id;
 
-    @Schema(description = "ID del padre", example = "root-id")
+    @Schema(description = "Parent ID", example = "root-id")
     private String parentId;
 
-    @Schema(description = "Nombre traducido de la categoría", example = "Electrónica")
+    @Schema(description = "Translated category name", example = "Electronics")
     private String name;
 
-    @Schema(description = "Nivel jerárquico (1=raíz, 2=sub, 3=sub-sub)", example = "1")
+    @Schema(description = "Hierarchy level (1=root, 2=sub, 3=sub-sub)", example = "1")
     private Integer level;
 
-    @Schema(description = "Estado de publicación (DRAFT, PUBLISHED)", example = "PUBLISHED")
+    @Schema(description = "Publication status (DRAFT, PUBLISHED)", example = "PUBLISHED")
     private CategoryStatus status;
 
-    @Schema(description = "Indica si la categoría está activa", example = "true")
+    @Schema(description = "Whether the category is active", example = "true")
     private Boolean active;
 
-    @Schema(description = "Indica si la categoría es principal/destacada", example = "false")
+    @Schema(description = "Whether the category is featured", example = "false")
     private Boolean featured;
 
-    @Schema(description = "Fecha de creación")
+    @Schema(description = "Creation date")
     private Instant createdAt;
 
-    @Schema(description = "Fecha de última actualización")
+    @Schema(description = "Last update date")
     private Instant updatedAt;
 
-    @Schema(description = "Traducciones de la categoría")
+    @Schema(description = "Category translations")
     private List<CategoryTranslationDtoOut> translations;
 
-    @Schema(description = "Subcategorías de esta categoría")
+    @Schema(description = "Subcategories of this category")
     private List<CategoryDtoOut> subCategories;
 }

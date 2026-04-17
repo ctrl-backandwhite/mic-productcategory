@@ -24,24 +24,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/warranties")
-@Tag(name = "Warranties", description = "Endpoints para gestión de planes de garantía")
+@Tag(name = "Warranties", description = "Endpoints for warranty plan management")
 public class WarrantyController {
 
         private final WarrantyUseCase warrantyUseCase;
         private final WarrantyApiMapper warrantyApiMapper;
 
-        // ── Listados ─────────────────────────────────────────────────────────────
+        // ── Listings ─────────────────────────────────────────────────────────────
 
         @GetMapping
-        @Operation(summary = "Listar garantías paginadas", description = "Devuelve garantías con filtros opcionales por estado activo y tipo")
+        @Operation(summary = "List paginated warranties", description = "Returns warranties with optional filters by active status and type")
         public ResponseEntity<PaginationDtoOut<WarrantyDtoOut>> findAll(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "Filtrar por estado activo") @RequestParam(required = false) Boolean active,
-                        @Parameter(description = "Filtrar por tipo (MANUFACTURER, STORE, EXTENDED, LIMITED)") @RequestParam(required = false) WarrantyType type,
-                        @Parameter(description = "Número de página", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
-                        @Parameter(description = "Campo de ordenamiento", example = "name") @RequestParam(defaultValue = "name") String sortBy,
-                        @Parameter(description = "Orden ascendente", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+                        @Parameter(description = "Filter by active status") @RequestParam(required = false) Boolean active,
+                        @Parameter(description = "Filter by type (MANUFACTURER, STORE, EXTENDED, LIMITED)") @RequestParam(required = false) WarrantyType type,
+                        @Parameter(description = "Page number", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
+                        @Parameter(description = "Sort field", example = "name") @RequestParam(defaultValue = "name") String sortBy,
+                        @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
                 Page<Warranty> result = warrantyUseCase.findAll(active, type, page, size, sortBy, ascending);
                 return ResponseEntity.ok(PageableUtils.toResponse(result.map(warrantyApiMapper::toDto)));
         }
@@ -49,15 +49,15 @@ public class WarrantyController {
         // ── CRUD ─────────────────────────────────────────────────────────────────
 
         @GetMapping("/{id}")
-        @Operation(summary = "Obtener garantía por ID")
+        @Operation(summary = "Get warranty by ID")
         public ResponseEntity<WarrantyDtoOut> getById(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID de la garantía") @PathVariable String id) {
+                        @Parameter(description = "Warranty ID") @PathVariable String id) {
                 return ResponseEntity.ok(warrantyApiMapper.toDto(warrantyUseCase.findById(id)));
         }
 
         @PostMapping
-        @Operation(summary = "Crear garantía")
+        @Operation(summary = "Create warranty")
         public ResponseEntity<WarrantyDtoOut> create(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @Valid @RequestBody WarrantyDtoIn dto) {
@@ -66,7 +66,7 @@ public class WarrantyController {
         }
 
         @PutMapping("/{id}")
-        @Operation(summary = "Actualizar garantía")
+        @Operation(summary = "Update warranty")
         public ResponseEntity<WarrantyDtoOut> update(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id,
@@ -76,7 +76,7 @@ public class WarrantyController {
         }
 
         @DeleteMapping("/{id}")
-        @Operation(summary = "Eliminar garantía")
+        @Operation(summary = "Delete warranty")
         public ResponseEntity<Void> delete(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id) {
@@ -84,10 +84,10 @@ public class WarrantyController {
                 return ResponseEntity.noContent().build();
         }
 
-        // ── Estado ───────────────────────────────────────────────────────────────
+        // ── Status ─────────────────────────────────────────────────────────────────────
 
         @PatchMapping("/{id}/active")
-        @Operation(summary = "Toggle estado activo/inactivo de la garantía")
+        @Operation(summary = "Toggle warranty active/inactive status")
         public ResponseEntity<Void> toggleActive(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id) {

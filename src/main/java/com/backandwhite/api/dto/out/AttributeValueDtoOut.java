@@ -8,18 +8,18 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Valor de un atributo")
+@Schema(description = "Attribute value")
 public class AttributeValueDtoOut {
 
-    @Schema(description = "ID del valor")
+    @Schema(description = "Value ID")
     private String id;
 
-    @Schema(description = "Valor del atributo", example = "Rojo")
+    @Schema(description = "Attribute value", example = "Red")
     private String value;
 
-    @Schema(description = "Color HEX (solo para tipo COLOR)", example = "#FF0000")
+    @Schema(description = "HEX color (only for COLOR type)", example = "#FF0000")
     private String colorHex;
 
-    @Schema(description = "Posición de orden")
+    @Schema(description = "Sort position")
     private Integer position;
 }

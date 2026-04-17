@@ -13,20 +13,20 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Una fila del CSV de carga masiva (nivel 1 obligatorio, niveles 2 y 3 opcionales)")
+@Schema(description = "A CSV bulk upload row (level 1 required, levels 2 and 3 optional)")
 public class BulkCategoryRowDtoIn {
 
-    @NotNull(message = "Las traducciones del nivel 1 son obligatorias")
-    @Size(min = 1, message = "Se requiere al menos una traducción del nivel 1")
+    @NotNull(message = "Level 1 translations are required")
+    @Size(min = 1, message = "At least one level 1 translation is required")
     @Valid
-    @Schema(description = "Traducciones para la categoría de nivel 1")
+    @Schema(description = "Translations for the level 1 category")
     private List<CategoryTranslationDtoIn> level1Translations;
 
     @Valid
-    @Schema(description = "Traducciones para la subcategoría de nivel 2 (opcional)")
+    @Schema(description = "Translations for the level 2 subcategory (optional)")
     private List<CategoryTranslationDtoIn> level2Translations;
 
     @Valid
-    @Schema(description = "Traducciones para la subcategoría de nivel 3 (opcional)")
+    @Schema(description = "Translations for the level 3 subcategory (optional)")
     private List<CategoryTranslationDtoIn> level3Translations;
 }

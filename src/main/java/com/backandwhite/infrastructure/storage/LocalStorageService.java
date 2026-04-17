@@ -15,8 +15,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 /**
- * Implementación de StorageService para almacenamiento local en el filesystem.
- * En producción se reemplaza por un adapter de S3/MinIO.
+ * StorageService implementation for local filesystem storage.
+ * In production it is replaced by an S3/MinIO adapter.
  */
 @Log4j2
 @Service

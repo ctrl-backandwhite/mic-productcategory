@@ -1,6 +1,7 @@
 package com.backandwhite.application.usecase.impl;
 
 import com.backandwhite.application.port.out.DropshippingPort;
+import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import com.backandwhite.application.usecase.CjProductFullSyncUseCase;
 import com.backandwhite.domain.model.CjSyncResult;
 import com.backandwhite.domain.model.ProductDetail;
@@ -33,6 +34,7 @@ public class CjProductFullSyncUseCaseImpl implements CjProductFullSyncUseCase {
     private final CjProductDetailMapper cjProductDetailMapper;
     private final SyncLogRepository syncLogRepository;
     private final SyncFailureRepository syncFailureRepository;
+    private final ProductSearchIndexPort productSearchIndexPort;
 
     @Override
     public CjSyncResult syncAll(boolean force) {
@@ -128,6 +130,7 @@ public class CjProductFullSyncUseCaseImpl implements CjProductFullSyncUseCase {
         ProductDetail domain = cjProductDetailMapper.toDomain(dto);
         productDetailRepository.save(domain);
         productDetailRepository.markProductSynced(pid);
+        productSearchIndexPort.indexProductDetail(domain);
         log.debug("Product full sync done for pid={}", pid);
     }
 }

@@ -42,7 +42,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/products")
-@Tag(name = "Products", description = "Endpoints para gestión de productos")
+@Tag(name = "Products", description = "Endpoints for product management")
 public class ProductController {
 
         private final ProductUseCase productUseCase;
@@ -53,11 +53,11 @@ public class ProductController {
         private final PricingService pricingService;
 
         @GetMapping("/category/{categoryId}")
-        @Operation(summary = "Listar productos por categoría", description = "Devuelve todos los productos de una categoría con sus traducciones y variantes")
+        @Operation(summary = "List products by category", description = "Returns all products of a category with their translations and variants")
         public ResponseEntity<List<ProductDtoOut>> findByCategoryId(
-                        @Parameter(description = "ID de la categoría") @PathVariable String categoryId,
-                        @Parameter(description = "Código de idioma (ej: es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "en") String locale,
-                        @Parameter(description = "Filtrar por estado (DRAFT, PUBLISHED). Si no se envía, muestra todos.") @RequestParam(required = false) String status) {
+                        @Parameter(description = "Category ID") @PathVariable String categoryId,
+                        @Parameter(description = "Language code (e.g. es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "en") String locale,
+                        @Parameter(description = "Filter by status (DRAFT, PUBLISHED). If not provided, shows all.") @RequestParam(required = false) String status) {
 
                 List<Product> products = productUseCase.findByCategoryId(categoryId, locale, status);
                 products.forEach(pricingService::applyMarginsToProduct);
@@ -66,16 +66,16 @@ public class ProductController {
         }
 
         @GetMapping
-        @Operation(summary = "Listar productos paginados", description = "Devuelve todos los productos de forma paginada, filtrando por locale. Opcionalmente filtra por categoría.")
+        @Operation(summary = "List paginated products", description = "Returns all products paginated, filtering by locale. Optionally filters by category.")
         public ResponseEntity<PaginationDtoOut<ProductDtoOut>> findAllPaged(
-                        @Parameter(description = "Código de idioma (ej: es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "en") String locale,
-                        @Parameter(description = "ID de la categoría (opcional, si no se envía lista todos)") @RequestParam(required = false) String categoryId,
-                        @Parameter(description = "Filtrar por estado (DRAFT, PUBLISHED). Si no se envía, muestra todos.") @RequestParam(required = false) String status,
-                        @Parameter(description = "Buscar por nombre del producto (coincidencia parcial, case-insensitive)") @RequestParam(required = false) String name,
-                        @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
-                        @Parameter(description = "Campo de ordenamiento", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
-                        @Parameter(description = "Orden ascendente", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+                        @Parameter(description = "Language code (e.g. es, en, pt-BR)", example = "es") @RequestParam(defaultValue = "en") String locale,
+                        @Parameter(description = "Category ID (optional, if not provided lists all)") @RequestParam(required = false) String categoryId,
+                        @Parameter(description = "Filter by status (DRAFT, PUBLISHED). If not provided, shows all.") @RequestParam(required = false) String status,
+                        @Parameter(description = "Search by product name (partial match, case-insensitive)") @RequestParam(required = false) String name,
+                        @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
+                        @Parameter(description = "Sort field", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
+                        @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
 
                 Pageable pageable = PageableUtils.toPageable(page, size, sortBy, ascending);
                 Page<Product> pagedResult = productUseCase.findAllPaged(locale, categoryId, status, name,
@@ -88,11 +88,11 @@ public class ProductController {
         }
 
         @PostMapping("/search")
-        @Operation(summary = "Búsqueda paginada de productos con filtros dinámicos", description = """
-                        Listado paginado de productos con filtros dinámicos vía reflexión.
-                        Solo los campos no nulos del objeto `filters` se aplican como predicados.
+        @Operation(summary = "Paginated product search with dynamic filters", description = """
+                        Paginated product listing with dynamic filters via reflection.
+                        Only non-null fields from the `filters` object are applied as predicates.
 
-                        Ejemplo de body:
+                        Example body:
                         ```json
                         {
                           "page": 0, "size": 20, "sortBy": "createdAt", "ascending": true,
@@ -122,10 +122,10 @@ public class ProductController {
         }
 
         @GetMapping("/{id}")
-        @Operation(summary = "Obtener producto por ID", description = "Devuelve un producto con todas sus traducciones y variantes")
+        @Operation(summary = "Get product by ID", description = "Returns a product with all its translations and variants")
         public ResponseEntity<ProductDtoOut> getById(
-                        @Parameter(description = "ID del producto") @PathVariable String id,
-                        @Parameter(description = "Código de idioma", example = "es") @RequestParam(defaultValue = "en") String locale) {
+                        @Parameter(description = "Product ID") @PathVariable String id,
+                        @Parameter(description = "Language code", example = "es") @RequestParam(defaultValue = "en") String locale) {
 
                 Product product = productUseCase.findById(id, locale);
                 pricingService.applyMarginsToProduct(product);
@@ -133,7 +133,7 @@ public class ProductController {
         }
 
         @PostMapping
-        @Operation(summary = "Crear producto", description = "Crea un nuevo producto con sus traducciones y variantes")
+        @Operation(summary = "Create product", description = "Creates a new product with its translations and variants")
         public ResponseEntity<ProductDtoOut> create(
                         @Valid @RequestBody ProductDtoIn dto) {
 
@@ -143,9 +143,9 @@ public class ProductController {
         }
 
         @PutMapping("/{id}")
-        @Operation(summary = "Actualizar producto", description = "Actualiza los datos de un producto existente, incluyendo traducciones y variantes")
+        @Operation(summary = "Update product", description = "Updates an existing product's data, including translations and variants")
         public ResponseEntity<ProductDtoOut> update(
-                        @Parameter(description = "ID del producto") @PathVariable String id,
+                        @Parameter(description = "Product ID") @PathVariable String id,
                         @Valid @RequestBody ProductDtoIn dto) {
 
                 Product product = productApiMapper.toDomain(dto);
@@ -154,23 +154,23 @@ public class ProductController {
         }
 
         @DeleteMapping
-        @Operation(summary = "Eliminar productos", description = "Elimina uno o más productos y todas sus traducciones y variantes")
+        @Operation(summary = "Delete products", description = "Deletes one or more products and all their translations and variants")
         public ResponseEntity<Void> deleteAll(
-                        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Lista de IDs de productos a eliminar") @RequestBody List<String> ids) {
+                        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "List of product IDs to delete") @RequestBody List<String> ids) {
                 productUseCase.deleteAll(ids);
                 return ResponseEntity.noContent().build();
         }
 
         @PatchMapping("/{id}/publish")
-        @Operation(summary = "Publicar/despublicar producto", description = "Alterna el estado de un producto entre DRAFT y PUBLISHED")
+        @Operation(summary = "Publish/unpublish product", description = "Toggles a product's status between DRAFT and PUBLISHED")
         public ResponseEntity<Void> publishProduct(
-                        @Parameter(description = "ID del producto") @PathVariable String id) {
+                        @Parameter(description = "Product ID") @PathVariable String id) {
                 productUseCase.publishProduct(id);
                 return ResponseEntity.noContent().build();
         }
 
         @PatchMapping("/bulk-status")
-        @Operation(summary = "Cambiar estado masivo", description = "Cambia el estado de múltiples productos a DRAFT o PUBLISHED")
+        @Operation(summary = "Bulk status update", description = "Changes the status of multiple products to DRAFT or PUBLISHED")
         public ResponseEntity<Void> bulkUpdateStatus(
                         @Valid @RequestBody BulkStatusUpdateDtoIn body) {
                 productUseCase.bulkUpdateStatus(body.getIds(), body.getStatus());
@@ -178,10 +178,10 @@ public class ProductController {
         }
 
         @GetMapping("/detail/{pid}")
-        @Operation(summary = "Detalle de producto (CJ)", description = "Obtiene el detalle completo de un producto. Si no existe en la BD local, lo obtiene desde CJ Dropshipping, lo persiste y lo devuelve desde la BD.")
+        @Operation(summary = "Product detail (CJ)", description = "Gets the complete detail of a product. If it doesn't exist in the local DB, fetches it from CJ Dropshipping, persists it and returns it from the DB.")
         public ResponseEntity<ProductDetailDtoOut> getProductDetail(
                         @Parameter(description = "CJ Product ID (pid)") @PathVariable String pid,
-                        @Parameter(description = "Código de idioma", example = "en") @RequestParam(defaultValue = "en") String locale) {
+                        @Parameter(description = "Language code", example = "en") @RequestParam(defaultValue = "en") String locale) {
 
                 ProductDetail detail = productDetailUseCase.getOrFetchFromCj(pid, locale);
                 pricingService.applyMarginsToProductDetail(detail);
@@ -191,16 +191,16 @@ public class ProductController {
         // ── Variant CRUD ─────────────────────────────────────────────────────────
 
         @GetMapping("/detail/variants")
-        @Operation(summary = "Listar todas las variantes (paginado)", description = "Devuelve todas las variantes de todos los productos de forma paginada. Soporta búsqueda, filtro por estado, filtro por PID y ordenamiento.")
+        @Operation(summary = "List all variants (paginated)", description = "Returns all variants of all products paginated. Supports search, status filter, PID filter and sorting.")
         public ResponseEntity<PaginationDtoOut<ProductDetailVariantDtoOut>> findAllVariantsPaged(
-                        @Parameter(description = "Código de idioma (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale,
-                        @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
-                        @Parameter(description = "Texto de búsqueda (nombre, SKU, VID, PID)") @RequestParam(required = false) String search,
-                        @Parameter(description = "Filtro por estado (DRAFT / PUBLISHED)") @RequestParam(required = false) String status,
-                        @Parameter(description = "Filtrar por PID del producto padre") @RequestParam(required = false) String pid,
-                        @Parameter(description = "Campo de ordenamiento") @RequestParam(required = false) String sortBy,
-                        @Parameter(description = "Orden ascendente") @RequestParam(defaultValue = "false") boolean ascending) {
+                        @Parameter(description = "Language code (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale,
+                        @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
+                        @Parameter(description = "Search text (name, SKU, VID, PID)") @RequestParam(required = false) String search,
+                        @Parameter(description = "Filter by status (DRAFT / PUBLISHED)") @RequestParam(required = false) String status,
+                        @Parameter(description = "Filter by parent product PID") @RequestParam(required = false) String pid,
+                        @Parameter(description = "Sort field") @RequestParam(required = false) String sortBy,
+                        @Parameter(description = "Ascending order") @RequestParam(defaultValue = "false") boolean ascending) {
 
                 Pageable pageable = PageableUtils.toPageable(page, size, sortBy, ascending);
                 Page<ProductDetailVariant> pagedResult = productDetailUseCase.findAllVariantsPaged(
@@ -212,10 +212,10 @@ public class ProductController {
         }
 
         @PostMapping("/detail/variants/search")
-        @Operation(summary = "Búsqueda paginada de variantes con filtros dinámicos", description = """
-                        Listado paginado de variantes con filtros dinámicos.
+        @Operation(summary = "Paginated variant search with dynamic filters", description = """
+                        Paginated variant listing with dynamic filters.
 
-                        Ejemplo de body:
+                        Example body:
                         ```json
                         {
                           "page": 0, "size": 20, "sortBy": "createdAt", "ascending": false,
@@ -242,27 +242,27 @@ public class ProductController {
         }
 
         @GetMapping("/detail/{pid}/variants")
-        @Operation(summary = "Listar variantes de un producto", description = "Devuelve todas las variantes de un producto con sus traducciones e inventarios")
+        @Operation(summary = "List variants of a product", description = "Returns all variants of a product with their translations and inventories")
         public ResponseEntity<List<ProductDetailVariantDtoOut>> findVariantsByPid(
                         @Parameter(description = "CJ Product ID (pid)") @PathVariable String pid,
-                        @Parameter(description = "Código de idioma (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale) {
+                        @Parameter(description = "Language code (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale) {
 
                 List<ProductDetailVariant> variants = productDetailUseCase.findVariantsByPid(pid, locale);
                 return ResponseEntity.ok(productDetailApiMapper.toVariantDtoList(variants));
         }
 
         @GetMapping("/detail/variants/{vid}")
-        @Operation(summary = "Obtener variante por VID", description = "Devuelve una variante específica con sus traducciones e inventarios")
+        @Operation(summary = "Get variant by VID", description = "Returns a specific variant with its translations and inventories")
         public ResponseEntity<ProductDetailVariantDtoOut> findVariantByVid(
                         @Parameter(description = "Variant ID (vid)") @PathVariable String vid,
-                        @Parameter(description = "Código de idioma (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale) {
+                        @Parameter(description = "Language code (es, en, pt-BR)", example = "en") @RequestParam(defaultValue = "en") String locale) {
 
                 ProductDetailVariant variant = productDetailUseCase.findVariantByVid(vid, locale);
                 return ResponseEntity.ok(productDetailApiMapper.toVariantDto(variant));
         }
 
         @PostMapping("/detail/variants")
-        @Operation(summary = "Crear variante", description = "Crea una nueva variante manualmente para un producto existente")
+        @Operation(summary = "Create variant", description = "Manually creates a new variant for an existing product")
         public ResponseEntity<ProductDetailVariantDtoOut> createVariant(
                         @Valid @RequestBody ProductDetailVariantDtoIn dto) {
 
@@ -272,7 +272,7 @@ public class ProductController {
         }
 
         @PutMapping("/detail/variants/{vid}")
-        @Operation(summary = "Actualizar variante", description = "Actualiza los datos de una variante existente, incluyendo traducciones e inventarios")
+        @Operation(summary = "Update variant", description = "Updates an existing variant's data, including translations and inventories")
         public ResponseEntity<ProductDetailVariantDtoOut> updateVariant(
                         @Parameter(description = "Variant ID (vid)") @PathVariable String vid,
                         @Valid @RequestBody ProductDetailVariantDtoIn dto) {
@@ -283,7 +283,7 @@ public class ProductController {
         }
 
         @DeleteMapping("/detail/variants/{vid}")
-        @Operation(summary = "Eliminar variante", description = "Elimina una variante y todas sus traducciones e inventarios")
+        @Operation(summary = "Delete variant", description = "Deletes a variant and all its translations and inventories")
         public ResponseEntity<Void> deleteVariant(
                         @Parameter(description = "Variant ID (vid)") @PathVariable String vid) {
                 productDetailUseCase.deleteVariant(vid);
@@ -291,15 +291,15 @@ public class ProductController {
         }
 
         @DeleteMapping("/detail/variants")
-        @Operation(summary = "Eliminar variantes masivo", description = "Elimina múltiples variantes y sus traducciones e inventarios")
+        @Operation(summary = "Bulk delete variants", description = "Deletes multiple variants and their translations and inventories")
         public ResponseEntity<Void> deleteVariants(
-                        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Lista de VIDs a eliminar") @RequestBody List<String> vids) {
+                        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "List of VIDs to delete") @RequestBody List<String> vids) {
                 productDetailUseCase.deleteVariants(vids);
                 return ResponseEntity.noContent().build();
         }
 
         @PatchMapping("/detail/variants/{vid}/publish")
-        @Operation(summary = "Publicar/despublicar variante", description = "Alterna el estado de una variante entre DRAFT y PUBLISHED")
+        @Operation(summary = "Publish/unpublish variant", description = "Toggles a variant's status between DRAFT and PUBLISHED")
         public ResponseEntity<Void> publishVariant(
                         @Parameter(description = "Variant ID (vid)") @PathVariable String vid) {
                 productDetailUseCase.publishVariant(vid);
@@ -307,7 +307,7 @@ public class ProductController {
         }
 
         @PatchMapping("/detail/variants/bulk-status")
-        @Operation(summary = "Cambiar estado masivo de variantes", description = "Cambia el estado de múltiples variantes a DRAFT o PUBLISHED")
+        @Operation(summary = "Bulk update variant status", description = "Changes the status of multiple variants to DRAFT or PUBLISHED")
         public ResponseEntity<Void> bulkUpdateVariantStatus(
                         @Valid @RequestBody BulkStatusUpdateDtoIn body) {
                 productDetailUseCase.bulkUpdateVariantStatus(body.getIds(), body.getStatus());
@@ -317,7 +317,7 @@ public class ProductController {
         // ── Bulk operations ──────────────────────────────────────────────────────
 
         @PostMapping("/bulk")
-        @Operation(summary = "Carga masiva de productos", description = "Crea múltiples productos de forma masiva. Los errores individuales no abortan el lote.")
+        @Operation(summary = "Bulk product upload", description = "Creates multiple products in bulk. Individual errors do not abort the batch.")
         public ResponseEntity<BulkImportResultDtoOut> bulkCreateProducts(
                         @Valid @RequestBody BulkProductDtoIn dto) {
 
@@ -341,7 +341,7 @@ public class ProductController {
         }
 
         @PostMapping("/detail/variants/bulk")
-        @Operation(summary = "Carga masiva de variantes", description = "Crea múltiples variantes de forma masiva. Los errores individuales no abortan el lote.")
+        @Operation(summary = "Bulk variant upload", description = "Creates multiple variants in bulk. Individual errors do not abort the batch.")
         public ResponseEntity<BulkImportResultDtoOut> bulkCreateVariants(
                         @Valid @RequestBody BulkVariantDtoIn dto) {
 
@@ -367,7 +367,7 @@ public class ProductController {
         // ── Sync ──────────────────────────────────────────────────────────────────
 
         @PostMapping("/sync")
-        @Operation(summary = "Sincronizar todos los productos", description = "Sincroniza TODOS los productos desde CJ Dropshipping (listV2). Pagina internamente con intervalos de 10 s.")
+        @Operation(summary = "Sync all products", description = "Syncs ALL products from CJ Dropshipping (listV2). Pages internally with 10s intervals.")
         public ResponseEntity<ProductSyncResultDtoOut> syncFromCjDropshipping(
                         @RequestParam(defaultValue = "true") boolean forceOverwrite) {
                 ProductSyncResult result = productSyncUseCase.syncFromCjDropshipping(forceOverwrite);
@@ -382,7 +382,7 @@ public class ProductController {
         }
 
         @PostMapping("/sync/page")
-        @Operation(summary = "Sincronizar una página de productos", description = "Sincroniza UNA página de productos desde CJ Dropshipping. El frontend itera llamando con page incremental hasta que hasMore=false. Opcionalmente filtra por categoryIds separados por coma.")
+        @Operation(summary = "Sync one page of products", description = "Syncs ONE page of products from CJ Dropshipping. The frontend iterates calling with incremental page until hasMore=false. Optionally filters by comma-separated categoryIds.")
         public ResponseEntity<ProductSyncResultDtoOut> syncPageFromCjDropshipping(
                         @RequestParam(defaultValue = "1") int page,
                         @RequestParam(defaultValue = "100") int size,
@@ -401,11 +401,11 @@ public class ProductController {
         }
 
         @PostMapping("/sync/discover/page")
-        @Operation(summary = "Descubrir productos nuevos por categoría", description = "Recorre las categorías L3 sincronizadas y busca productos nuevos en CJ "
-                        + "que aún no existen en la BD local. Procesa UNA categoría por llamada. "
-                        + "El frontend itera incrementando offset hasta que hasMore=false.")
+        @Operation(summary = "Discover new products by category", description = "Iterates synced L3 categories and searches for new products in CJ "
+                        + "that don't yet exist in the local DB. Processes ONE category per call. "
+                        + "The frontend iterates incrementing offset until hasMore=false.")
         public ResponseEntity<ProductSyncResultDtoOut> discoverNewByCategory(
-                        @Parameter(description = "Offset 0-based en la lista de categorías L3") @RequestParam(defaultValue = "0") int offset) {
+                        @Parameter(description = "0-based offset in the L3 category list") @RequestParam(defaultValue = "0") int offset) {
                 ProductSyncResult result = productSyncUseCase.discoverNewProductsByCategory(offset);
                 return ResponseEntity.ok(ProductSyncResultDtoOut.builder()
                                 .created(result.getCreated())

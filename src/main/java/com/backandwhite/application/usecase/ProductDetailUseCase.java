@@ -9,78 +9,77 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 /**
- * Caso de uso para obtener el detalle de un producto.
- * Si el producto no existe en la BD local, lo obtiene desde CJ Dropshipping,
- * lo persiste y luego lo devuelve desde la BD.
+ * Use case for getting product detail.
+ * If the product doesn't exist in the local DB, fetches it from CJ Dropshipping,
+ * persists it and then returns it from the DB.
  */
 public interface ProductDetailUseCase {
 
     /**
-     * Obtiene el detalle de un producto por su pid (CJ product ID).
+     * Gets the detail of a product by its pid (CJ product ID).
      * <ol>
-     * <li>Busca el producto en la BD local por pid.</li>
-     * <li>Si NO existe, llama a la API de CJ, lo persiste y lo devuelve desde la
-     * BD.</li>
-     * <li>Si YA existe, lo devuelve directamente desde la BD.</li>
+     * <li>Searches for the product in the local DB by pid.</li>
+     * <li>If NOT found, calls the CJ API, persists it and returns it from the DB.</li>
+     * <li>If it already EXISTS, returns it directly from the DB.</li>
      * </ol>
      *
      * @param pid    CJ product ID
-     * @param locale Código de idioma para filtrar traducciones
-     * @return Detalle del producto con traducciones, variantes e inventarios
+     * @param locale Language code for filtering translations
+     * @return Product detail with translations, variants and inventories
      */
     ProductDetail getOrFetchFromCj(String pid, String locale);
 
     // ── Variant CRUD ─────────────────────────────────────────────────────────
 
     /**
-     * Lista todas las variantes de forma paginada, con búsqueda y filtros opcionales.
+     * Lists all variants paginated, with optional search and filters.
      */
     Page<ProductDetailVariant> findAllVariantsPaged(int page, int size, String locale, String search,
             String status, String pid, String sortBy, boolean ascending);
 
     /**
-     * Lista todas las variantes de un producto.
+     * Lists all variants of a product.
      */
     List<ProductDetailVariant> findVariantsByPid(String pid, String locale);
 
     /**
-     * Obtiene una variante por su vid.
+     * Gets a variant by its vid.
      */
     ProductDetailVariant findVariantByVid(String vid, String locale);
 
     /**
-     * Crea una nueva variante manualmente.
+     * Manually creates a new variant.
      */
     ProductDetailVariant createVariant(ProductDetailVariant variant);
 
     /**
-     * Actualiza una variante existente.
+     * Updates an existing variant.
      */
     ProductDetailVariant updateVariant(String vid, ProductDetailVariant variant);
 
     /**
-     * Elimina una variante por su vid.
+     * Deletes a variant by its vid.
      */
     void deleteVariant(String vid);
 
     /**
-     * Publica o despublica una variante (toggle DRAFT/PUBLISHED).
+     * Publishes or unpublishes a variant (toggle DRAFT/PUBLISHED).
      */
     void publishVariant(String vid);
 
     /**
-     * Elimina múltiples variantes por sus vids.
+     * Deletes multiple variants by their vids.
      */
     void deleteVariants(List<String> vids);
 
     /**
-     * Cambia el estado de múltiples variantes a DRAFT o PUBLISHED.
+     * Changes the status of multiple variants to DRAFT or PUBLISHED.
      */
     void bulkUpdateVariantStatus(List<String> vids, String status);
 
     /**
-     * Carga masiva de variantes. Crea cada variante individualmente,
-     * acumulando errores por fila sin abortar el lote completo.
+     * Bulk variant upload. Creates each variant individually,
+     * accumulating errors per row without aborting the entire batch.
      */
     BulkImportResult bulkCreateVariants(List<ProductDetailVariant> variants);
 }

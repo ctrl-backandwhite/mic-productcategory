@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/attributes")
-@Tag(name = "Attributes", description = "Endpoints para gestión de atributos de producto")
+@Tag(name = "Attributes", description = "Endpoints for product attribute management")
 public class AttributeController {
 
         private final AttributeUseCase attributeUseCase;
@@ -32,14 +32,14 @@ public class AttributeController {
         // ── Listados ─────────────────────────────────────────────────────────────
 
         @GetMapping
-        @Operation(summary = "Listar atributos paginados", description = "Devuelve atributos paginados con sus valores")
+        @Operation(summary = "List paginated attributes", description = "Returns paginated attributes with their values")
         public ResponseEntity<PaginationDtoOut<AttributeDtoOut>> findAll(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "Buscar por nombre (parcial, case-insensitive)") @RequestParam(required = false) String name,
-                        @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
-                        @Parameter(description = "Campo de ordenamiento", example = "name") @RequestParam(defaultValue = "name") String sortBy,
-                        @Parameter(description = "Orden ascendente", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+                        @Parameter(description = "Search by name (partial, case-insensitive)") @RequestParam(required = false) String name,
+                        @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
+                        @Parameter(description = "Sort field", example = "name") @RequestParam(defaultValue = "name") String sortBy,
+                        @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
                 Page<Attribute> result = attributeUseCase.findAll(name, page, size, sortBy, ascending);
                 return ResponseEntity.ok(PageableUtils.toResponse(result.map(attributeApiMapper::toDto)));
         }
@@ -47,15 +47,15 @@ public class AttributeController {
         // ── CRUD ─────────────────────────────────────────────────────────────────
 
         @GetMapping("/{id}")
-        @Operation(summary = "Obtener atributo por ID", description = "Devuelve el atributo con sus valores")
+        @Operation(summary = "Get attribute by ID", description = "Returns the attribute with its values")
         public ResponseEntity<AttributeDtoOut> getById(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID del atributo") @PathVariable String id) {
+                        @Parameter(description = "Attribute ID") @PathVariable String id) {
                 return ResponseEntity.ok(attributeApiMapper.toDto(attributeUseCase.findById(id)));
         }
 
         @PostMapping
-        @Operation(summary = "Crear atributo con valores")
+        @Operation(summary = "Create attribute with values")
         public ResponseEntity<AttributeDtoOut> create(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @Valid @RequestBody AttributeDtoIn dto) {
@@ -64,7 +64,7 @@ public class AttributeController {
         }
 
         @PutMapping("/{id}")
-        @Operation(summary = "Actualizar atributo", description = "Sincroniza valores: añade nuevos, actualiza existentes, elimina los no presentes")
+        @Operation(summary = "Update attribute", description = "Syncs values: adds new, updates existing, deletes absent")
         public ResponseEntity<AttributeDtoOut> update(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id,
@@ -74,7 +74,7 @@ public class AttributeController {
         }
 
         @DeleteMapping("/{id}")
-        @Operation(summary = "Eliminar atributo")
+        @Operation(summary = "Delete attribute")
         public ResponseEntity<Void> delete(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id) {

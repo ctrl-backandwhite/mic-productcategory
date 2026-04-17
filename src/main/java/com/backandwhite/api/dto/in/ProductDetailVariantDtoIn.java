@@ -13,57 +13,57 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO para crear o actualizar una variante de producto")
+@Schema(description = "DTO for creating or updating a product variant")
 public class ProductDetailVariantDtoIn {
 
-    @NotBlank(message = "El pid es obligatorio")
-    @Schema(description = "ID del producto padre", example = "CJ-PID-001")
+    @NotBlank(message = "pid is required")
+    @Schema(description = "Parent product ID", example = "CJ-PID-001")
     private String pid;
 
-    @Schema(description = "Nombre en inglés de la variante")
+    @Schema(description = "Variant English name")
     private String variantNameEn;
 
-    @Schema(description = "SKU de la variante")
+    @Schema(description = "Variant SKU")
     private String variantSku;
 
-    @Schema(description = "Unidad de medida")
+    @Schema(description = "Unit of measure")
     private String variantUnit;
 
-    @Schema(description = "Clave de la variante")
+    @Schema(description = "Variant key")
     private String variantKey;
 
-    @Schema(description = "URL de imagen de la variante")
+    @Schema(description = "Variant image URL")
     private String variantImage;
 
-    @Schema(description = "Largo", example = "30.00")
+    @Schema(description = "Length", example = "30.00")
     private BigDecimal variantLength;
 
-    @Schema(description = "Ancho", example = "20.00")
+    @Schema(description = "Width", example = "20.00")
     private BigDecimal variantWidth;
 
-    @Schema(description = "Alto", example = "5.00")
+    @Schema(description = "Height", example = "5.00")
     private BigDecimal variantHeight;
 
-    @Schema(description = "Volumen", example = "3000.00")
+    @Schema(description = "Volume", example = "3000.00")
     private BigDecimal variantVolume;
 
-    @Schema(description = "Peso", example = "0.50")
+    @Schema(description = "Weight", example = "0.50")
     private BigDecimal variantWeight;
 
-    @Schema(description = "Precio de venta de la variante", example = "29.99")
+    @Schema(description = "Variant sell price", example = "29.99")
     private BigDecimal variantSellPrice;
 
-    @Schema(description = "Precio sugerido de venta", example = "39.99")
+    @Schema(description = "Suggested sell price", example = "39.99")
     private BigDecimal variantSugSellPrice;
 
-    @Schema(description = "Estándar de la variante")
+    @Schema(description = "Variant standard")
     private String variantStandard;
 
     @Valid
-    @Schema(description = "Traducciones de la variante")
+    @Schema(description = "Variant translations")
     private List<ProductDetailVariantTranslationDtoIn> translations;
 
     @Valid
-    @Schema(description = "Inventarios por país")
+    @Schema(description = "Inventories by country")
     private List<ProductDetailVariantInventoryDtoIn> inventories;
 }

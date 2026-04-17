@@ -24,24 +24,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/brands")
-@Tag(name = "Brands", description = "Endpoints para gestión de marcas")
+@Tag(name = "Brands", description = "Endpoints for brand management")
 public class BrandController {
 
         private final BrandUseCase brandUseCase;
         private final BrandApiMapper brandApiMapper;
 
-        // ── Listados ─────────────────────────────────────────────────────────────
+        // ── Listings ─────────────────────────────────────────────────────────────
 
         @GetMapping
-        @Operation(summary = "Listar marcas paginadas", description = "Devuelve marcas paginadas con filtros opcionales por estado y nombre")
+        @Operation(summary = "List paginated brands", description = "Returns paginated brands with optional filters by status and name")
         public ResponseEntity<PaginationDtoOut<BrandDtoOut>> findAll(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "Filtrar por estado (ACTIVE, INACTIVE)") @RequestParam(required = false) BrandStatus status,
-                        @Parameter(description = "Buscar por nombre (parcial, case-insensitive)") @RequestParam(required = false) String name,
-                        @Parameter(description = "Número de página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size,
-                        @Parameter(description = "Campo de ordenamiento", example = "name") @RequestParam(defaultValue = "name") String sortBy,
-                        @Parameter(description = "Orden ascendente", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+                        @Parameter(description = "Filter by status (ACTIVE, INACTIVE)") @RequestParam(required = false) BrandStatus status,
+                        @Parameter(description = "Search by name (partial, case-insensitive)") @RequestParam(required = false) String name,
+                        @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
+                        @Parameter(description = "Sort field", example = "name") @RequestParam(defaultValue = "name") String sortBy,
+                        @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
                 Page<Brand> result = brandUseCase.findAll(status, name, page, size, sortBy, ascending);
                 return ResponseEntity.ok(PageableUtils.toResponse(result.map(brandApiMapper::toDto)));
         }
@@ -49,23 +49,23 @@ public class BrandController {
         // ── CRUD ─────────────────────────────────────────────────────────────────
 
         @GetMapping("/{id}")
-        @Operation(summary = "Obtener marca por ID")
+        @Operation(summary = "Get brand by ID")
         public ResponseEntity<BrandDtoOut> getById(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "ID de la marca") @PathVariable String id) {
+                        @Parameter(description = "Brand ID") @PathVariable String id) {
                 return ResponseEntity.ok(brandApiMapper.toDto(brandUseCase.findById(id)));
         }
 
         @GetMapping("/slug/{slug}")
-        @Operation(summary = "Obtener marca por slug", description = "Busca una marca por su slug URL-friendly")
+        @Operation(summary = "Get brand by slug", description = "Searches a brand by its URL-friendly slug")
         public ResponseEntity<BrandDtoOut> getBySlug(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
-                        @Parameter(description = "Slug de la marca", example = "nike") @PathVariable String slug) {
+                        @Parameter(description = "Brand slug", example = "nike") @PathVariable String slug) {
                 return ResponseEntity.ok(brandApiMapper.toDto(brandUseCase.findBySlug(slug)));
         }
 
         @PostMapping
-        @Operation(summary = "Crear marca")
+        @Operation(summary = "Create brand")
         public ResponseEntity<BrandDtoOut> create(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @Valid @RequestBody BrandDtoIn dto) {
@@ -74,7 +74,7 @@ public class BrandController {
         }
 
         @PutMapping("/{id}")
-        @Operation(summary = "Actualizar marca")
+        @Operation(summary = "Update brand")
         public ResponseEntity<BrandDtoOut> update(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id,
@@ -84,7 +84,7 @@ public class BrandController {
         }
 
         @DeleteMapping("/{id}")
-        @Operation(summary = "Eliminar marca")
+        @Operation(summary = "Delete brand")
         public ResponseEntity<Void> delete(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id) {
@@ -92,10 +92,10 @@ public class BrandController {
                 return ResponseEntity.noContent().build();
         }
 
-        // ── Estado ───────────────────────────────────────────────────────────────
+        // ── Status ─────────────────────────────────────────────────────────────────────
 
         @PatchMapping("/{id}/status")
-        @Operation(summary = "Cambiar estado de marca (ACTIVE ↔ INACTIVE)")
+        @Operation(summary = "Toggle brand status (ACTIVE ↔ INACTIVE)")
         public ResponseEntity<Void> toggleStatus(
                         @RequestHeader(AppConstants.HEADER_NX036_AUTH) String nxAuth,
                         @PathVariable String id) {
