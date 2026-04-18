@@ -148,29 +148,11 @@ public class CjDropshippingClient implements DropshippingPort {
                 page, size, categoryId, keyword, orderBy, sort);
 
         String accessToken = cjTokenManager.getValidAccessToken();
+        ProductListFilters filters = new ProductListFilters(page, size, categoryId, keyword, timeStart, timeEnd,
+                orderBy, sort);
 
-        CjApiResponseDto<CjProductListPageDto> response = invokeCj(() -> cjWebClient.get().uri(uriBuilder -> {
-            uriBuilder.path("/product/listV2").queryParam("page", page).queryParam("size", size);
-            if (categoryId != null && !categoryId.isBlank()) {
-                uriBuilder.queryParam("categoryId", categoryId);
-            }
-            if (keyword != null && !keyword.isBlank()) {
-                uriBuilder.queryParam("keyWord", keyword);
-            }
-            if (timeStart != null) {
-                uriBuilder.queryParam("timeStart", timeStart);
-            }
-            if (timeEnd != null) {
-                uriBuilder.queryParam("timeEnd", timeEnd);
-            }
-            if (orderBy != null) {
-                uriBuilder.queryParam("orderBy", orderBy);
-            }
-            if (sort != null && !sort.isBlank()) {
-                uriBuilder.queryParam("sort", sort);
-            }
-            return uriBuilder.build();
-        }).header(HEADER_CJ_TOKEN, accessToken).retrieve()
+        CjApiResponseDto<CjProductListPageDto> response = invokeCj(() -> cjWebClient.get()
+                .uri(b -> applyListFilters(b, filters).build()).header(HEADER_CJ_TOKEN, accessToken).retrieve()
                 .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductListPageDto>>() {
                 }).timeout(DATA_TIMEOUT).block(), CTX_FILTERED_LIST);
 
@@ -183,6 +165,32 @@ public class CjDropshippingClient implements DropshippingPort {
                 response.getCode(), response.getResult(), response.getData().getAllProducts().size(),
                 response.getData().getTotalRecords(), response.getData().getPageNumber());
         return response.getData();
+    }
+
+    private static org.springframework.web.util.UriBuilder applyListFilters(org.springframework.web.util.UriBuilder b,
+            ProductListFilters f) {
+        b.path("/product/listV2").queryParam("page", f.page()).queryParam("size", f.size());
+        applyIfPresent(b, "categoryId", f.categoryId());
+        applyIfPresent(b, "keyWord", f.keyword());
+        applyIfPresent(b, "timeStart", f.timeStart());
+        applyIfPresent(b, "timeEnd", f.timeEnd());
+        applyIfPresent(b, "orderBy", f.orderBy());
+        applyIfPresent(b, "sort", f.sort());
+        return b;
+    }
+
+    private static void applyIfPresent(org.springframework.web.util.UriBuilder b, String name, Object value) {
+        if (value == null) {
+            return;
+        }
+        if (value instanceof String s && s.isBlank()) {
+            return;
+        }
+        b.queryParam(name, value);
+    }
+
+    private record ProductListFilters(int page, int size, String categoryId, String keyword, Long timeStart,
+            Long timeEnd, Integer orderBy, String sort) {
     }
 
     /**

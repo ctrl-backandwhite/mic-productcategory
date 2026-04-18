@@ -61,40 +61,54 @@ public interface ProductDetailInfraMapper {
 
     default ProductDetailEntity toEntityWithChildren(ProductDetail domain) {
         ProductDetailEntity entity = toEntity(domain);
-
-        if (domain.getTranslations() != null) {
-            for (ProductDetailTranslation t : domain.getTranslations()) {
-                ProductDetailTranslationEntity te = toTranslationEntity(t, domain.getPid());
-                te.setProductDetail(entity);
-                entity.getTranslations().add(te);
-            }
-        }
-
-        if (domain.getVariants() != null) {
-            for (ProductDetailVariant v : domain.getVariants()) {
-                ProductDetailVariantEntity ve = toVariantEntity(v);
-                ve.setProductDetail(entity);
-
-                if (v.getTranslations() != null) {
-                    for (ProductDetailVariantTranslation vt : v.getTranslations()) {
-                        ProductDetailVariantTranslationEntity vte = toVariantTranslationEntity(vt, v.getVid());
-                        vte.setVariant(ve);
-                        ve.getTranslations().add(vte);
-                    }
-                }
-
-                if (v.getInventories() != null) {
-                    for (ProductDetailVariantInventory inv : v.getInventories()) {
-                        ProductDetailVariantInventoryEntity ie = toInventoryEntity(inv);
-                        ie.setVariant(ve);
-                        ve.getInventories().add(ie);
-                    }
-                }
-
-                entity.getVariants().add(ve);
-            }
-        }
-
+        wireTranslations(entity, domain);
+        wireVariants(entity, domain);
         return entity;
+    }
+
+    private void wireTranslations(ProductDetailEntity entity, ProductDetail domain) {
+        if (domain.getTranslations() == null) {
+            return;
+        }
+        for (ProductDetailTranslation t : domain.getTranslations()) {
+            ProductDetailTranslationEntity te = toTranslationEntity(t, domain.getPid());
+            te.setProductDetail(entity);
+            entity.getTranslations().add(te);
+        }
+    }
+
+    private void wireVariants(ProductDetailEntity entity, ProductDetail domain) {
+        if (domain.getVariants() == null) {
+            return;
+        }
+        for (ProductDetailVariant v : domain.getVariants()) {
+            ProductDetailVariantEntity ve = toVariantEntity(v);
+            ve.setProductDetail(entity);
+            wireVariantTranslations(ve, v);
+            wireVariantInventories(ve, v);
+            entity.getVariants().add(ve);
+        }
+    }
+
+    private void wireVariantTranslations(ProductDetailVariantEntity ve, ProductDetailVariant v) {
+        if (v.getTranslations() == null) {
+            return;
+        }
+        for (ProductDetailVariantTranslation vt : v.getTranslations()) {
+            ProductDetailVariantTranslationEntity vte = toVariantTranslationEntity(vt, v.getVid());
+            vte.setVariant(ve);
+            ve.getTranslations().add(vte);
+        }
+    }
+
+    private void wireVariantInventories(ProductDetailVariantEntity ve, ProductDetailVariant v) {
+        if (v.getInventories() == null) {
+            return;
+        }
+        for (ProductDetailVariantInventory inv : v.getInventories()) {
+            ProductDetailVariantInventoryEntity ie = toInventoryEntity(inv);
+            ie.setVariant(ve);
+            ve.getInventories().add(ie);
+        }
     }
 }

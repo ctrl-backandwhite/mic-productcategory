@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Log4j2
 @Service
@@ -36,9 +36,10 @@ public class CjReviewSyncUseCaseImpl extends AbstractCjSyncUseCase implements Cj
     private final CjReviewMapper cjReviewMapper;
 
     public CjReviewSyncUseCaseImpl(SyncLogRepository syncLogRepository, SyncFailureRepository syncFailureRepository,
-            DropshippingPort cjClient, ProductDetailRepository productDetailRepository,
-            ReviewRepository reviewRepository, CjReviewMapper cjReviewMapper) {
-        super(syncLogRepository, syncFailureRepository);
+            TransactionTemplate transactionTemplate, DropshippingPort cjClient,
+            ProductDetailRepository productDetailRepository, ReviewRepository reviewRepository,
+            CjReviewMapper cjReviewMapper) {
+        super(syncLogRepository, syncFailureRepository, transactionTemplate);
         this.cjClient = cjClient;
         this.productDetailRepository = productDetailRepository;
         this.reviewRepository = reviewRepository;
@@ -58,8 +59,9 @@ public class CjReviewSyncUseCaseImpl extends AbstractCjSyncUseCase implements Cj
     public CjSyncResult syncByPid(String pid) {
         long start = System.currentTimeMillis();
         try {
-            int imported = syncReviewsForPid(pid);
-            return CjSyncResult.builder().totalItems(imported).syncedItems(imported).failedItems(0)
+            Integer imported = transactionTemplate.execute(status -> syncReviewsForPid(pid));
+            int count = imported != null ? imported : 0;
+            return CjSyncResult.builder().totalItems(count).syncedItems(count).failedItems(0)
                     .durationMs(System.currentTimeMillis() - start).build();
         } catch (Exception e) {
             log.error("{} failed for pid={}: {}", CONFIG.logLabel(), pid, e.getMessage(), e);
@@ -68,22 +70,11 @@ public class CjReviewSyncUseCaseImpl extends AbstractCjSyncUseCase implements Cj
         }
     }
 
-    @Transactional
-    protected int syncReviewsForPid(String pid) {
+    int syncReviewsForPid(String pid) {
         List<Review> toSave = new ArrayList<>();
-        int page = 1;
-
-        while (page <= MAX_REVIEW_PAGES) {
-            CjProductCommentsPageDto pageDto = cjClient.getProductComments(pid, 0, page, REVIEW_PAGE_SIZE);
-            List<CjReviewItemDto> items = pageDto.getList();
-            if (items == null || items.isEmpty()) {
-                break;
-            }
-            collectNewReviews(items, toSave);
-            if (items.size() < REVIEW_PAGE_SIZE) {
-                break;
-            }
-            page++;
+        for (int page = 1; page <= MAX_REVIEW_PAGES && fetchPageInto(pid, page, toSave); page++) {
+            // loop body handled in fetchPageInto; condition stops when the page is empty
+            // or smaller than the page size
         }
 
         if (!toSave.isEmpty()) {
@@ -92,6 +83,21 @@ public class CjReviewSyncUseCaseImpl extends AbstractCjSyncUseCase implements Cj
 
         productDetailRepository.markReviewsSynced(pid);
         return toSave.size();
+    }
+
+    /**
+     * Fetches one page of reviews for the given pid and appends the new items to
+     * {@code target}. Returns {@code true} when the caller should request the next
+     * page, {@code false} when the last page has been reached.
+     */
+    private boolean fetchPageInto(String pid, int page, List<Review> target) {
+        CjProductCommentsPageDto pageDto = cjClient.getProductComments(pid, 0, page, REVIEW_PAGE_SIZE);
+        List<CjReviewItemDto> items = pageDto.getList();
+        if (items == null || items.isEmpty()) {
+            return false;
+        }
+        collectNewReviews(items, target);
+        return items.size() >= REVIEW_PAGE_SIZE;
     }
 
     private void collectNewReviews(List<CjReviewItemDto> items, List<Review> target) {

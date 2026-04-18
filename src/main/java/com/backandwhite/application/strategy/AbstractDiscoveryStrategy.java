@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -35,62 +36,68 @@ public abstract class AbstractDiscoveryStrategy implements DiscoveryStrategyExec
     /**
      * Execute the paginated CJ listing fetch/ingest loop for a single discovery
      * unit (a category, a keyword or a time window).
-     *
-     * @param maxPages
-     *            max pages to scan for this unit
-     * @param pageFetcher
-     *            given the current page, returns the CJ page response
-     * @param itemToPid
-     *            factory that turns a CJ item into a {@link DiscoveredPid}
-     * @return aggregate result for this unit
      */
     protected DiscoveryResult crawlPages(int maxPages, PageFetcher pageFetcher,
-            java.util.function.Function<CjProductListV2ItemDto, DiscoveredPid> itemToPid) {
+            Function<CjProductListV2ItemDto, DiscoveredPid> itemToPid) {
         int pageSize = properties.getDiscovery().getPageSize();
         long waitMs = properties.getDiscovery().getRateLimitWaitMs();
 
+        CrawlState crawlState = new CrawlState();
         int page = 1;
-        int newPids = 0;
-        int totalProcessed = 0;
-
-        while (page <= maxPages) {
-            CjProductListPageDto pageResult = pageFetcher.fetch(page, pageSize);
-
-            List<CjProductListV2ItemDto> products = (pageResult != null) ? pageResult.getAllProducts() : List.of();
-
-            if (products.isEmpty()) {
-                break;
-            }
-
-            List<DiscoveredPid> batch = new ArrayList<>();
-            for (CjProductListV2ItemDto item : products) {
-                totalProcessed++;
-                String pid = item.getId();
-                if (pid == null || pid.isBlank())
-                    continue;
-
-                if (!discoveredPidRepository.existsByPid(pid) && !productDetailRepository.existsByPid(pid)) {
-                    batch.add(itemToPid.apply(item));
-                    newPids++;
-                }
-            }
-
-            if (!batch.isEmpty()) {
-                discoveredPidRepository.saveAll(batch);
-            }
-
-            int totalPages = pageResult.getTotalRecords() != null
-                    ? (int) Math.ceil((double) pageResult.getTotalRecords() / pageSize)
-                    : page;
-            if (page >= totalPages)
-                break;
-
+        while (page <= maxPages && fetchAndProcessPage(page, pageSize, pageFetcher, itemToPid, crawlState, waitMs)) {
             page++;
-            rateLimitWait(waitMs);
         }
+        return DiscoveryResult.builder().newPidsDiscovered(crawlState.newPids)
+                .totalPidsProcessed(crawlState.totalProcessed).pagesScanned(crawlState.pagesScanned).build();
+    }
 
-        return DiscoveryResult.builder().newPidsDiscovered(newPids).totalPidsProcessed(totalProcessed)
-                .pagesScanned(page).build();
+    /**
+     * Fetches one page and ingests its items. Returns {@code true} when the next
+     * page should be requested, {@code false} when the crawl must stop (last page
+     * reached or page empty).
+     */
+    @SuppressWarnings("java:S107")
+    private boolean fetchAndProcessPage(int page, int pageSize, PageFetcher pageFetcher,
+            Function<CjProductListV2ItemDto, DiscoveredPid> itemToPid, CrawlState crawlState, long waitMs) {
+        CjProductListPageDto pageResult = pageFetcher.fetch(page, pageSize);
+        List<CjProductListV2ItemDto> products = (pageResult != null) ? pageResult.getAllProducts() : List.of();
+        if (products.isEmpty()) {
+            crawlState.pagesScanned = page;
+            return false;
+        }
+        processPageItems(products, itemToPid, crawlState);
+        crawlState.pagesScanned = page;
+        if (isLastPage(pageResult, page, pageSize)) {
+            return false;
+        }
+        rateLimitWait(waitMs);
+        return true;
+    }
+
+    private void processPageItems(List<CjProductListV2ItemDto> products,
+            Function<CjProductListV2ItemDto, DiscoveredPid> itemToPid, CrawlState crawlState) {
+        List<DiscoveredPid> batch = new ArrayList<>();
+        for (CjProductListV2ItemDto item : products) {
+            crawlState.totalProcessed++;
+            String pid = item.getId();
+            if (pid == null || pid.isBlank()) {
+                continue;
+            }
+            if (!discoveredPidRepository.existsByPid(pid) && !productDetailRepository.existsByPid(pid)) {
+                batch.add(itemToPid.apply(item));
+                crawlState.newPids++;
+            }
+        }
+        if (!batch.isEmpty()) {
+            discoveredPidRepository.saveAll(batch);
+        }
+    }
+
+    private boolean isLastPage(CjProductListPageDto pageResult, int currentPage, int pageSize) {
+        int totalPages = pageResult.getTotalRecords() != null
+                ? (int) Math.ceil((double) pageResult.getTotalRecords() / pageSize)
+                : currentPage;
+        return currentPage >= totalPages;
     }
 
     /**
@@ -107,7 +114,7 @@ public abstract class AbstractDiscoveryStrategy implements DiscoveryStrategyExec
     protected void rateLimitWait(long ms) {
         try {
             Thread.sleep(ms);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         }
     }
@@ -115,5 +122,11 @@ public abstract class AbstractDiscoveryStrategy implements DiscoveryStrategyExec
     @FunctionalInterface
     protected interface PageFetcher {
         CjProductListPageDto fetch(int page, int pageSize);
+    }
+
+    private static final class CrawlState {
+        int newPids;
+        int totalProcessed;
+        int pagesScanned;
     }
 }

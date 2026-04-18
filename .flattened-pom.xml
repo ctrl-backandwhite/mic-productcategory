@@ -20,10 +20,43 @@
     </license>
   </licenses>
   <properties>
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <sonar.cpd.exclusions>**/dto/**,
+            **/*DtoIn.*,
+            **/*DtoOut.*,
+            **/model/**,
+            **/*Entity.*,
+            **/configuration/**,
+            **/*Config.*,
+            **/*Properties.*,
+            **/valueobject/**,
+            src/test/**</sonar.cpd.exclusions>
+    <sonar.projectKey>nx036_${project.artifactId}</sonar.projectKey>
     <sonar.tests>src/test/java</sonar.tests>
+    <sonar.host.url>${env.SONAR_HOST_URL}</sonar.host.url>
+    <sonar.login>${env.SONAR_TOKEN}</sonar.login>
     <sonar.organization>ctrl-backandwhite</sonar.organization>
     <sonar.sources>src/main/java</sonar.sources>
     <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    <sonar.coverage.exclusions>**/dto/**,
+            **/*DtoIn.*,
+            **/*DtoOut.*,
+            **/model/**,
+            **/*Entity.*,
+            **/MicProductcategoryApplication.*,
+            **/configuration/**,
+            **/*Config.*,
+            **/*Properties.*,
+            **/infrastructure/client/**,
+            **/infrastructure/external/**,
+            **/infrastructure/message/**,
+            **/infrastructure/db/postgres/repository/**,
+            **/infrastructure/db/postgres/entity/**,
+            **/infrastructure/db/postgres/specification/**,
+            **/infrastructure/search/elasticsearch/document/**,
+            **/infrastructure/search/elasticsearch/repository/**,
+            **/*Application.*,
+            **/valueobject/**</sonar.coverage.exclusions>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -131,6 +164,23 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>elasticsearch</artifactId>
+      <version>1.19.8</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.testcontainers</groupId>
+          <artifactId>testcontainers</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.15.1</version>
+    </dependency>
   </dependencies>
   <repositories>
     <repository>
@@ -175,6 +225,29 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <excludes>
+            <exclude>**/dto/**</exclude>
+            <exclude>**/*DtoIn.*</exclude>
+            <exclude>**/*DtoOut.*</exclude>
+            <exclude>**/model/**</exclude>
+            <exclude>**/*Entity.*</exclude>
+            <exclude>**/MicProductcategoryApplication.*</exclude>
+            <exclude>**/configuration/**</exclude>
+            <exclude>**/*Config.*</exclude>
+            <exclude>**/*Properties.*</exclude>
+            <exclude>**/infrastructure/client/**</exclude>
+            <exclude>**/infrastructure/external/**</exclude>
+            <exclude>**/infrastructure/message/**</exclude>
+            <exclude>**/infrastructure/db/postgres/repository/**</exclude>
+            <exclude>**/infrastructure/db/postgres/entity/**</exclude>
+            <exclude>**/infrastructure/db/postgres/specification/**</exclude>
+            <exclude>**/infrastructure/search/elasticsearch/document/**</exclude>
+            <exclude>**/infrastructure/search/elasticsearch/repository/**</exclude>
+            <exclude>**/*Application.*</exclude>
+            <exclude>**/valueobject/**</exclude>
+          </excludes>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>

@@ -144,7 +144,7 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
             log.info("Waiting {} ms before fetching next page...", DELAY_BETWEEN_PAGES_MS);
             Thread.sleep(DELAY_BETWEEN_PAGES_MS);
             return true;
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             log.warn("Product sync interrupted during page delay");
             return false;
@@ -182,25 +182,17 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
         int created = 0;
         int updated = 0;
         try {
-            for (int cjPage = 1; cjPage <= MAX_CJ_PAGES_PER_CATEGORY; cjPage++) {
-                CjProductListPageDto pageResult = cjClient.getProductListFiltered(cjPage, PAGE_SIZE, categoryId, null,
-                        null, null, 3, "desc");
-
-                List<CjProductListV2ItemDto> products = (pageResult != null) ? pageResult.getAllProducts() : List.of();
-
-                if (products.isEmpty()) {
-                    log.info("Discover: CJ page {} returned EMPTY for category {} (totalRecords={})", cjPage,
-                            categoryId, pageResult != null ? pageResult.getTotalRecords() : "null");
-                    break;
-                }
-
-                int[] pageTotals = processDiscoverPage(products, cjPage);
-                created += pageTotals[0];
-                updated += pageTotals[1];
-
-                int totalCjProducts = pageResult.getTotalRecords() != null ? pageResult.getTotalRecords() : 0;
-                if (cjPage * PAGE_SIZE >= totalCjProducts) {
-                    break;
+            int cjPage = 1;
+            DiscoverPageResult result = crawlDiscoverPage(categoryId, cjPage);
+            boolean keepGoing = result != null;
+            while (keepGoing && cjPage <= MAX_CJ_PAGES_PER_CATEGORY) {
+                created += result.created();
+                updated += result.updated();
+                keepGoing = !result.last();
+                cjPage++;
+                if (keepGoing) {
+                    result = crawlDiscoverPage(categoryId, cjPage);
+                    keepGoing = result != null;
                 }
             }
         } catch (ExternalServiceException e) {
@@ -209,6 +201,30 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
             log.error("Discover: unexpected error for category {}: {}", categoryId, e.getMessage(), e);
         }
         return new int[]{created, updated};
+    }
+
+    /**
+     * Crawls one CJ page for a discover-by-category run. Returns {@code null} when
+     * the page is empty (caller stops immediately); otherwise the result carries
+     * the page deltas plus a {@code last} flag that tells the caller whether to
+     * request more pages.
+     */
+    private DiscoverPageResult crawlDiscoverPage(String categoryId, int cjPage) {
+        CjProductListPageDto pageResult = cjClient.getProductListFiltered(cjPage, PAGE_SIZE, categoryId, null, null,
+                null, 3, "desc");
+        List<CjProductListV2ItemDto> products = (pageResult != null) ? pageResult.getAllProducts() : List.of();
+        if (products.isEmpty()) {
+            log.info("Discover: CJ page {} returned EMPTY for category {} (totalRecords={})", cjPage, categoryId,
+                    pageResult != null ? pageResult.getTotalRecords() : "null");
+            return null;
+        }
+        int[] pageTotals = processDiscoverPage(products, cjPage);
+        int totalCjProducts = pageResult.getTotalRecords() != null ? pageResult.getTotalRecords() : 0;
+        boolean last = cjPage * PAGE_SIZE >= totalCjProducts;
+        return new DiscoverPageResult(pageTotals[0], pageTotals[1], last);
+    }
+
+    private record DiscoverPageResult(int created, int updated, boolean last) {
     }
 
     private int[] processDiscoverPage(List<CjProductListV2ItemDto> products, int cjPage) {
@@ -264,7 +280,7 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
         try {
             Thread.sleep(DETAIL_CALL_DELAY_MS);
             return true;
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             return false;
         }
@@ -296,10 +312,11 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
                 CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
                 return Optional.of(cjProductDetailMapper.toProduct(cjProduct));
             } catch (ExternalServiceException e) {
-                Optional<Product> retryResult = handleRateLimit(pid, e, attempt);
-                if (retryResult != null) {
-                    return retryResult;
+                RateLimitOutcome outcome = handleRateLimit(pid, e, attempt);
+                if (outcome == RateLimitOutcome.STOP) {
+                    return Optional.empty();
                 }
+                // outcome == RETRY → continue the loop for the next attempt
             } catch (Exception e) {
                 log.warn(LOG_FETCH_FAILED, pid, e.getMessage());
                 return Optional.empty();
@@ -309,24 +326,27 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
     }
 
     /**
-     * Returns {@code null} when the caller should retry the next attempt; returns
-     * an {@link Optional} (possibly empty) when the retry loop must stop.
+     * Signals whether the retry loop should keep trying or stop.
      */
-    private Optional<Product> handleRateLimit(String pid, ExternalServiceException e, int attempt) {
+    private enum RateLimitOutcome {
+        RETRY, STOP
+    }
+
+    private RateLimitOutcome handleRateLimit(String pid, ExternalServiceException e, int attempt) {
         boolean rateLimited = e.getMessage() != null && e.getMessage().contains("Too many requests")
                 && attempt < MAX_RATE_LIMIT_RETRIES;
         if (!rateLimited) {
             log.warn(LOG_CJ_API_ERROR, pid, e.getMessage());
-            return Optional.empty();
+            return RateLimitOutcome.STOP;
         }
         log.info("Rate limited on pid={}, backing off {}ms (attempt {}/{})", pid, RATE_LIMIT_BACKOFF_MS, attempt + 1,
                 MAX_RATE_LIMIT_RETRIES);
         try {
             Thread.sleep(RATE_LIMIT_BACKOFF_MS);
-            return null;
-        } catch (InterruptedException ignored) {
+            return RateLimitOutcome.RETRY;
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
-            return Optional.empty();
+            return RateLimitOutcome.STOP;
         }
     }
 

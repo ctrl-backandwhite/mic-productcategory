@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Log4j2
 @Service
@@ -33,9 +33,10 @@ public class CjInventorySyncUseCaseImpl extends AbstractCjSyncUseCase implements
     private final ProductSearchIndexPort productSearchIndexPort;
 
     public CjInventorySyncUseCaseImpl(SyncLogRepository syncLogRepository, SyncFailureRepository syncFailureRepository,
-            DropshippingPort cjClient, ProductDetailRepository productDetailRepository,
-            InventoryJpaRepository inventoryJpaRepository, ProductSearchIndexPort productSearchIndexPort) {
-        super(syncLogRepository, syncFailureRepository);
+            TransactionTemplate transactionTemplate, DropshippingPort cjClient,
+            ProductDetailRepository productDetailRepository, InventoryJpaRepository inventoryJpaRepository,
+            ProductSearchIndexPort productSearchIndexPort) {
+        super(syncLogRepository, syncFailureRepository, transactionTemplate);
         this.cjClient = cjClient;
         this.productDetailRepository = productDetailRepository;
         this.inventoryJpaRepository = inventoryJpaRepository;
@@ -58,8 +59,7 @@ public class CjInventorySyncUseCaseImpl extends AbstractCjSyncUseCase implements
         return runSingleItem(pid, () -> syncInventoryForPid(pid), CONFIG.logLabel());
     }
 
-    @Transactional
-    protected void syncInventoryForPid(String pid) {
+    void syncInventoryForPid(String pid) {
         List<CjInventoryByPidItemDto> items = cjClient.getInventoryByPid(pid);
         Map<String, Integer> variantStock = new HashMap<>();
 

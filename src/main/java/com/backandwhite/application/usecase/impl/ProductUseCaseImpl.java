@@ -52,7 +52,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
             return null;
         try {
             return ProductStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException _) {
             return null;
         }
     }

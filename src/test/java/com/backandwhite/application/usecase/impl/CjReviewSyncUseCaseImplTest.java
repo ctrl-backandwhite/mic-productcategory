@@ -43,9 +43,25 @@ class CjReviewSyncUseCaseImplTest {
     private SyncLogRepository syncLogRepository;
     @Mock
     private SyncFailureRepository syncFailureRepository;
+    @Mock
+    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     @InjectMocks
     private CjReviewSyncUseCaseImpl useCase;
+
+    @org.junit.jupiter.api.BeforeEach
+    void wireTransactionTemplate() {
+        org.mockito.Mockito.lenient().doAnswer(inv -> {
+            java.util.function.Consumer<org.springframework.transaction.TransactionStatus> callback = inv
+                    .getArgument(0);
+            callback.accept(null);
+            return null;
+        }).when(transactionTemplate).executeWithoutResult(any());
+        org.mockito.Mockito.lenient().doAnswer(inv -> {
+            org.springframework.transaction.support.TransactionCallback<?> callback = inv.getArgument(0);
+            return callback.doInTransaction(null);
+        }).when(transactionTemplate).execute(any());
+    }
 
     private static CjProductCommentsPageDto pageWith(List<CjReviewItemDto> list) {
         CjProductCommentsPageDto page = new CjProductCommentsPageDto();

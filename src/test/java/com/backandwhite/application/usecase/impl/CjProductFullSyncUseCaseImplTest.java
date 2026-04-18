@@ -40,9 +40,21 @@ class CjProductFullSyncUseCaseImplTest {
     private SyncFailureRepository syncFailureRepository;
     @Mock
     private ProductSearchIndexPort productSearchIndexPort;
+    @Mock
+    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     @InjectMocks
     private CjProductFullSyncUseCaseImpl useCase;
+
+    @org.junit.jupiter.api.BeforeEach
+    void wireTransactionTemplate() {
+        org.mockito.Mockito.lenient().doAnswer(inv -> {
+            java.util.function.Consumer<org.springframework.transaction.TransactionStatus> callback = inv
+                    .getArgument(0);
+            callback.accept(null);
+            return null;
+        }).when(transactionTemplate).executeWithoutResult(any());
+    }
 
     @Test
     void syncAll_noPids_successSyncLog() {

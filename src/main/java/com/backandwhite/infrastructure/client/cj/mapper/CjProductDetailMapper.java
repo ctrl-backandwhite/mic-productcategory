@@ -80,7 +80,7 @@ public interface CjProductDetailMapper {
     private static Instant tryParseOffsetDateTime(String dateStr) {
         try {
             return OffsetDateTime.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
-        } catch (Exception ignored) {
+        } catch (Exception _) {
             return null;
         }
     }
@@ -88,7 +88,7 @@ public interface CjProductDetailMapper {
     private static Instant tryParseEpochMillis(String dateStr) {
         try {
             return Instant.ofEpochMilli(Long.parseLong(dateStr));
-        } catch (NumberFormatException ignored) {
+        } catch (NumberFormatException _) {
             return null;
         }
     }
@@ -120,7 +120,7 @@ public interface CjProductDetailMapper {
             return null;
         try {
             return Money.of(new BigDecimal(value.trim()));
-        } catch (NumberFormatException ignored) {
+        } catch (NumberFormatException _) {
             return null;
         }
     }

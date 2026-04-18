@@ -30,7 +30,7 @@ public final class SpecificationHelpers {
         if (isCountQuery(query)) {
             return root.join(attribute, JoinType.INNER);
         }
-        return (Join<E, T>) (Object) root.fetch(attribute, JoinType.INNER);
+        return (Join<E, T>) root.fetch(attribute, JoinType.INNER);
     }
 
     /**

@@ -13,7 +13,7 @@ import com.backandwhite.infrastructure.client.cj.dto.CjProductDetailDto;
 import com.backandwhite.infrastructure.client.cj.mapper.CjProductDetailMapper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Log4j2
 @Service
@@ -29,10 +29,10 @@ public class CjProductFullSyncUseCaseImpl extends AbstractCjSyncUseCase implemen
     private final ProductSearchIndexPort productSearchIndexPort;
 
     public CjProductFullSyncUseCaseImpl(SyncLogRepository syncLogRepository,
-            SyncFailureRepository syncFailureRepository, DropshippingPort cjClient,
-            ProductDetailRepository productDetailRepository, CjProductDetailMapper cjProductDetailMapper,
-            ProductSearchIndexPort productSearchIndexPort) {
-        super(syncLogRepository, syncFailureRepository);
+            SyncFailureRepository syncFailureRepository, TransactionTemplate transactionTemplate,
+            DropshippingPort cjClient, ProductDetailRepository productDetailRepository,
+            CjProductDetailMapper cjProductDetailMapper, ProductSearchIndexPort productSearchIndexPort) {
+        super(syncLogRepository, syncFailureRepository, transactionTemplate);
         this.cjClient = cjClient;
         this.productDetailRepository = productDetailRepository;
         this.cjProductDetailMapper = cjProductDetailMapper;
@@ -51,8 +51,7 @@ public class CjProductFullSyncUseCaseImpl extends AbstractCjSyncUseCase implemen
         return runSingleItem(pid, () -> syncProductForPid(pid), CONFIG.logLabel());
     }
 
-    @Transactional
-    protected void syncProductForPid(String pid) {
+    void syncProductForPid(String pid) {
         CjProductDetailDto dto = cjClient.getProductDetail(pid);
         ProductDetail domain = cjProductDetailMapper.toDomain(dto);
         productDetailRepository.save(domain);
