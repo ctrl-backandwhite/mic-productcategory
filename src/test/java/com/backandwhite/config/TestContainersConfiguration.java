@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration(value = "productCategoryTestContainersConfiguration", proxyBeanMethods = false)
@@ -40,6 +41,19 @@ public class TestContainersConfiguration {
     PostgreSQLContainer<?> postgresContainer() {
         return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest")).withUsername(username)
                 .withPassword(password).withDatabaseName(dbName);
+    }
+
+    @Bean
+    @ServiceConnection
+    @ConditionalOnMissingBean(ElasticsearchContainer.class)
+    ElasticsearchContainer elasticsearchContainer() {
+        ElasticsearchContainer container = new ElasticsearchContainer(
+                DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch:9.0.0")
+                        .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch"))
+                .withEnv("xpack.security.enabled", "false").withEnv("discovery.type", "single-node")
+                .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
+        container.setPortBindings(java.util.List.of());
+        return container;
     }
 
     @Bean
