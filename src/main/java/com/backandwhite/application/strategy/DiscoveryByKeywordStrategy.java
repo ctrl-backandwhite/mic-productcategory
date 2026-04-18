@@ -1,34 +1,29 @@
 package com.backandwhite.application.strategy;
 
 import com.backandwhite.application.port.out.DropshippingPort;
-import com.backandwhite.domain.model.DiscoveredPid;
 import com.backandwhite.domain.model.DiscoveryState;
 import com.backandwhite.domain.repository.DiscoveredPidRepository;
 import com.backandwhite.domain.repository.DiscoveryStateRepository;
 import com.backandwhite.domain.repository.ProductDetailRepository;
-import com.backandwhite.domain.valueobject.DiscoveryStatus;
 import com.backandwhite.domain.valueobject.DiscoveryStrategy;
-import com.backandwhite.infrastructure.client.cj.dto.CjProductListPageDto;
-import com.backandwhite.infrastructure.client.cj.dto.CjProductListV2ItemDto;
 import com.backandwhite.infrastructure.configuration.CjDropshippingProperties;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 @Log4j2
 @Component
-@RequiredArgsConstructor
-public class DiscoveryByKeywordStrategy implements DiscoveryStrategyExecutor {
+public class DiscoveryByKeywordStrategy extends AbstractDiscoveryStrategy {
 
-    private final DropshippingPort dropshippingPort;
-    private final DiscoveredPidRepository discoveredPidRepository;
-    private final ProductDetailRepository productDetailRepository;
     private final DiscoveryStateRepository stateRepository;
-    private final CjDropshippingProperties properties;
+
+    public DiscoveryByKeywordStrategy(DropshippingPort dropshippingPort,
+            DiscoveredPidRepository discoveredPidRepository, ProductDetailRepository productDetailRepository,
+            DiscoveryStateRepository stateRepository, CjDropshippingProperties properties) {
+        super(dropshippingPort, discoveredPidRepository, productDetailRepository, properties);
+        this.stateRepository = stateRepository;
+    }
 
     @Override
     public DiscoveryStrategy getStrategy() {
@@ -74,7 +69,7 @@ public class DiscoveryByKeywordStrategy implements DiscoveryStrategyExecutor {
                             kwResult.getNewPidsDiscovered(), kwResult.getTotalPidsProcessed());
                 }
             } catch (Exception e) {
-                log.error("Error crawling keyword '{}': {}", keyword, e.getMessage());
+                log.error("Error crawling keyword '{}': {}", keyword, e.getMessage(), e);
             }
         }
 
@@ -87,52 +82,10 @@ public class DiscoveryByKeywordStrategy implements DiscoveryStrategyExecutor {
 
     private DiscoveryResult crawlKeyword(String keyword) {
         int maxPages = properties.getDiscovery().getMaxPagesPerKeyword();
-        int pageSize = properties.getDiscovery().getPageSize();
-        long waitMs = properties.getDiscovery().getRateLimitWaitMs();
-
-        int page = 1;
-        int newPids = 0;
-        int totalProcessed = 0;
-
-        while (page <= maxPages) {
-            CjProductListPageDto pageResult = dropshippingPort.getProductListFiltered(page, pageSize, null, keyword,
-                    null, null, 3, "desc");
-
-            List<CjProductListV2ItemDto> products = (pageResult != null) ? pageResult.getAllProducts() : List.of();
-
-            if (products.isEmpty()) {
-                break;
-            }
-
-            List<DiscoveredPid> batch = new ArrayList<>();
-            for (CjProductListV2ItemDto item : products) {
-                totalProcessed++;
-                String pid = item.getId();
-                if (pid == null || pid.isBlank())
-                    continue;
-
-                if (!discoveredPidRepository.existsByPid(pid) && !productDetailRepository.existsByPid(pid)) {
-                    batch.add(buildDiscoveredPid(item, keyword));
-                    newPids++;
-                }
-            }
-
-            if (!batch.isEmpty()) {
-                discoveredPidRepository.saveAll(batch);
-            }
-
-            int totalPages = pageResult.getTotalRecords() != null
-                    ? (int) Math.ceil((double) pageResult.getTotalRecords() / pageSize)
-                    : page;
-            if (page >= totalPages)
-                break;
-
-            page++;
-            rateLimitWait(waitMs);
-        }
-
-        return DiscoveryResult.builder().newPidsDiscovered(newPids).totalPidsProcessed(totalProcessed)
-                .pagesScanned(page).build();
+        return crawlPages(maxPages,
+                (page, pageSize) -> dropshippingPort.getProductListFiltered(page, pageSize, null, keyword, null, null,
+                        3, "desc"),
+                item -> buildBaseDiscoveredPid(item, item.getCategoryId(), keyword, DiscoveryStrategy.BY_KEYWORD));
     }
 
     private int findResumeIndex(List<String> keywords, String lastKeyword) {
@@ -140,20 +93,5 @@ public class DiscoveryByKeywordStrategy implements DiscoveryStrategyExecutor {
             return 0;
         int idx = keywords.indexOf(lastKeyword);
         return idx >= 0 ? idx + 1 : 0;
-    }
-
-    private DiscoveredPid buildDiscoveredPid(CjProductListV2ItemDto item, String keyword) {
-        return DiscoveredPid.builder().id(UUID.randomUUID().toString()).pid(item.getId())
-                .categoryId(item.getCategoryId()).keyword(keyword).strategy(DiscoveryStrategy.BY_KEYWORD)
-                .status(DiscoveryStatus.NEW).nameEn(item.getNameEn()).sellPrice(item.getSellPrice())
-                .discoveredAt(Instant.now()).createdAt(Instant.now()).updatedAt(Instant.now()).build();
-    }
-
-    private void rateLimitWait(long ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 }

@@ -83,7 +83,7 @@ class CjInventorySyncUseCaseImplTest {
                 .thenAnswer(i -> ((SyncLog) i.getArgument(0)).toBuilder().id("log-1").build());
         when(productDetailRepository.findPidsNeedingInventorySync(100)).thenReturn(List.of("pid-1"));
         when(cjClient.getInventoryByPid("pid-1")).thenReturn(List.of(inv("v1", 5)));
-        when(inventoryJpaRepository.findByVidAndCountryCode(eq("v1"), eq("US"))).thenReturn(Optional.empty());
+        when(inventoryJpaRepository.findByVidAndCountryCode("v1", "US")).thenReturn(Optional.empty());
 
         CjSyncResult result = useCase.syncAll(false);
         assertThat(result.getSyncedItems()).isEqualTo(1);

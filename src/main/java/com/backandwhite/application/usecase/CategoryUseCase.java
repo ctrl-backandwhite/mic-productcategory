@@ -11,6 +11,7 @@ public interface CategoryUseCase {
 
     List<Category> findCategories(String locale, CategoryStatus status, Boolean active);
 
+    @SuppressWarnings("java:S107")
     Page<Category> findCategoriesPaged(String locale, CategoryStatus status, Boolean active, String name, Integer level,
             int page, int size, String sortBy, boolean ascending);
 

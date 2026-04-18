@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AttributeRepositoryImpl implements AttributeRepository {
 
+    private static final String ENTITY_NAME = "Attribute";
+
     private final AttributeJpaRepository attributeJpaRepository;
     private final AttributeInfraMapper attributeInfraMapper;
 
@@ -51,7 +53,7 @@ public class AttributeRepositoryImpl implements AttributeRepository {
 
         attributeJpaRepository.save(attributeInfraMapper.toEntityWithValues(attribute));
 
-        return findById(newId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Attribute", newId));
+        return findById(newId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, newId));
     }
 
     @Override
@@ -67,7 +69,7 @@ public class AttributeRepositoryImpl implements AttributeRepository {
         attributeJpaRepository.save(entity);
 
         return findById(attributeId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Attribute", attributeId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, attributeId));
     }
 
     @Override
@@ -84,7 +86,7 @@ public class AttributeRepositoryImpl implements AttributeRepository {
 
     private AttributeEntity findOrThrow(String id) {
         return attributeJpaRepository.findById(id)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Attribute", id));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, id));
     }
 
     private void syncValues(AttributeEntity entity, List<AttributeValue> incomingValues) {

@@ -153,8 +153,7 @@ public class PublicProductController {
             @RequestParam(defaultValue = "en") String locale, @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size, @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "false") boolean ascending) {
-        // Get brand by slug to verify it exists
-        Brand brand = brandUseCase.findBySlug(slug);
+        brandUseCase.findBySlug(slug);
         Page<Product> products = productUseCase.findAllPaged(locale, null, "PUBLISHED", null, page, size, sortBy,
                 ascending);
         return ResponseEntity.ok(PageableUtils.toResponse(products.map(p -> {

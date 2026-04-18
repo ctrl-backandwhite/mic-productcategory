@@ -26,6 +26,8 @@ import org.springframework.web.reactive.function.client.WebClientException;
 public class CjAuthClient {
 
     private static final Duration AUTH_TIMEOUT = Duration.ofSeconds(15);
+    private static final String CJ_SERVICE = "CJ Dropshipping";
+    private static final String CJ_SERVICE_REFRESH = "CJ Dropshipping (refresh)";
 
     private final WebClient cjWebClient;
     private final CjDropshippingProperties properties;
@@ -43,7 +45,7 @@ public class CjAuthClient {
                     }).timeout(AUTH_TIMEOUT).block();
 
             if (response == null || response.getData() == null) {
-                throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException("CJ Dropshipping");
+                throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException(CJ_SERVICE);
             }
 
             log.info("CJ access token obtained. Expiry: {}", response.getData().getAccessTokenExpiryDate());
@@ -53,10 +55,10 @@ public class CjAuthClient {
             throw e;
         } catch (WebClientException e) {
             log.error("CJ token request failed (WebClient): {}", e.getMessage(), e);
-            throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException("CJ Dropshipping");
+            throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException(CJ_SERVICE);
         } catch (Exception e) {
             log.error("CJ token request failed (unexpected): {}", e.getMessage(), e);
-            throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException("CJ Dropshipping");
+            throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException(CJ_SERVICE);
         }
     }
 
@@ -74,7 +76,7 @@ public class CjAuthClient {
 
             if (response == null || response.getData() == null) {
                 log.warn("Refresh token failed, will fall back to requesting new token");
-                throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException("CJ Dropshipping (refresh)");
+                throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException(CJ_SERVICE_REFRESH);
             }
 
             log.info("CJ access token refreshed. New expiry: {}", response.getData().getAccessTokenExpiryDate());
@@ -84,10 +86,10 @@ public class CjAuthClient {
             throw e;
         } catch (WebClientException e) {
             log.error("CJ token refresh failed (WebClient): {}", e.getMessage(), e);
-            throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException("CJ Dropshipping (refresh)");
+            throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException(CJ_SERVICE_REFRESH);
         } catch (Exception e) {
             log.error("CJ token refresh failed (unexpected): {}", e.getMessage(), e);
-            throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException("CJ Dropshipping (refresh)");
+            throw EXTERNAL_SERVICE_TOKEN_ERROR.toExternalServiceException(CJ_SERVICE_REFRESH);
         }
     }
 }

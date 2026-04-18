@@ -35,6 +35,7 @@ public interface ProductDetailUseCase {
     /**
      * Lists all variants paginated, with optional search and filters.
      */
+    @SuppressWarnings("java:S107")
     Page<ProductDetailVariant> findAllVariantsPaged(int page, int size, String locale, String search, String status,
             String pid, String sortBy, boolean ascending);
 

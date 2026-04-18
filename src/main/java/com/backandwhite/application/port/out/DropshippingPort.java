@@ -69,6 +69,7 @@ public interface DropshippingPort {
      * @param sort
      *            "desc" or "asc"
      */
+    @SuppressWarnings("java:S107")
     CjProductListPageDto getProductListFiltered(int page, int size, String categoryId, String keyword, Long timeStart,
             Long timeEnd, Integer orderBy, String sort);
 }

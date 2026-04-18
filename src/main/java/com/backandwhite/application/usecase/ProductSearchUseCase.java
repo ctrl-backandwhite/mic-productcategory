@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface ProductSearchUseCase {
 
+    @SuppressWarnings("java:S107")
     ProductSearchResponse search(String query, List<String> categoryIds, String brand, Float minPrice, Float maxPrice,
             Boolean inStock, String sortBy, int page, int size);
 

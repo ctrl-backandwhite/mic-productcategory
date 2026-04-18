@@ -103,13 +103,13 @@ class CjSyncControllerTest {
     void reindexElasticsearch_returnsAccepted() {
         when(productSearchReindexUseCase.reindexAll()).thenReturn(10L);
         ResponseEntity<Map<String, Object>> response = controller.reindexElasticsearch();
-        assertThat(response.getBody().get("totalIndexed")).isEqualTo(10L);
+        assertThat(response.getBody()).containsEntry("totalIndexed", 10L);
     }
 
     @Test
     void reindexFromDb_returnsAccepted() {
         when(productSearchReindexUseCase.reindexFromDb()).thenReturn(7L);
         ResponseEntity<Map<String, Object>> response = controller.reindexFromDb();
-        assertThat(response.getBody().get("totalIndexed")).isEqualTo(7L);
+        assertThat(response.getBody()).containsEntry("totalIndexed", 7L);
     }
 }

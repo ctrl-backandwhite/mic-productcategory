@@ -29,71 +29,80 @@ public class CategorySyncUseCaseImpl implements CategorySyncUseCase {
         log.info("Starting CJ Dropshipping category sync...");
 
         List<CjCategoryFirstLevelDto> cjCategories = cjClient.getCategories();
-
-        int created = 0;
-        int updated = 0;
+        SyncCounters counters = new SyncCounters();
 
         for (CjCategoryFirstLevelDto firstLevel : cjCategories) {
-            String firstName = firstLevel.getCategoryFirstName();
-            if (firstName == null || firstName.isBlank())
-                continue;
-
-            boolean firstExists = categoryRepository
-                    .findCategoryIdByNameAndLocaleAndLevelAndParent(firstName, LOCALE_EN, 1, null).isPresent();
-
-            String firstLevelId = categoryRepository.upsertCategory(null, null, 1, firstName, LOCALE_EN);
-
-            if (firstExists) {
-                updated++;
-            } else {
-                created++;
-            }
-
-            if (firstLevel.getCategoryFirstList() == null)
-                continue;
-
-            for (CjCategorySecondLevelDto secondLevel : firstLevel.getCategoryFirstList()) {
-                String secondName = secondLevel.getCategorySecondName();
-                if (secondName == null || secondName.isBlank())
-                    continue;
-
-                boolean secondExists = categoryRepository
-                        .findCategoryIdByNameAndLocaleAndLevelAndParent(secondName, LOCALE_EN, 2, firstLevelId)
-                        .isPresent();
-
-                String secondLevelId = categoryRepository.upsertCategory(null, firstLevelId, 2, secondName, LOCALE_EN);
-
-                if (secondExists) {
-                    updated++;
-                } else {
-                    created++;
-                }
-
-                if (secondLevel.getCategorySecondList() == null)
-                    continue;
-
-                for (CjCategoryThirdLevelDto thirdLevel : secondLevel.getCategorySecondList()) {
-                    String thirdName = thirdLevel.getCategoryName();
-                    String thirdId = thirdLevel.getCategoryId();
-                    if (thirdName == null || thirdName.isBlank() || thirdId == null)
-                        continue;
-
-                    boolean thirdExists = categoryRepository.findCategoryIdById(thirdId).isPresent();
-
-                    categoryRepository.upsertCategory(thirdId, secondLevelId, 3, thirdName, LOCALE_EN);
-
-                    if (thirdExists) {
-                        updated++;
-                    } else {
-                        created++;
-                    }
-                }
-            }
+            syncFirstLevel(firstLevel, counters);
         }
 
-        log.info("CJ Dropshipping category sync completed: created={}, updated={}, total={}", created, updated,
-                created + updated);
+        log.info("CJ Dropshipping category sync completed: created={}, updated={}, total={}", counters.created,
+                counters.updated, counters.created + counters.updated);
 
-        return CategorySyncResult.builder().created(created).updated(updated).total(created + updated).build();
+        return CategorySyncResult.builder().created(counters.created).updated(counters.updated)
+                .total(counters.created + counters.updated).build();
+    }
+
+    private void syncFirstLevel(CjCategoryFirstLevelDto firstLevel, SyncCounters counters) {
+        String firstName = firstLevel.getCategoryFirstName();
+        if (firstName == null || firstName.isBlank()) {
+            return;
+        }
+
+        String firstLevelId = upsertAndCount(
+                null, null, 1, firstName, () -> categoryRepository
+                        .findCategoryIdByNameAndLocaleAndLevelAndParent(firstName, LOCALE_EN, 1, null).isPresent(),
+                counters);
+
+        if (firstLevel.getCategoryFirstList() == null) {
+            return;
+        }
+        for (CjCategorySecondLevelDto secondLevel : firstLevel.getCategoryFirstList()) {
+            syncSecondLevel(secondLevel, firstLevelId, counters);
+        }
+    }
+
+    private void syncSecondLevel(CjCategorySecondLevelDto secondLevel, String firstLevelId, SyncCounters counters) {
+        String secondName = secondLevel.getCategorySecondName();
+        if (secondName == null || secondName.isBlank()) {
+            return;
+        }
+
+        String secondLevelId = upsertAndCount(null, firstLevelId, 2, secondName, () -> categoryRepository
+                .findCategoryIdByNameAndLocaleAndLevelAndParent(secondName, LOCALE_EN, 2, firstLevelId).isPresent(),
+                counters);
+
+        if (secondLevel.getCategorySecondList() == null) {
+            return;
+        }
+        for (CjCategoryThirdLevelDto thirdLevel : secondLevel.getCategorySecondList()) {
+            syncThirdLevel(thirdLevel, secondLevelId, counters);
+        }
+    }
+
+    private void syncThirdLevel(CjCategoryThirdLevelDto thirdLevel, String secondLevelId, SyncCounters counters) {
+        String thirdName = thirdLevel.getCategoryName();
+        String thirdId = thirdLevel.getCategoryId();
+        if (thirdName == null || thirdName.isBlank() || thirdId == null) {
+            return;
+        }
+        upsertAndCount(thirdId, secondLevelId, 3, thirdName,
+                () -> categoryRepository.findCategoryIdById(thirdId).isPresent(), counters);
+    }
+
+    private String upsertAndCount(String id, String parentId, int level, String name,
+            java.util.function.BooleanSupplier existsCheck, SyncCounters counters) {
+        boolean exists = existsCheck.getAsBoolean();
+        String resultId = categoryRepository.upsertCategory(id, parentId, level, name, LOCALE_EN);
+        if (exists) {
+            counters.updated++;
+        } else {
+            counters.created++;
+        }
+        return resultId;
+    }
+
+    private static final class SyncCounters {
+        int created;
+        int updated;
     }
 }

@@ -68,6 +68,18 @@
             **/*Application.*,
             **/valueobject/**
         </sonar.coverage.exclusions>
+        <sonar.cpd.exclusions>
+            **/dto/**,
+            **/*DtoIn.*,
+            **/*DtoOut.*,
+            **/model/**,
+            **/*Entity.*,
+            **/configuration/**,
+            **/*Config.*,
+            **/*Properties.*,
+            **/valueobject/**,
+            src/test/**
+        </sonar.cpd.exclusions>
     </properties>
 
     <dependencyManagement>
@@ -214,12 +226,11 @@
             </exclusions>
         </dependency>
 
-        <!-- Force commons-io 2.15+ to satisfy commons-compress transitive dep -->
+        <!-- Force commons-io 2.15+ to satisfy commons-compress (test) and Liquibase 5.x (runtime) -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.15.1</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

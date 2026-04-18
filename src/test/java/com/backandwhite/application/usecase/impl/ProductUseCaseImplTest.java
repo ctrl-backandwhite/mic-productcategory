@@ -160,7 +160,7 @@ class ProductUseCaseImplTest {
         BulkImportResult result = productUseCase.bulkCreate(products);
 
         assertThat(result.getCreated()).isEqualTo(2);
-        assertThat(result.getFailed()).isEqualTo(0);
+        assertThat(result.getFailed()).isZero();
         assertThat(result.getTotalRows()).isEqualTo(2);
     }
 

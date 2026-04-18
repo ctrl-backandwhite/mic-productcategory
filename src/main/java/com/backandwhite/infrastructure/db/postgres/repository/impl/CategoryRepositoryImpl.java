@@ -26,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CategoryRepositoryImpl implements CategoryRepository {
 
+    private static final String ENTITY_NAME = "Category";
+
     private final CategoryJpaRepository categoryJpaRepository;
     private final CategoryInfraMapper categoryInfraMapper;
 
@@ -59,7 +61,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
         categoryJpaRepository.save(categoryInfraMapper.toEntityWithChildren(category));
 
         String locale = resolveLocale(category);
-        return findById(newId, locale).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", newId));
+        return findById(newId, locale).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, newId));
     }
 
     @Override
@@ -73,7 +75,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
         String locale = resolveLocale(category);
         return findById(categoryId, locale)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", categoryId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, categoryId));
     }
 
     @Override
@@ -187,7 +189,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     private CategoryEntity findOrThrow(String id) {
         return categoryJpaRepository.findById(id)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Category", id));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, id));
     }
 
     /** Loads the entity, builds the children tree and applies locale name. */

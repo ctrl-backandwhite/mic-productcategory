@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ProductUseCaseImpl implements ProductUseCase {
 
+    private static final String PRODUCT_ENTITY = "Product";
+
     private final ProductRepository productRepository;
     private final CatalogEventPort catalogEventPort;
     private final ProductSearchIndexPort productSearchIndexPort;
@@ -50,7 +52,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
             return null;
         try {
             return ProductStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException ignored) {
             return null;
         }
     }
@@ -59,7 +61,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
     @Transactional(readOnly = true)
     public Product findById(String productId, String locale) {
         return productRepository.findById(productId, locale)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", productId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(PRODUCT_ENTITY, productId));
     }
 
     @Override
@@ -88,7 +90,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
     @Transactional
     public void publishProduct(String productId) {
         Product product = productRepository.findById(productId, null)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", productId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(PRODUCT_ENTITY, productId));
         ProductStatus newStatus = product.getStatus() == ProductStatus.PUBLISHED
                 ? ProductStatus.DRAFT
                 : ProductStatus.PUBLISHED;

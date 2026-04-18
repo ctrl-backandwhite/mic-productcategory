@@ -25,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
 
+    private static final String ENTITY_PRODUCT_DETAIL = "ProductDetail";
+    private static final String ENTITY_PRODUCT_DETAIL_VARIANT = "ProductDetailVariant";
+
     private final ProductDetailRepository productDetailRepository;
     private final DropshippingPort cjDropshippingClient;
     private final CjProductDetailMapper cjProductDetailMapper;
@@ -46,12 +49,12 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
             cjProduct = cjDropshippingClient.getProductDetail(pid);
         } catch (Exception e) {
             log.warn("Failed to fetch product detail from CJ for pid={}: {}", pid, e.getMessage());
-            throw Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetail", pid);
+            throw Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_PRODUCT_DETAIL, pid);
         }
 
         if (cjProduct == null || cjProduct.getPid() == null) {
             log.warn("CJ returned null/empty product detail for pid={}", pid);
-            throw Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetail", pid);
+            throw Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_PRODUCT_DETAIL, pid);
         }
 
         // 3. Map CJ response -> domain model (MapStruct)
@@ -63,7 +66,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
 
         // 5. Return from the DB (to ensure the persisted data is returned)
         return productDetailRepository.findByPid(pid)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetail", pid));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_PRODUCT_DETAIL, pid));
     }
 
     // ── Publish variant ──────────────────────────────────────────────────────
@@ -72,7 +75,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
     @Transactional
     public void publishVariant(String vid) {
         ProductDetailVariant variant = productDetailRepository.findVariantByVid(vid, null)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_PRODUCT_DETAIL_VARIANT, vid));
         ProductStatus newStatus = variant.getStatus() == ProductStatus.PUBLISHED
                 ? ProductStatus.DRAFT
                 : ProductStatus.PUBLISHED;
@@ -108,7 +111,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
     @Transactional(readOnly = true)
     public ProductDetailVariant findVariantByVid(String vid, String locale) {
         return productDetailRepository.findVariantByVid(vid, locale)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_PRODUCT_DETAIL_VARIANT, vid));
     }
 
     @Override
@@ -116,7 +119,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
     public ProductDetailVariant createVariant(ProductDetailVariant variant) {
         // Validate that the parent ProductDetail exists
         if (!productDetailRepository.existsByPid(variant.getPid())) {
-            throw Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetail", variant.getPid());
+            throw Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_PRODUCT_DETAIL, variant.getPid());
         }
 
         // Generate a new UUID for the variant
@@ -132,7 +135,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
     public ProductDetailVariant updateVariant(String vid, ProductDetailVariant variant) {
         // Verify variant exists
         ProductDetailVariant existing = productDetailRepository.findVariantByVid(vid, null)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_PRODUCT_DETAIL_VARIANT, vid));
 
         // Preserve immutable fields
         variant = variant.withVid(vid).withPid(existing.getPid()).withCreateTime(existing.getCreateTime());
@@ -145,7 +148,7 @@ public class ProductDetailUseCaseImpl implements ProductDetailUseCase {
     @Transactional
     public void deleteVariant(String vid) {
         if (productDetailRepository.findVariantByVid(vid, null).isEmpty()) {
-            throw Message.ENTITY_NOT_FOUND.toEntityNotFound("ProductDetailVariant", vid);
+            throw Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_PRODUCT_DETAIL_VARIANT, vid);
         }
         log.info("Deleting variant vid={}", vid);
         productDetailRepository.deleteVariant(vid);

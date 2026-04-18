@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BrandRepositoryImpl implements BrandRepository {
 
+    private static final String ENTITY_NAME = "Brand";
+
     private final BrandJpaRepository brandJpaRepository;
     private final BrandInfraMapper brandInfraMapper;
 
@@ -57,7 +59,7 @@ public class BrandRepositoryImpl implements BrandRepository {
 
         brandJpaRepository.save(brandInfraMapper.toEntity(brand));
 
-        return findById(newId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", newId));
+        return findById(newId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, newId));
     }
 
     @Override
@@ -72,7 +74,7 @@ public class BrandRepositoryImpl implements BrandRepository {
 
         brandJpaRepository.save(entity);
 
-        return findById(brandId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", brandId));
+        return findById(brandId).orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, brandId));
     }
 
     @Override
@@ -101,6 +103,6 @@ public class BrandRepositoryImpl implements BrandRepository {
 
     private BrandEntity findOrThrow(String id) {
         return brandJpaRepository.findById(id)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", id));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, id));
     }
 }

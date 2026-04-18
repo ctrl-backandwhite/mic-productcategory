@@ -56,12 +56,9 @@ class ProductDiscoveryUseCaseImplTest {
     }
 
     @Test
-    void runStrategy_unknownStrategy_returnsErrorResult() {
-        // Remove strategies by passing a strategy not in the map
-        // Not possible since map is populated at construction; instead test with
-        // runStrategy(strategy) assuming a strategy not registered — we'll test
-        // by mocking an unknown enum path (simulating unknown)
-        // However all 3 strategies are in the map: we test the other cases below.
+    void useCase_isInitialized() {
+        // Smoke assertion: the use case was wired correctly by the test setUp.
+        org.assertj.core.api.Assertions.assertThat(useCase).isNotNull();
     }
 
     @Test

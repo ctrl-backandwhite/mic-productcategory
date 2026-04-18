@@ -37,7 +37,7 @@ class MediaAssetUseCaseImplTest {
     private MediaAssetUseCaseImpl mediaAssetUseCase;
 
     @Test
-    void upload_validImage_savesSuccessfully() throws Exception {
+    void upload_validImage_savesSuccessfully() {
         MultipartFile file = mockFile("test.jpg", "image/jpeg", 1024);
         when(storageService.store(anyString(), anyString(), any(InputStream.class))).thenReturn("stored-test.jpg");
         when(storageService.getUrl("stored-test.jpg")).thenReturn("http://localhost/uploads/stored-test.jpg");
@@ -59,7 +59,7 @@ class MediaAssetUseCaseImplTest {
     }
 
     @Test
-    void upload_pdf_noThumbnail() throws Exception {
+    void upload_pdf_noThumbnail() {
         MultipartFile file = mockFile("doc.pdf", "application/pdf", 1024);
         when(storageService.store(anyString(), anyString(), any(InputStream.class))).thenReturn("stored-doc.pdf");
         when(storageService.getUrl("stored-doc.pdf")).thenReturn("http://localhost/uploads/stored-doc.pdf");

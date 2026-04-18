@@ -80,7 +80,7 @@ public interface ProductDocumentMapper {
                 trimmed = trimmed.substring(0, dashIdx);
             }
             return Float.parseFloat(trimmed);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ignored) {
             return null;
         }
     }

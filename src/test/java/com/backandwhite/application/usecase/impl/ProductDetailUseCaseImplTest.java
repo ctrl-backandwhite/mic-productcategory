@@ -187,8 +187,8 @@ class ProductDetailUseCaseImplTest {
     @Test
     void updateVariant_notFound_throws() {
         when(productDetailRepository.findVariantByVid("vid", null)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> useCase.updateVariant("vid", ProductDetailVariant.builder().build()))
-                .isInstanceOf(EntityNotFoundException.class);
+        ProductDetailVariant empty = ProductDetailVariant.builder().build();
+        assertThatThrownBy(() -> useCase.updateVariant("vid", empty)).isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -224,7 +224,7 @@ class ProductDetailUseCaseImplTest {
         when(productDetailRepository.saveVariant(any())).thenAnswer(inv -> inv.getArgument(0));
         BulkImportResult result = useCase.bulkCreateVariants(List.of(v, v));
         assertThat(result.getCreated()).isEqualTo(2);
-        assertThat(result.getFailed()).isEqualTo(0);
+        assertThat(result.getFailed()).isZero();
     }
 
     @Test
@@ -232,7 +232,7 @@ class ProductDetailUseCaseImplTest {
         ProductDetailVariant v = ProductDetailVariant.builder().pid("pid").build();
         when(productDetailRepository.existsByPid("pid")).thenReturn(false);
         BulkImportResult result = useCase.bulkCreateVariants(List.of(v));
-        assertThat(result.getCreated()).isEqualTo(0);
+        assertThat(result.getCreated()).isZero();
         assertThat(result.getFailed()).isEqualTo(1);
         assertThat(result.getErrors()).hasSize(1);
     }

@@ -1,6 +1,7 @@
 package com.backandwhite.infrastructure.storage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.ByteArrayInputStream;
@@ -30,13 +31,13 @@ class LocalStorageServiceTest {
     }
 
     @Test
-    void init_createsDirectories() throws IOException {
+    void init_createsDirectories() {
         assertThat(Files.exists(tempDir.resolve("uploads"))).isTrue();
         assertThat(Files.exists(tempDir.resolve("uploads/thumbnails"))).isTrue();
     }
 
     @Test
-    void store_writesFile_andReturnsFilename() throws IOException {
+    void store_writesFile_andReturnsFilename() {
         InputStream input = new ByteArrayInputStream("data".getBytes());
         String filename = service.store("image.jpg", "image/jpeg", input);
         assertThat(filename).endsWith(".jpg");
@@ -66,7 +67,7 @@ class LocalStorageServiceTest {
 
     @Test
     void delete_missingFile_noException() {
-        service.delete("missing.txt");
+        assertThatCode(() -> service.delete("missing.txt")).doesNotThrowAnyException();
     }
 
     @Test
@@ -78,7 +79,7 @@ class LocalStorageServiceTest {
 
     @Test
     void deleteThumbnail_missingFile_noException() {
-        service.deleteThumbnail("missing.txt");
+        assertThatCode(() -> service.deleteThumbnail("missing.txt")).doesNotThrowAnyException();
     }
 
     @Test
@@ -141,13 +142,10 @@ class LocalStorageServiceTest {
 
     @Test
     void delete_ioException_swallowedSilently() throws IOException {
-        // Create a file where a directory is expected, so deleteIfExists on a sub-path
-        // throws
         Path file = Files.createFile(tempDir.resolve("notadir.txt"));
         LocalStorageService svc = new LocalStorageService();
         ReflectionTestUtils.setField(svc, "rootLocation", file);
-        // Should NOT throw — errors are logged as warn
-        svc.delete("anything");
+        assertThatCode(() -> svc.delete("anything")).doesNotThrowAnyException();
     }
 
     @Test
@@ -155,6 +153,6 @@ class LocalStorageServiceTest {
         Path file = Files.createFile(tempDir.resolve("notadir-thumb.txt"));
         LocalStorageService svc = new LocalStorageService();
         ReflectionTestUtils.setField(svc, "thumbnailLocation", file);
-        svc.deleteThumbnail("anything");
+        assertThatCode(() -> svc.deleteThumbnail("anything")).doesNotThrowAnyException();
     }
 }

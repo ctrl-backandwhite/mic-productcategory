@@ -73,15 +73,23 @@ public interface CjProductDetailMapper {
         if (dateStr == null || dateStr.isBlank()) {
             return null;
         }
+        Instant parsed = tryParseOffsetDateTime(dateStr);
+        return parsed != null ? parsed : tryParseEpochMillis(dateStr);
+    }
+
+    private static Instant tryParseOffsetDateTime(String dateStr) {
         try {
             return OffsetDateTime.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
-        } catch (Exception e) {
-            try {
-                long millis = Long.parseLong(dateStr);
-                return Instant.ofEpochMilli(millis);
-            } catch (NumberFormatException nfe) {
-                return null;
-            }
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static Instant tryParseEpochMillis(String dateStr) {
+        try {
+            return Instant.ofEpochMilli(Long.parseLong(dateStr));
+        } catch (NumberFormatException ignored) {
+            return null;
         }
     }
 
@@ -112,7 +120,7 @@ public interface CjProductDetailMapper {
             return null;
         try {
             return Money.of(new BigDecimal(value.trim()));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ignored) {
             return null;
         }
     }

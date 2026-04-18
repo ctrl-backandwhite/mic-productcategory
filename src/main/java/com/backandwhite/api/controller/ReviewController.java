@@ -39,10 +39,9 @@ public class ReviewController {
     @Operation(summary = "List approved reviews for a product", description = "Returns paginated approved reviews for a given product")
     public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> findByProductId(
             @Parameter(description = "Product ID") @PathVariable String productId,
-            @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size", example = "10") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Sort field", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
-            @Parameter(description = "Ascending order", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending) {
         Page<Review> result = reviewUseCase.findByProductId(productId, page, size, sortBy, ascending);
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(reviewApiMapper::toDto)));
     }
@@ -83,10 +82,9 @@ public class ReviewController {
     public ResponseEntity<PaginationDtoOut<ReviewDtoOut>> findAll(
             @Parameter(description = "Filter by status (PENDING, APPROVED, REJECTED)") @RequestParam(required = false) ReviewStatus status,
             @Parameter(description = "Filter by rating (1-5)") @RequestParam(required = false) Integer rating,
-            @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Sort field", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
-            @Parameter(description = "Ascending order", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending) {
         Page<Review> result = reviewUseCase.findAll(status, rating, page, size, sortBy, ascending);
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(reviewApiMapper::toDto)));
     }

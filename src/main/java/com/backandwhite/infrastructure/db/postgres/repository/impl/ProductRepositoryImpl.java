@@ -32,6 +32,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
 
+    private static final String ENTITY_NAME = "Product";
+
     private final ProductJpaRepository productJpaRepository;
     private final ProductInfraMapper productInfraMapper;
     private final CategoryJpaRepository categoryJpaRepository;
@@ -76,26 +78,26 @@ public class ProductRepositoryImpl implements ProductRepository {
         product.setId(newId);
         productJpaRepository.save(productInfraMapper.toEntityWithChildren(product));
         return findById(newId, resolveLocale(product))
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", newId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, newId));
     }
 
     @Override
     public Product update(String productId, Product product) {
         ProductEntity entity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", productId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, productId));
 
         applyFieldsToEntity(entity, product);
         upsertTranslations(entity, product.getTranslations());
         productJpaRepository.save(entity);
 
         return findById(productId, resolveLocale(product))
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", productId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, productId));
     }
 
     @Override
     public void delete(String productId) {
         ProductEntity entity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", productId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, productId));
         productJpaRepository.delete(entity);
     }
 
@@ -110,7 +112,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public void enrichDetail(String productId, String description, String productImageSet) {
         ProductEntity entity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", productId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, productId));
         if (description != null)
             entity.setDescription(description);
         if (productImageSet != null)
@@ -121,7 +123,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public void updateStatus(String productId, ProductStatus status) {
         ProductEntity entity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Product", productId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, productId));
         entity.setStatus(status);
         productJpaRepository.save(entity);
     }

@@ -98,10 +98,6 @@ public class CategoryController {
 
         Pageable pageable = PageableUtils.toPageable(request);
 
-        // toFilterMap extracts via reflection only non-null fields from the filter DTO
-        // Resulting map: { status → PUBLISHED, active → true, level → 1 }
-        // Passed to the use case which converts it to Specification with
-        // FilterUtils.buildSpecification()
         Page<Category> result = categoryUseCase.findCategoriesPaged(request.getLocale(),
                 request.getFilters() != null ? request.getFilters().getStatus() : null,
                 request.getFilters() != null ? request.getFilters().getActive() : null, null,
@@ -235,7 +231,7 @@ public class CategoryController {
 
     private List<CategoryTranslation> toTranslations(List<com.backandwhite.api.dto.in.CategoryTranslationDtoIn> dtos) {
         if (dtos == null || dtos.isEmpty())
-            return null;
+            return List.of();
         return dtos.stream().map(t -> CategoryTranslation.builder().locale(t.getLocale()).name(t.getName()).build())
                 .toList();
     }

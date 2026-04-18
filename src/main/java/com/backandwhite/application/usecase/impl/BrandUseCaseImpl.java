@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BrandUseCaseImpl implements BrandUseCase {
 
+    private static final String ENTITY_NAME = "Brand";
+
     private final BrandRepository brandRepository;
 
     @Override
@@ -33,14 +35,14 @@ public class BrandUseCaseImpl implements BrandUseCase {
     @Transactional(readOnly = true)
     public Brand findById(String brandId) {
         return brandRepository.findById(brandId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", brandId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, brandId));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Brand findBySlug(String slug) {
         return brandRepository.findBySlug(slug)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", slug));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, slug));
     }
 
     @Override
@@ -65,7 +67,7 @@ public class BrandUseCaseImpl implements BrandUseCase {
     @Transactional
     public void toggleStatus(String brandId) {
         Brand brand = brandRepository.findById(brandId)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Brand", brandId));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, brandId));
         BrandStatus newStatus = brand.getStatus() == BrandStatus.ACTIVE ? BrandStatus.INACTIVE : BrandStatus.ACTIVE;
         brandRepository.updateStatus(brandId, newStatus);
     }

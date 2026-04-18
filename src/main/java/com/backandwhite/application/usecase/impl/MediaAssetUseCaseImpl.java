@@ -2,6 +2,7 @@ package com.backandwhite.application.usecase.impl;
 
 import com.backandwhite.application.service.StorageService;
 import com.backandwhite.application.usecase.MediaAssetUseCase;
+import com.backandwhite.common.exception.BusinessException;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.MediaAsset;
 import com.backandwhite.domain.repository.MediaAssetRepository;
@@ -23,7 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
 
-    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10MB
+    private static final String ENTITY_NAME = "MediaAsset";
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
     private static final Set<String> ALLOWED_MIME_TYPES = Set.of("image/jpeg", "image/png", "image/gif", "image/webp",
             "image/svg+xml", "application/pdf", "video/mp4");
     private static final Set<String> IMAGE_MIME_TYPES = Set.of("image/jpeg", "image/png", "image/gif", "image/webp");
@@ -70,7 +72,7 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
 
         } catch (Exception e) {
             log.error("Error uploading media asset: {}", file.getOriginalFilename(), e);
-            throw new RuntimeException("Error uploading file", e);
+            throw new BusinessException("MEDIA_UPLOAD_ERROR", "Error uploading file: " + e.getMessage());
         }
     }
 
@@ -85,14 +87,13 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
     @Override
     @Transactional(readOnly = true)
     public MediaAsset findById(String id) {
-        return mediaAssetRepository.findById(id)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("MediaAsset", id));
+        return getByIdOrThrow(id);
     }
 
     @Override
     @Transactional
     public MediaAsset updateMetadata(String id, MediaCategory category, String alt, List<String> tags) {
-        MediaAsset existing = findById(id);
+        MediaAsset existing = getByIdOrThrow(id);
         existing.setCategory(category);
         existing.setAlt(alt);
         existing.setTags(tags != null ? tags : List.of());
@@ -102,7 +103,7 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
     @Override
     @Transactional
     public void delete(String id) {
-        MediaAsset asset = findById(id);
+        MediaAsset asset = getByIdOrThrow(id);
         // Delete files from storage
         storageService.delete(asset.getFilename());
         if (asset.getThumbnailUrl() != null) {
@@ -118,11 +119,16 @@ public class MediaAssetUseCaseImpl implements MediaAssetUseCase {
     @Transactional(readOnly = true)
     public MediaAsset findByFilename(String filename) {
         return mediaAssetRepository.findByFilename(filename)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("MediaAsset", filename));
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, filename));
     }
 
     @Override
     public InputStream loadFile(String filename) {
         return storageService.load(filename);
+    }
+
+    private MediaAsset getByIdOrThrow(String id) {
+        return mediaAssetRepository.findById(id)
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, id));
     }
 }

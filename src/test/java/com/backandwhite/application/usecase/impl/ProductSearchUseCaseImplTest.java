@@ -2,13 +2,13 @@ package com.backandwhite.application.usecase.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.backandwhite.api.dto.out.AutocompleteSuggestion;
 import com.backandwhite.api.dto.out.ProductSearchResponse;
 import com.backandwhite.infrastructure.search.elasticsearch.document.ProductDocument;
+import com.backandwhite.infrastructure.search.elasticsearch.repository.ProductSearchCriteria;
 import com.backandwhite.infrastructure.search.elasticsearch.repository.ProductSearchRepository;
 import java.util.Collections;
 import java.util.List;
@@ -47,8 +47,7 @@ class ProductSearchUseCaseImplTest {
         SearchPage<ProductDocument> page = mock(SearchPage.class);
         when(page.getSearchHits()).thenReturn(hits);
 
-        when(productSearchRepository.search(anyString(), any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(page);
+        when(productSearchRepository.search(any(ProductSearchCriteria.class))).thenReturn(page);
 
         ProductSearchResponse response = useCase.search("q", List.of("cat"), "b", 0f, 100f, true, "price", 0, 10);
 

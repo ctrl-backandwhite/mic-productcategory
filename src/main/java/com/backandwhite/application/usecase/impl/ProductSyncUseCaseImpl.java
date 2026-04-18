@@ -30,13 +30,18 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
 
     private static final int PAGE_SIZE = 100;
     private static final long DELAY_BETWEEN_PAGES_MS = 10_000;
-    /** Maximum parallel requests to CJ to avoid saturating the rate limit */
     private static final int PARALLEL_FETCH_THREADS = 5;
+    private static final int MAX_CJ_PAGES_PER_CATEGORY = 10;
+    private static final long DETAIL_CALL_DELAY_MS = 600;
+    private static final long RATE_LIMIT_BACKOFF_MS = 3_000;
+    private static final int MAX_RATE_LIMIT_RETRIES = 2;
+    private static final int BUFFER_FLUSH_SIZE = 10;
 
-    private final ExecutorService fetchExecutor = Executors.newFixedThreadPool(PARALLEL_FETCH_THREADS, r -> {
-        Thread t = Thread.ofVirtual().unstarted(r);
-        return t;
-    });
+    private static final String LOG_CJ_API_ERROR = "CJ API error for pid={}: {}";
+    private static final String LOG_FETCH_FAILED = "Failed to fetch product pid={}: {}";
+
+    private final ExecutorService fetchExecutor = Executors.newFixedThreadPool(PARALLEL_FETCH_THREADS,
+            r -> Thread.ofVirtual().unstarted(r));
 
     private final DropshippingPort cjClient;
     private final ProductRepository productRepository;
@@ -51,66 +56,28 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
         int totalUpdated = 0;
         int totalSkipped = 0;
         int page = 0;
+        boolean keepGoing = true;
 
-        while (true) {
+        while (keepGoing) {
             Page<String> idsPage = productRepository.findAllProductIds(page, PAGE_SIZE);
             List<String> productIds = idsPage.getContent();
 
             if (productIds.isEmpty()) {
                 log.info("No more local products on page {}. Full sync finished.", page);
-                break;
-            }
+                keepGoing = false;
+            } else {
+                PageSyncOutcome outcome = syncLocalPage(page, productIds, forceOverwrite);
+                totalCreated += outcome.created();
+                totalUpdated += outcome.updated();
+                totalSkipped += outcome.skipped();
 
-            log.info("Processing page {} with {} local products (parallel={})...", page, productIds.size(),
-                    PARALLEL_FETCH_THREADS);
-
-            // Parallel fetch — max PARALLEL_FETCH_THREADS concurrent requests to CJ
-            List<CompletableFuture<Optional<Product>>> futures = productIds.stream()
-                    .map(pid -> CompletableFuture.supplyAsync(() -> {
-                        try {
-                            CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
-                            return Optional.of(cjProductDetailMapper.toProduct(cjProduct));
-                        } catch (ExternalServiceException e) {
-                            log.warn("CJ API error for pid={}: {}", pid, e.getMessage());
-                            return Optional.<Product>empty();
-                        } catch (Exception e) {
-                            log.warn("Failed to fetch product pid={}: {}", pid, e.getMessage());
-                            return Optional.<Product>empty();
-                        }
-                    }, fetchExecutor)).toList();
-
-            List<Product> productsToSync = futures.stream().map(CompletableFuture::join).filter(Optional::isPresent)
-                    .map(Optional::get).toList();
-
-            int skipped = productIds.size() - productsToSync.size();
-
-            // Bulk save/update all fetched products at once
-            if (!productsToSync.isEmpty()) {
-                try {
-                    int[] result = productRepository.bulkSyncProducts(productsToSync, forceOverwrite);
-                    totalCreated += result[0];
-                    totalUpdated += result[1];
-                } catch (Exception e) {
-                    log.error("Bulk save failed on page {}: {}", page, e.getMessage());
-                    totalSkipped += productsToSync.size();
+                if (!idsPage.hasNext()) {
+                    log.info("Last page reached. Full sync stopping.");
+                    keepGoing = false;
+                } else {
+                    page++;
+                    keepGoing = delayBetweenPages();
                 }
-            }
-            totalSkipped += skipped;
-
-            if (!idsPage.hasNext()) {
-                log.info("Last page reached. Full sync stopping.");
-                break;
-            }
-
-            page++;
-
-            try {
-                log.info("Waiting {} ms before fetching next page...", DELAY_BETWEEN_PAGES_MS);
-                Thread.sleep(DELAY_BETWEEN_PAGES_MS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log.warn("Product sync interrupted during page delay");
-                break;
             }
         }
 
@@ -124,7 +91,6 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
     @Override
     public ProductSyncResult syncPageFromCjDropshipping(int page, int size, boolean forceOverwrite,
             List<String> categoryIds) {
-        // page is 1-based from the frontend, convert to 0-based for Spring Data
         int zeroBasedPage = page - 1;
         log.info("Syncing local products page {} (0-based={}, size={}, forceOverwrite={}, categoryIds={})...", page,
                 zeroBasedPage, size, forceOverwrite, categoryIds);
@@ -142,57 +108,53 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
         log.info("Processing {} local products (page {}, parallel={})...", productIds.size(), page,
                 PARALLEL_FETCH_THREADS);
 
-        // Parallel fetch — max PARALLEL_FETCH_THREADS concurrent requests to CJ
-        List<CompletableFuture<Optional<Product>>> futures = productIds.stream()
-                .map(pid -> CompletableFuture.supplyAsync(() -> {
-                    try {
-                        CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
-                        return Optional.of(cjProductDetailMapper.toProduct(cjProduct));
-                    } catch (ExternalServiceException e) {
-                        log.warn("CJ API error for pid={}: {}", pid, e.getMessage());
-                        return Optional.<Product>empty();
-                    } catch (Exception e) {
-                        log.warn("Failed to fetch product pid={}: {}", pid, e.getMessage());
-                        return Optional.<Product>empty();
-                    }
-                }, fetchExecutor)).toList();
+        PageSyncOutcome outcome = syncLocalPage(page, productIds, forceOverwrite);
+        boolean hasMore = idsPage.hasNext();
+        log.info("Page {} sync done: updated={}, created={}, skipped={}, hasMore={}", page, outcome.updated(),
+                outcome.created(), outcome.skipped(), hasMore);
 
-        List<Product> productsToSync = futures.stream().map(CompletableFuture::join).filter(Optional::isPresent)
-                .map(Optional::get).toList();
+        return ProductSyncResult.builder().created(outcome.created()).updated(outcome.updated())
+                .total(outcome.created() + outcome.updated()).page(page).hasMore(hasMore).build();
+    }
 
+    private PageSyncOutcome syncLocalPage(int page, List<String> productIds, boolean forceOverwrite) {
+        log.info("Processing page {} with {} local products (parallel={})...", page, productIds.size(),
+                PARALLEL_FETCH_THREADS);
+
+        List<Product> productsToSync = fetchProductsInParallel(productIds);
         int skipped = productIds.size() - productsToSync.size();
         int created = 0;
         int updated = 0;
 
-        // Bulk save/update all fetched products at once
         if (!productsToSync.isEmpty()) {
             try {
                 int[] result = productRepository.bulkSyncProducts(productsToSync, forceOverwrite);
                 created = result[0];
                 updated = result[1];
             } catch (Exception e) {
-                log.error("Bulk save failed on page {}: {}", page, e.getMessage());
+                log.error("Bulk save failed on page {}: {}", page, e.getMessage(), e);
                 skipped += productsToSync.size();
             }
         }
-
-        boolean hasMore = idsPage.hasNext();
-        log.info("Page {} sync done: updated={}, created={}, skipped={}, hasMore={}", page, updated, created, skipped,
-                hasMore);
-
-        return ProductSyncResult.builder().created(created).updated(updated).total(created + updated).page(page)
-                .hasMore(hasMore).build();
+        return new PageSyncOutcome(created, updated, skipped);
     }
 
-    // ── Discover new products by category ────────────────────────────────────
-
-    /** Max CJ pages to crawl per category (100 products each) */
-    private static final int MAX_CJ_PAGES_PER_CATEGORY = 10;
+    private boolean delayBetweenPages() {
+        try {
+            log.info("Waiting {} ms before fetching next page...", DELAY_BETWEEN_PAGES_MS);
+            Thread.sleep(DELAY_BETWEEN_PAGES_MS);
+            return true;
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+            log.warn("Product sync interrupted during page delay");
+            return false;
+        }
+    }
 
     @Override
     public ProductSyncResult discoverNewProductsByCategory(int categoryOffset) {
         List<String> l3Ids = categoryRepository.findAllLevel3Ids();
-        Collections.sort(l3Ids); // stable order for offset-based paging
+        Collections.sort(l3Ids);
 
         int totalCategories = l3Ids.size();
 
@@ -207,11 +169,19 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
 
         log.info("Discover: processing category {} ({}/{}) ...", categoryId, categoryOffset + 1, totalCategories);
 
+        int[] totals = discoverCategoryProducts(categoryId);
+
+        categoryRepository.updateLastDiscoveredAt(categoryId);
+        log.info("Discover: category {} done — created={}, updated={}", categoryId, totals[0], totals[1]);
+
+        return ProductSyncResult.builder().created(totals[0]).updated(totals[1]).total(totals[0] + totals[1])
+                .page(categoryOffset).hasMore(hasMore).totalCategories(totalCategories).build();
+    }
+
+    private int[] discoverCategoryProducts(String categoryId) {
         int created = 0;
         int updated = 0;
-
         try {
-            // Iterate CJ pages for this category (capped)
             for (int cjPage = 1; cjPage <= MAX_CJ_PAGES_PER_CATEGORY; cjPage++) {
                 CjProductListPageDto pageResult = cjClient.getProductListFiltered(cjPage, PAGE_SIZE, categoryId, null,
                         null, null, 3, "desc");
@@ -224,22 +194,10 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
                     break;
                 }
 
-                // Extract product IDs and filter out those already in our DB
-                // listV2 uses "id" field, not "pid"
-                List<String> newPids = products.stream().map(CjProductListV2ItemDto::getId)
-                        .filter(id -> id != null && !id.isBlank()).filter(id -> !productRepository.existsById(id))
-                        .toList();
+                int[] pageTotals = processDiscoverPage(products, cjPage);
+                created += pageTotals[0];
+                updated += pageTotals[1];
 
-                log.info("Discover: CJ page {} returned {} products, {} are new", cjPage, products.size(),
-                        newPids.size());
-
-                if (!newPids.isEmpty()) {
-                    int[] result = fetchDetailAndSave(newPids);
-                    created += result[0];
-                    updated += result[1];
-                }
-
-                // Check if we've exhausted CJ results for this category
                 int totalCjProducts = pageResult.getTotalRecords() != null ? pageResult.getTotalRecords() : 0;
                 if (cjPage * PAGE_SIZE >= totalCjProducts) {
                     break;
@@ -250,62 +208,86 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
         } catch (Exception e) {
             log.error("Discover: unexpected error for category {}: {}", categoryId, e.getMessage(), e);
         }
-
-        categoryRepository.updateLastDiscoveredAt(categoryId);
-        log.info("Discover: category {} done — created={}, updated={}", categoryId, created, updated);
-
-        return ProductSyncResult.builder().created(created).updated(updated).total(created + updated)
-                .page(categoryOffset).hasMore(hasMore).totalCategories(totalCategories).build();
+        return new int[]{created, updated};
     }
 
-    /** Delay between sequential CJ detail API calls (ms) */
-    private static final long DETAIL_CALL_DELAY_MS = 600;
-    /** Extra backoff when rate-limited (ms) */
-    private static final long RATE_LIMIT_BACKOFF_MS = 3_000;
-    /** Max retries per product on rate limit */
-    private static final int MAX_RATE_LIMIT_RETRIES = 2;
+    private int[] processDiscoverPage(List<CjProductListV2ItemDto> products, int cjPage) {
+        List<String> newPids = products.stream().map(CjProductListV2ItemDto::getId)
+                .filter(id -> id != null && !id.isBlank()).filter(id -> !productRepository.existsById(id)).toList();
 
-    /**
-     * Fetches full product detail from CJ sequentially with throttling to respect
-     * rate limits. Products are saved in batches of 10 for efficiency.
-     *
-     * @return int[]{created, updated}
-     */
+        log.info("Discover: CJ page {} returned {} products, {} are new", cjPage, products.size(), newPids.size());
+
+        if (newPids.isEmpty()) {
+            return new int[]{0, 0};
+        }
+        return fetchDetailAndSave(newPids);
+    }
+
     private int[] fetchDetailAndSave(List<String> pids) {
-        int created = 0, updated = 0;
+        int created = 0;
+        int updated = 0;
         List<Product> buffer = new ArrayList<>();
 
         for (int i = 0; i < pids.size(); i++) {
-            String pid = pids.get(i);
-            Optional<Product> product = fetchDetailWithRetry(pid);
-            product.ifPresent(buffer::add);
+            fetchDetailWithRetry(pids.get(i)).ifPresent(buffer::add);
 
-            // Flush buffer every 10 products or at the end
-            if (buffer.size() >= 10 || i == pids.size() - 1) {
-                if (!buffer.isEmpty()) {
-                    try {
-                        int[] result = productRepository.bulkSyncProducts(buffer, true);
-                        created += result[0];
-                        updated += result[1];
-                    } catch (Exception e) {
-                        log.error("Bulk save failed during discover: {}", e.getMessage());
-                    }
-                    buffer = new ArrayList<>();
-                }
+            if (shouldFlushBuffer(buffer, i, pids.size())) {
+                int[] result = flushBuffer(buffer);
+                created += result[0];
+                updated += result[1];
+                buffer = new ArrayList<>();
             }
 
-            // Throttle between calls
-            if (i < pids.size() - 1) {
-                try {
-                    Thread.sleep(DETAIL_CALL_DELAY_MS);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
+            if (i < pids.size() - 1 && !throttle()) {
+                break;
             }
         }
 
         return new int[]{created, updated};
+    }
+
+    private boolean shouldFlushBuffer(List<Product> buffer, int index, int total) {
+        return !buffer.isEmpty() && (buffer.size() >= BUFFER_FLUSH_SIZE || index == total - 1);
+    }
+
+    private int[] flushBuffer(List<Product> buffer) {
+        try {
+            int[] result = productRepository.bulkSyncProducts(buffer, true);
+            return new int[]{result[0], result[1]};
+        } catch (Exception e) {
+            log.error("Bulk save failed during discover: {}", e.getMessage(), e);
+            return new int[]{0, 0};
+        }
+    }
+
+    private boolean throttle() {
+        try {
+            Thread.sleep(DETAIL_CALL_DELAY_MS);
+            return true;
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
+    private List<Product> fetchProductsInParallel(List<String> productIds) {
+        List<CompletableFuture<Optional<Product>>> futures = productIds.stream()
+                .map(pid -> CompletableFuture.supplyAsync(() -> fetchOneForParallel(pid), fetchExecutor)).toList();
+
+        return futures.stream().map(CompletableFuture::join).filter(Optional::isPresent).map(Optional::get).toList();
+    }
+
+    private Optional<Product> fetchOneForParallel(String pid) {
+        try {
+            CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
+            return Optional.of(cjProductDetailMapper.toProduct(cjProduct));
+        } catch (ExternalServiceException e) {
+            log.warn(LOG_CJ_API_ERROR, pid, e.getMessage());
+            return Optional.empty();
+        } catch (Exception e) {
+            log.warn(LOG_FETCH_FAILED, pid, e.getMessage());
+            return Optional.empty();
+        }
     }
 
     private Optional<Product> fetchDetailWithRetry(String pid) {
@@ -314,25 +296,40 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
                 CjProductDetailDto cjProduct = cjClient.getProductDetail(pid);
                 return Optional.of(cjProductDetailMapper.toProduct(cjProduct));
             } catch (ExternalServiceException e) {
-                if (e.getMessage() != null && e.getMessage().contains("Too many requests")
-                        && attempt < MAX_RATE_LIMIT_RETRIES) {
-                    log.info("Rate limited on pid={}, backing off {}ms (attempt {}/{})", pid, RATE_LIMIT_BACKOFF_MS,
-                            attempt + 1, MAX_RATE_LIMIT_RETRIES);
-                    try {
-                        Thread.sleep(RATE_LIMIT_BACKOFF_MS);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        return Optional.empty();
-                    }
-                } else {
-                    log.warn("CJ API error for pid={}: {}", pid, e.getMessage());
-                    return Optional.empty();
+                Optional<Product> retryResult = handleRateLimit(pid, e, attempt);
+                if (retryResult != null) {
+                    return retryResult;
                 }
             } catch (Exception e) {
-                log.warn("Failed to fetch product pid={}: {}", pid, e.getMessage());
+                log.warn(LOG_FETCH_FAILED, pid, e.getMessage());
                 return Optional.empty();
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Returns {@code null} when the caller should retry the next attempt; returns
+     * an {@link Optional} (possibly empty) when the retry loop must stop.
+     */
+    private Optional<Product> handleRateLimit(String pid, ExternalServiceException e, int attempt) {
+        boolean rateLimited = e.getMessage() != null && e.getMessage().contains("Too many requests")
+                && attempt < MAX_RATE_LIMIT_RETRIES;
+        if (!rateLimited) {
+            log.warn(LOG_CJ_API_ERROR, pid, e.getMessage());
+            return Optional.empty();
+        }
+        log.info("Rate limited on pid={}, backing off {}ms (attempt {}/{})", pid, RATE_LIMIT_BACKOFF_MS, attempt + 1,
+                MAX_RATE_LIMIT_RETRIES);
+        try {
+            Thread.sleep(RATE_LIMIT_BACKOFF_MS);
+            return null;
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+            return Optional.empty();
+        }
+    }
+
+    private record PageSyncOutcome(int created, int updated, int skipped) {
     }
 }

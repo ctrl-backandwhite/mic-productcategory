@@ -31,8 +31,7 @@ public class WarrantyUseCaseImpl implements WarrantyUseCase {
     @Override
     @Transactional(readOnly = true)
     public Warranty findById(String id) {
-        return warrantyRepository.findById(id)
-                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Warranty", id));
+        return getByIdOrThrow(id);
     }
 
     @Override
@@ -47,7 +46,7 @@ public class WarrantyUseCaseImpl implements WarrantyUseCase {
     @Override
     @Transactional
     public Warranty update(String id, Warranty warranty) {
-        Warranty existing = findById(id);
+        Warranty existing = getByIdOrThrow(id);
         warranty.setId(existing.getId());
         warranty.setActive(existing.getActive());
         Warranty updated = warrantyRepository.update(warranty);
@@ -58,7 +57,7 @@ public class WarrantyUseCaseImpl implements WarrantyUseCase {
     @Override
     @Transactional
     public void delete(String id) {
-        findById(id);
+        getByIdOrThrow(id);
         warrantyRepository.deleteById(id);
         log.info("Warranty deleted: {}", id);
     }
@@ -66,10 +65,15 @@ public class WarrantyUseCaseImpl implements WarrantyUseCase {
     @Override
     @Transactional
     public void toggleActive(String id) {
-        Warranty existing = findById(id);
+        Warranty existing = getByIdOrThrow(id);
         boolean newActive = !Boolean.TRUE.equals(existing.getActive());
         existing.setActive(newActive);
         warrantyRepository.update(existing);
         log.info("Warranty {} toggled to active={}", id, newActive);
+    }
+
+    private Warranty getByIdOrThrow(String id) {
+        return warrantyRepository.findById(id)
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound("Warranty", id));
     }
 }

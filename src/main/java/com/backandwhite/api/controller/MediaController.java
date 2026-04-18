@@ -59,10 +59,9 @@ public class MediaController {
             @Parameter(description = "Filter by category") @RequestParam(required = false) MediaCategory category,
             @Parameter(description = "Filter by MIME type (partial)") @RequestParam(required = false) String mimeType,
             @Parameter(description = "Filter by tag") @RequestParam(required = false) String tag,
-            @Parameter(description = "Page number", example = "0") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Sort field", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
-            @Parameter(description = "Ascending order", example = "false") @RequestParam(defaultValue = "false") boolean ascending) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending) {
         Page<MediaAsset> result = mediaAssetUseCase.findAll(category, mimeType, tag, page, size, sortBy, ascending);
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(mediaAssetApiMapper::toDto)));
     }

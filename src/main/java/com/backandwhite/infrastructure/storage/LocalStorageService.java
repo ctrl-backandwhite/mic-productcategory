@@ -42,7 +42,7 @@ public class LocalStorageService implements StorageService {
             Files.createDirectories(thumbnailLocation);
             log.info("Storage initialized at: {}", rootLocation);
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize storage directories", e);
+            throw new IllegalStateException("Could not initialize storage directories", e);
         }
     }
 
@@ -55,7 +55,7 @@ public class LocalStorageService implements StorageService {
             log.info("Stored file: {} (original: {})", filename, originalFilename);
             return filename;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file: " + originalFilename, e);
+            throw new IllegalStateException("Failed to store file: " + originalFilename, e);
         }
     }
 
@@ -68,7 +68,7 @@ public class LocalStorageService implements StorageService {
             log.info("Stored thumbnail: {}", filename);
             return filename;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store thumbnail: " + originalFilename, e);
+            throw new IllegalStateException("Failed to store thumbnail: " + originalFilename, e);
         }
     }
 
@@ -110,7 +110,7 @@ public class LocalStorageService implements StorageService {
             Path file = rootLocation.resolve(filename).normalize();
             return Files.newInputStream(file);
         } catch (IOException e) {
-            throw new RuntimeException("Could not read file: " + filename, e);
+            throw new IllegalStateException("Could not read file: " + filename, e);
         }
     }
 

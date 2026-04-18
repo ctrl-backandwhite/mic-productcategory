@@ -37,10 +37,9 @@ public class WarrantyController {
     public ResponseEntity<PaginationDtoOut<WarrantyDtoOut>> findAll(
             @Parameter(description = "Filter by active status") @RequestParam(required = false) Boolean active,
             @Parameter(description = "Filter by type (MANUFACTURER, STORE, EXTENDED, LIMITED)") @RequestParam(required = false) WarrantyType type,
-            @Parameter(description = "Page number", example = "0") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Sort field", example = "name") @RequestParam(defaultValue = "name") String sortBy,
-            @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "true") boolean ascending) {
         Page<Warranty> result = warrantyUseCase.findAll(active, type, page, size, sortBy, ascending);
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(warrantyApiMapper::toDto)));
     }

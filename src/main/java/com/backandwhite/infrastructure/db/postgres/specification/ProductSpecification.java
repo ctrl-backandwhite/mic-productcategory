@@ -1,10 +1,15 @@
 package com.backandwhite.infrastructure.db.postgres.specification;
 
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.and;
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.equalIfNotNull;
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.joinTranslations;
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.likeIgnoreCase;
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.localeEqual;
+
 import com.backandwhite.domain.valueobject.ProductStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.ProductTranslationEntity;
 import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import java.util.Collection;
 import lombok.AccessLevel;
@@ -14,35 +19,25 @@ import org.springframework.data.jpa.domain.Specification;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProductSpecification {
 
-    @SuppressWarnings("unchecked")
+    private static final String TRANSLATIONS = "translations";
+
     public static Specification<ProductEntity> byCategoryAndLocale(String categoryId, String locale) {
         return (root, query, cb) -> {
-            Join<ProductEntity, ProductTranslationEntity> translationJoin;
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<ProductEntity, ProductTranslationEntity>) (Object) root.fetch("translations",
-                        JoinType.INNER);
-            } else {
-                translationJoin = root.join("translations", JoinType.INNER);
-            }
+            Join<ProductEntity, ProductTranslationEntity> translationJoin = joinTranslations(root, query, TRANSLATIONS);
 
             query.distinct(true);
 
             Predicate predicate = cb.equal(root.get("categoryId"), categoryId);
-
-            if (locale != null && !locale.isBlank()) {
-                predicate = cb.and(predicate, cb.equal(translationJoin.get("id").get("locale"), locale));
-            }
+            predicate = and(cb, predicate, localeEqual(cb, translationJoin, locale));
 
             return predicate;
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static Specification<ProductEntity> byLocale(String locale) {
         return byLocaleAndCategory(locale, null);
     }
 
-    @SuppressWarnings("unchecked")
     public static Specification<ProductEntity> byLocaleAndCategory(String locale, String categoryId) {
         return byLocaleAndCategoryIds(locale, categoryId != null ? java.util.List.of(categoryId) : null);
     }
@@ -51,7 +46,6 @@ public final class ProductSpecification {
      * Filters products by locale and a collection of category IDs (supports
      * recursive category trees).
      */
-    @SuppressWarnings("unchecked")
     public static Specification<ProductEntity> byLocaleAndCategoryIds(String locale, Collection<String> categoryIds) {
         return byLocaleAndCategoryIds(locale, categoryIds, null);
     }
@@ -59,7 +53,6 @@ public final class ProductSpecification {
     /**
      * Filters products by locale, category IDs and optionally by status.
      */
-    @SuppressWarnings("unchecked")
     public static Specification<ProductEntity> byLocaleAndCategoryIds(String locale, Collection<String> categoryIds,
             ProductStatus status) {
         return byLocaleAndCategoryIds(locale, categoryIds, status, null);
@@ -69,38 +62,22 @@ public final class ProductSpecification {
      * Filters products by locale, category IDs, status and optionally by name
      * (ILIKE).
      */
-    @SuppressWarnings("unchecked")
     public static Specification<ProductEntity> byLocaleAndCategoryIds(String locale, Collection<String> categoryIds,
             ProductStatus status, String name) {
         return (root, query, cb) -> {
-            Join<ProductEntity, ProductTranslationEntity> translationJoin;
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<ProductEntity, ProductTranslationEntity>) (Object) root.fetch("translations",
-                        JoinType.INNER);
-            } else {
-                translationJoin = root.join("translations", JoinType.INNER);
-            }
+            Join<ProductEntity, ProductTranslationEntity> translationJoin = joinTranslations(root, query, TRANSLATIONS);
 
             query.distinct(true);
 
             Predicate predicate = cb.conjunction();
-
-            if (locale != null && !locale.isBlank()) {
-                predicate = cb.and(predicate, cb.equal(translationJoin.get("id").get("locale"), locale));
-            }
+            predicate = and(cb, predicate, localeEqual(cb, translationJoin, locale));
 
             if (categoryIds != null && !categoryIds.isEmpty()) {
                 predicate = cb.and(predicate, root.get("categoryId").in(categoryIds));
             }
 
-            if (status != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("status"), status));
-            }
-
-            if (name != null && !name.isBlank()) {
-                predicate = cb.and(predicate,
-                        cb.like(cb.lower(translationJoin.get("name")), "%" + name.toLowerCase() + "%"));
-            }
+            predicate = and(cb, predicate, equalIfNotNull(cb, root.get("status"), status));
+            predicate = and(cb, predicate, likeIgnoreCase(cb, translationJoin.get("name"), name));
 
             return predicate;
         };

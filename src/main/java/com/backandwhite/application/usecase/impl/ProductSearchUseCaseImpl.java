@@ -4,6 +4,7 @@ import com.backandwhite.api.dto.out.AutocompleteSuggestion;
 import com.backandwhite.api.dto.out.ProductSearchResponse;
 import com.backandwhite.application.usecase.ProductSearchUseCase;
 import com.backandwhite.infrastructure.search.elasticsearch.document.ProductDocument;
+import com.backandwhite.infrastructure.search.elasticsearch.repository.ProductSearchCriteria;
 import com.backandwhite.infrastructure.search.elasticsearch.repository.ProductSearchRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +29,9 @@ public class ProductSearchUseCaseImpl implements ProductSearchUseCase {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        SearchPage<ProductDocument> searchPage = productSearchRepository.search(query, categoryIds, brand, minPrice,
-                maxPrice, inStock, sortBy, pageable);
+        ProductSearchCriteria criteria = new ProductSearchCriteria(query, categoryIds, brand, minPrice, maxPrice,
+                inStock, sortBy, pageable);
+        SearchPage<ProductDocument> searchPage = productSearchRepository.search(criteria);
 
         List<ProductSearchResponse.ProductSearchHit> hits = new ArrayList<>();
         for (SearchHit<ProductDocument> hit : searchPage.getSearchHits()) {

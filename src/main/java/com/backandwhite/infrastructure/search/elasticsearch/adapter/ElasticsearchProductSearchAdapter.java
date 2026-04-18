@@ -35,7 +35,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
             searchRepository.save(doc);
             log.debug("Indexed product id={}", product.getId());
         } catch (Exception e) {
-            log.error("Failed to index product id={}: {}", product.getId(), e.getMessage());
+            log.error("Failed to index product id={}: {}", product.getId(), e.getMessage(), e);
         }
     }
 
@@ -47,7 +47,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
             searchRepository.save(doc);
             log.debug("Indexed product detail pid={}", detail.getPid());
         } catch (Exception e) {
-            log.error("Failed to index product detail pid={}: {}", detail.getPid(), e.getMessage());
+            log.error("Failed to index product detail pid={}: {}", detail.getPid(), e.getMessage(), e);
         }
     }
 
@@ -59,7 +59,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
             searchRepository.saveAll(docs);
             log.info("Bulk indexed {} products", docs.size());
         } catch (Exception e) {
-            log.error("Failed to bulk index {} products: {}", products.size(), e.getMessage());
+            log.error("Failed to bulk index {} products: {}", products.size(), e.getMessage(), e);
         }
     }
 
@@ -70,7 +70,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
             searchRepository.saveAll(docs);
             log.info("Bulk indexed {} product details", docs.size());
         } catch (Exception e) {
-            log.error("Failed to bulk index {} product details: {}", details.size(), e.getMessage());
+            log.error("Failed to bulk index {} product details: {}", details.size(), e.getMessage(), e);
         }
     }
 
@@ -97,7 +97,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
                 log.debug("Updated stock for pid={}, totalStock={}", pid, totalStock);
             });
         } catch (Exception e) {
-            log.error("Failed to update stock for pid={}: {}", pid, e.getMessage());
+            log.error("Failed to update stock for pid={}: {}", pid, e.getMessage(), e);
         }
     }
 
@@ -111,7 +111,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
                 log.debug("Updated status for product id={} to {}", productId, status);
             });
         } catch (Exception e) {
-            log.error("Failed to update status for product id={}: {}", productId, e.getMessage());
+            log.error("Failed to update status for product id={}: {}", productId, e.getMessage(), e);
         }
     }
 
@@ -122,7 +122,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
             searchRepository.deleteById(productId);
             log.debug("Removed product id={} from index", productId);
         } catch (Exception e) {
-            log.error("Failed to remove product id={}: {}", productId, e.getMessage());
+            log.error("Failed to remove product id={}: {}", productId, e.getMessage(), e);
         }
     }
 
@@ -133,7 +133,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
             productIds.forEach(searchRepository::deleteById);
             log.info("Bulk removed {} products from index", productIds.size());
         } catch (Exception e) {
-            log.error("Failed to bulk remove products: {}", e.getMessage());
+            log.error("Failed to bulk remove products: {}", e.getMessage(), e);
         }
     }
 
@@ -148,7 +148,7 @@ public class ElasticsearchProductSearchAdapter implements ProductSearchIndexPort
             indexOps.createWithMapping();
             log.info("Recreated 'products' index with mappings");
         } catch (Exception e) {
-            log.error("Failed to delete/recreate index: {}", e.getMessage());
+            log.error("Failed to delete/recreate index: {}", e.getMessage(), e);
             throw e;
         }
     }

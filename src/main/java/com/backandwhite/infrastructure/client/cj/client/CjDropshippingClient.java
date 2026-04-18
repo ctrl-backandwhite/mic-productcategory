@@ -14,6 +14,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.ParameterizedTypeReference;
@@ -28,219 +29,116 @@ public class CjDropshippingClient implements DropshippingPort {
 
     private static final Duration DATA_TIMEOUT = Duration.ofSeconds(30);
     private static final String RESILIENCE4J_INSTANCE = "cjApi";
+    private static final String CJ_SERVICE = "CJ Dropshipping";
+    private static final String HEADER_CJ_TOKEN = "CJ-Access-Token";
+    private static final String CTX_PRODUCT_DETAIL = "product detail pid=";
+    private static final String CTX_PRODUCT_LIST = "product list page=";
+    private static final String CTX_PRODUCT_COMMENTS = "product comments pid=";
+    private static final String CTX_INVENTORY = "inventory pid=";
+    private static final String CTX_FILTERED_LIST = "filtered product list";
 
     private final WebClient cjWebClient;
     private final CjTokenManager cjTokenManager;
 
-    /**
-     * Fetches categories from CJ. The token is automatically resolved from
-     * CjTokenManager.
-     */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public List<CjCategoryFirstLevelDto> getCategories() {
         log.info("Fetching categories from CJ Dropshipping...");
-
         String accessToken = cjTokenManager.getValidAccessToken();
 
-        try {
-            CjApiResponseDto<List<CjCategoryFirstLevelDto>> response = cjWebClient.get().uri("/product/getCategory")
-                    .header("CJ-Access-Token", accessToken).retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<List<CjCategoryFirstLevelDto>>>() {
-                    }).timeout(DATA_TIMEOUT).block();
+        CjApiResponseDto<List<CjCategoryFirstLevelDto>> response = invokeCj(
+                () -> cjWebClient.get().uri("/product/getCategory").header(HEADER_CJ_TOKEN, accessToken).retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<List<CjCategoryFirstLevelDto>>>() {
+                        }).timeout(DATA_TIMEOUT).block(),
+                "categories");
 
-            if (response == null || response.getData() == null) {
-                throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping", "categories");
-            }
-
-            log.info("Fetched {} first-level categories from CJ Dropshipping", response.getData().size());
-            return response.getData();
-
-        } catch (ExternalServiceException e) {
-            throw e;
-        } catch (WebClientException e) {
-            log.error("CJ API categories call failed (WebClient): {}", e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "categories: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("CJ API categories call failed (unexpected): {}", e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "categories: " + e.getMessage());
-        }
+        List<CjCategoryFirstLevelDto> data = requireData(response, "categories");
+        log.info("Fetched {} first-level categories from CJ Dropshipping", data.size());
+        return data;
     }
 
-    /**
-     * Fetches the detail of a product by its pid. The token is automatically
-     * resolved from CjTokenManager.
-     */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductDetailDto getProductDetail(String pid) {
         log.info("Fetching product detail from CJ Dropshipping for pid: {}", pid);
-
         String accessToken = cjTokenManager.getValidAccessToken();
+        String ctx = CTX_PRODUCT_DETAIL + pid;
 
-        try {
-            CjApiResponseDto<CjProductDetailDto> response = cjWebClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/product/query").queryParam("pid", pid).build())
-                    .header("CJ-Access-Token", accessToken).retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductDetailDto>>() {
-                    }).timeout(DATA_TIMEOUT).block();
+        CjApiResponseDto<CjProductDetailDto> response = invokeCj(() -> cjWebClient.get()
+                .uri(b -> b.path("/product/query").queryParam("pid", pid).build()).header(HEADER_CJ_TOKEN, accessToken)
+                .retrieve().bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductDetailDto>>() {
+                }).timeout(DATA_TIMEOUT).block(), ctx);
 
-            if (response == null || response.getData() == null) {
-                throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                        "product detail pid=" + pid);
-            }
-
-            log.info("Fetched product detail: pid={}, name={}", pid, response.getData().getProductNameEn());
-            return response.getData();
-
-        } catch (ExternalServiceException e) {
-            throw e;
-        } catch (WebClientException e) {
-            log.error("CJ API product detail failed for pid={} (WebClient): {}", pid, e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "product detail pid=" + pid + ": " + e.getMessage());
-        } catch (Exception e) {
-            log.error("CJ API product detail failed for pid={} (unexpected): {}", pid, e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "product detail pid=" + pid + ": " + e.getMessage());
-        }
+        CjProductDetailDto data = requireData(response, ctx);
+        log.info("Fetched product detail: pid={}, name={}", pid, data.getProductNameEn());
+        return data;
     }
 
-    /**
-     * Fetches a page of CJ products using the listV2 endpoint. The token is
-     * automatically resolved from CjTokenManager.
-     */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductListPageDto getProductList(int page, int size) {
         log.info("Fetching product list from CJ Dropshipping: page={}, size={}", page, size);
-
         String accessToken = cjTokenManager.getValidAccessToken();
+        String ctx = CTX_PRODUCT_LIST + page;
 
-        try {
-            CjApiResponseDto<CjProductListPageDto> response = cjWebClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/product/listV2").queryParam("page", page)
-                            .queryParam("size", size).build())
-                    .header("CJ-Access-Token", accessToken).retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductListPageDto>>() {
-                    }).timeout(DATA_TIMEOUT).block();
+        CjApiResponseDto<CjProductListPageDto> response = invokeCj(() -> cjWebClient.get()
+                .uri(b -> b.path("/product/listV2").queryParam("page", page).queryParam("size", size).build())
+                .header(HEADER_CJ_TOKEN, accessToken).retrieve()
+                .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductListPageDto>>() {
+                }).timeout(DATA_TIMEOUT).block(), ctx);
 
-            log.info("CJ product list raw response: code={}, result={}, message={}, dataIsNull={}",
-                    response != null ? response.getCode() : "null", response != null ? response.getResult() : "null",
-                    response != null ? response.getMessage() : "null", response == null || response.getData() == null);
+        log.info("CJ product list raw response: code={}, result={}, message={}, dataIsNull={}",
+                response != null ? response.getCode() : "null", response != null ? response.getResult() : "null",
+                response != null ? response.getMessage() : "null", response == null || response.getData() == null);
 
-            if (response == null || response.getData() == null) {
-                throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                        "product list page=" + page);
-            }
-
-            log.info("Fetched {} products from CJ Dropshipping (page {}/total {})",
-                    response.getData().getAllProducts().size(), page, response.getData().getTotalRecords());
-            return response.getData();
-
-        } catch (ExternalServiceException e) {
-            throw e;
-        } catch (WebClientException e) {
-            log.error("CJ API product list failed for page={} (WebClient): {}", page, e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "product list page=" + page + ": " + e.getMessage());
-        } catch (Exception e) {
-            log.error("CJ API product list failed for page={} (unexpected): {}", page, e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "product list page=" + page + ": " + e.getMessage());
-        }
+        CjProductListPageDto data = requireData(response, ctx);
+        log.info("Fetched {} products from CJ Dropshipping (page {}/total {})", data.getAllProducts().size(), page,
+                data.getTotalRecords());
+        return data;
     }
 
-    /**
-     * Fetches per-variant inventory for the given pid.
-     */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public List<CjInventoryByPidItemDto> getInventoryByPid(String pid) {
         log.info("Fetching inventory by pid from CJ Dropshipping: pid={}", pid);
-
         String accessToken = cjTokenManager.getValidAccessToken();
+        String ctx = CTX_INVENTORY + pid;
 
-        try {
-            CjApiResponseDto<List<CjInventoryByPidItemDto>> response = cjWebClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/product/stock/getInventoryByPid").queryParam("pid", pid)
-                            .build())
-                    .header("CJ-Access-Token", accessToken).retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<List<CjInventoryByPidItemDto>>>() {
-                    }).timeout(DATA_TIMEOUT).block();
+        CjApiResponseDto<List<CjInventoryByPidItemDto>> response = invokeCj(() -> cjWebClient.get()
+                .uri(b -> b.path("/product/stock/getInventoryByPid").queryParam("pid", pid).build())
+                .header(HEADER_CJ_TOKEN, accessToken).retrieve()
+                .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<List<CjInventoryByPidItemDto>>>() {
+                }).timeout(DATA_TIMEOUT).block(), ctx);
 
-            if (response == null || response.getData() == null) {
-                throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                        "inventory by pid=" + pid);
-            }
-
-            log.info("Fetched {} inventory items for pid={}", response.getData().size(), pid);
-            return response.getData();
-
-        } catch (ExternalServiceException e) {
-            throw e;
-        } catch (WebClientException e) {
-            log.error("CJ API inventory by pid failed for pid={} (WebClient): {}", pid, e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "inventory pid=" + pid + ": " + e.getMessage());
-        } catch (Exception e) {
-            log.error("CJ API inventory by pid failed for pid={} (unexpected): {}", pid, e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "inventory pid=" + pid + ": " + e.getMessage());
-        }
+        List<CjInventoryByPidItemDto> data = requireData(response, ctx);
+        log.info("Fetched {} inventory items for pid={}", data.size(), pid);
+        return data;
     }
 
-    /**
-     * Fetches a page of product comments (reviews) from CJ.
-     */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductCommentsPageDto getProductComments(String pid, int score, int page, int size) {
         log.info("Fetching product comments from CJ: pid={}, score={}, page={}, size={}", pid, score, page, size);
-
         String accessToken = cjTokenManager.getValidAccessToken();
+        String ctx = CTX_PRODUCT_COMMENTS + pid;
 
-        try {
-            CjApiResponseDto<CjProductCommentsPageDto> response = cjWebClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/product/productComments").queryParam("pid", pid)
-                            .queryParam("score", score).queryParam("pageNum", page).queryParam("pageSize", size)
-                            .build())
-                    .header("CJ-Access-Token", accessToken).retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductCommentsPageDto>>() {
-                    }).timeout(DATA_TIMEOUT).block();
+        CjApiResponseDto<CjProductCommentsPageDto> response = invokeCj(() -> cjWebClient.get()
+                .uri(b -> b.path("/product/productComments").queryParam("pid", pid).queryParam("score", score)
+                        .queryParam("pageNum", page).queryParam("pageSize", size).build())
+                .header(HEADER_CJ_TOKEN, accessToken).retrieve()
+                .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductCommentsPageDto>>() {
+                }).timeout(DATA_TIMEOUT).block(), ctx);
 
-            if (response == null || response.getData() == null) {
-                throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                        "product comments pid=" + pid);
-            }
-
-            log.info("Fetched {} reviews for pid={} (page {})", response.getData().getList().size(), pid, page);
-            return response.getData();
-
-        } catch (ExternalServiceException e) {
-            throw e;
-        } catch (WebClientException e) {
-            log.error("CJ API product comments failed for pid={} (WebClient): {}", pid, e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "product comments pid=" + pid + ": " + e.getMessage());
-        } catch (Exception e) {
-            log.error("CJ API product comments failed for pid={} (unexpected): {}", pid, e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "product comments pid=" + pid + ": " + e.getMessage());
-        }
+        CjProductCommentsPageDto data = requireData(response, ctx);
+        log.info("Fetched {} reviews for pid={} (page {})", data.getList().size(), pid, page);
+        return data;
     }
 
-    /**
-     * Fetches a filtered page of products from CJ using listV2 endpoint. All filter
-     * parameters are optional — pass null to omit from the query.
-     */
     @Override
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
@@ -251,52 +149,65 @@ public class CjDropshippingClient implements DropshippingPort {
 
         String accessToken = cjTokenManager.getValidAccessToken();
 
-        try {
-            CjApiResponseDto<CjProductListPageDto> response = cjWebClient.get().uri(uriBuilder -> {
-                uriBuilder.path("/product/listV2").queryParam("page", page).queryParam("size", size);
-                if (categoryId != null && !categoryId.isBlank()) {
-                    uriBuilder.queryParam("categoryId", categoryId);
-                }
-                if (keyword != null && !keyword.isBlank()) {
-                    uriBuilder.queryParam("keyWord", keyword);
-                }
-                if (timeStart != null) {
-                    uriBuilder.queryParam("timeStart", timeStart);
-                }
-                if (timeEnd != null) {
-                    uriBuilder.queryParam("timeEnd", timeEnd);
-                }
-                if (orderBy != null) {
-                    uriBuilder.queryParam("orderBy", orderBy);
-                }
-                if (sort != null && !sort.isBlank()) {
-                    uriBuilder.queryParam("sort", sort);
-                }
-                return uriBuilder.build();
-            }).header("CJ-Access-Token", accessToken).retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductListPageDto>>() {
-                    }).timeout(DATA_TIMEOUT).block();
-
-            if (response == null || response.getData() == null) {
-                log.warn("CJ returned null data for filtered list: categoryId={}, keyword={}", categoryId, keyword);
-                return null;
+        CjApiResponseDto<CjProductListPageDto> response = invokeCj(() -> cjWebClient.get().uri(uriBuilder -> {
+            uriBuilder.path("/product/listV2").queryParam("page", page).queryParam("size", size);
+            if (categoryId != null && !categoryId.isBlank()) {
+                uriBuilder.queryParam("categoryId", categoryId);
             }
+            if (keyword != null && !keyword.isBlank()) {
+                uriBuilder.queryParam("keyWord", keyword);
+            }
+            if (timeStart != null) {
+                uriBuilder.queryParam("timeStart", timeStart);
+            }
+            if (timeEnd != null) {
+                uriBuilder.queryParam("timeEnd", timeEnd);
+            }
+            if (orderBy != null) {
+                uriBuilder.queryParam("orderBy", orderBy);
+            }
+            if (sort != null && !sort.isBlank()) {
+                uriBuilder.queryParam("sort", sort);
+            }
+            return uriBuilder.build();
+        }).header(HEADER_CJ_TOKEN, accessToken).retrieve()
+                .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<CjProductListPageDto>>() {
+                }).timeout(DATA_TIMEOUT).block(), CTX_FILTERED_LIST);
 
-            log.info("CJ listV2 response: code={}, result={}, products={}, totalRecords={}, pageNumber={}",
-                    response.getCode(), response.getResult(), response.getData().getAllProducts().size(),
-                    response.getData().getTotalRecords(), response.getData().getPageNumber());
-            return response.getData();
+        if (response == null || response.getData() == null) {
+            log.warn("CJ returned null data for filtered list: categoryId={}, keyword={}", categoryId, keyword);
+            return null;
+        }
 
+        log.info("CJ listV2 response: code={}, result={}, products={}, totalRecords={}, pageNumber={}",
+                response.getCode(), response.getResult(), response.getData().getAllProducts().size(),
+                response.getData().getTotalRecords(), response.getData().getPageNumber());
+        return response.getData();
+    }
+
+    /**
+     * Wraps a CJ WebClient call with unified exception handling. Propagates
+     * {@link ExternalServiceException} unchanged and translates any other error
+     * into {@link ExternalServiceException} tagged with the provided context.
+     */
+    private <T> T invokeCj(Supplier<T> call, String context) {
+        try {
+            return call.get();
         } catch (ExternalServiceException e) {
             throw e;
         } catch (WebClientException e) {
-            log.error("CJ API filtered list failed (WebClient): {}", e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "filtered product list: " + e.getMessage());
+            log.error("CJ API {} failed (WebClient): {}", context, e.getMessage(), e);
+            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException(CJ_SERVICE, context + ": " + e.getMessage());
         } catch (Exception e) {
-            log.error("CJ API filtered list failed (unexpected): {}", e.getMessage(), e);
-            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException("CJ Dropshipping",
-                    "filtered product list: " + e.getMessage());
+            log.error("CJ API {} failed (unexpected): {}", context, e.getMessage(), e);
+            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException(CJ_SERVICE, context + ": " + e.getMessage());
         }
+    }
+
+    private <T> T requireData(CjApiResponseDto<T> response, String context) {
+        if (response == null || response.getData() == null) {
+            throw EXTERNAL_SERVICE_DATA_ERROR.toExternalServiceException(CJ_SERVICE, context);
+        }
+        return response.getData();
     }
 }

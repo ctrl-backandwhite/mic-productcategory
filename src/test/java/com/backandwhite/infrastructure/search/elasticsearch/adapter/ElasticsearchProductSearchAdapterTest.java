@@ -1,6 +1,7 @@
 package com.backandwhite.infrastructure.search.elasticsearch.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -52,7 +53,7 @@ class ElasticsearchProductSearchAdapterTest {
     void indexProduct_exception_swallowed() {
         Product p = Product.builder().id("1").build();
         when(documentMapper.fromProduct(p)).thenThrow(new RuntimeException("fail"));
-        adapter.indexProduct(p);
+        assertThatCode(() -> adapter.indexProduct(p)).doesNotThrowAnyException();
     }
 
     @Test
@@ -68,7 +69,7 @@ class ElasticsearchProductSearchAdapterTest {
     void indexProductDetail_exception_swallowed() {
         ProductDetail detail = ProductDetail.builder().pid("pid").build();
         when(documentMapper.fromProductDetail(detail)).thenThrow(new RuntimeException("x"));
-        adapter.indexProductDetail(detail);
+        assertThatCode(() -> adapter.indexProductDetail(detail)).doesNotThrowAnyException();
     }
 
     @Test
@@ -84,7 +85,8 @@ class ElasticsearchProductSearchAdapterTest {
     void indexBulk_exception_swallowed() {
         Product p = Product.builder().id("1").build();
         when(documentMapper.fromProduct(p)).thenThrow(new RuntimeException("x"));
-        adapter.indexBulk(List.of(p));
+        List<Product> list = List.of(p);
+        assertThatCode(() -> adapter.indexBulk(list)).doesNotThrowAnyException();
     }
 
     @Test
@@ -100,7 +102,8 @@ class ElasticsearchProductSearchAdapterTest {
     void indexBulkProductDetail_exception_swallowed() {
         ProductDetail detail = ProductDetail.builder().pid("pid").build();
         when(documentMapper.fromProductDetail(detail)).thenThrow(new RuntimeException("x"));
-        adapter.indexBulkProductDetail(List.of(detail));
+        List<ProductDetail> list = List.of(detail);
+        assertThatCode(() -> adapter.indexBulkProductDetail(list)).doesNotThrowAnyException();
     }
 
     @Test
@@ -124,13 +127,15 @@ class ElasticsearchProductSearchAdapterTest {
     @Test
     void updateStock_missingDoc_noOp() {
         when(searchRepository.findById("pid")).thenReturn(Optional.empty());
-        adapter.updateStock("pid", Map.of());
+        Map<String, Integer> emptyStock = Map.of();
+        assertThatCode(() -> adapter.updateStock("pid", emptyStock)).doesNotThrowAnyException();
     }
 
     @Test
     void updateStock_exception_swallowed() {
         when(searchRepository.findById("pid")).thenThrow(new RuntimeException("x"));
-        adapter.updateStock("pid", Map.of());
+        Map<String, Integer> emptyStock = Map.of();
+        assertThatCode(() -> adapter.updateStock("pid", emptyStock)).doesNotThrowAnyException();
     }
 
     @Test
@@ -144,7 +149,7 @@ class ElasticsearchProductSearchAdapterTest {
     @Test
     void updateStatus_exception_swallowed() {
         when(searchRepository.findById("p1")).thenThrow(new RuntimeException("x"));
-        adapter.updateStatus("p1", ProductStatus.DRAFT);
+        assertThatCode(() -> adapter.updateStatus("p1", ProductStatus.DRAFT)).doesNotThrowAnyException();
     }
 
     @Test
@@ -156,7 +161,7 @@ class ElasticsearchProductSearchAdapterTest {
     @Test
     void removeProduct_exception_swallowed() {
         doThrow(new RuntimeException("x")).when(searchRepository).deleteById(anyString());
-        adapter.removeProduct("p1");
+        assertThatCode(() -> adapter.removeProduct("p1")).doesNotThrowAnyException();
     }
 
     @Test
@@ -169,7 +174,8 @@ class ElasticsearchProductSearchAdapterTest {
     @Test
     void removeBulk_exception_swallowed() {
         doThrow(new RuntimeException("x")).when(searchRepository).deleteById(anyString());
-        adapter.removeBulk(List.of("a"));
+        List<String> ids = List.of("a");
+        assertThatCode(() -> adapter.removeBulk(ids)).doesNotThrowAnyException();
     }
 
     @Test

@@ -37,10 +37,9 @@ public class BrandController {
     public ResponseEntity<PaginationDtoOut<BrandDtoOut>> findAll(
             @Parameter(description = "Filter by status (ACTIVE, INACTIVE)") @RequestParam(required = false) BrandStatus status,
             @Parameter(description = "Search by name (partial, case-insensitive)") @RequestParam(required = false) String name,
-            @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Sort field", example = "name") @RequestParam(defaultValue = "name") String sortBy,
-            @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "true") boolean ascending) {
         Page<Brand> result = brandUseCase.findAll(status, name, page, size, sortBy, ascending);
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(brandApiMapper::toDto)));
     }

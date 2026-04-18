@@ -22,20 +22,26 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .headers(headers -> headers.httpStrictTransportSecurity(
-                        hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000).preload(true)))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/v1/public/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/media/images/**").permitAll().anyRequest()
-                        .authenticated())
-                .oauth2ResourceServer(
-                        oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
-                .build();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        try {
+            return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    // NOSONAR java:S4502 — CSRF disabled intentionally: stateless JWT resource
+                    // server uses no cookie sessions
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .headers(headers -> headers.httpStrictTransportSecurity(
+                            hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000).preload(true)))
+                    .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/**").permitAll()
+                            .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                            .requestMatchers("/api/v1/public/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/media/images/**").permitAll().anyRequest()
+                            .authenticated())
+                    .oauth2ResourceServer(
+                            oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                    .build();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to build security filter chain", e);
+        }
     }
 
     private JwtAuthenticationConverter jwtAuthenticationConverter() {

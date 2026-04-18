@@ -310,12 +310,7 @@ public class ProductController {
 
         BulkImportResult result = productUseCase.bulkCreate(products);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(BulkImportResultDtoOut.builder()
-                .created(result.getCreated()).failed(result.getFailed()).totalRows(result.getTotalRows())
-                .errors(result.getErrors().stream().map(
-                        e -> BulkImportResultDtoOut.RowError.builder().row(e.getRow()).message(e.getMessage()).build())
-                        .toList())
-                .build());
+        return toBulkImportResponse(result);
     }
 
     @PostMapping("/detail/variants/bulk")
@@ -327,6 +322,10 @@ public class ProductController {
 
         BulkImportResult result = productDetailUseCase.bulkCreateVariants(variants);
 
+        return toBulkImportResponse(result);
+    }
+
+    private ResponseEntity<BulkImportResultDtoOut> toBulkImportResponse(BulkImportResult result) {
         return ResponseEntity.status(HttpStatus.CREATED).body(BulkImportResultDtoOut.builder()
                 .created(result.getCreated()).failed(result.getFailed()).totalRows(result.getTotalRows())
                 .errors(result.getErrors().stream().map(

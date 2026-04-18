@@ -189,7 +189,7 @@ public class CjTokenManager {
             tokenRepository.save(entity);
             log.debug("CJ token persisted to DB");
         } catch (Exception e) {
-            log.error("Failed to persist CJ token to DB: {}", e.getMessage());
+            log.error("Failed to persist CJ token to DB: {}", e.getMessage(), e);
             // Do not throw — in-memory token still works
         }
     }
@@ -214,7 +214,7 @@ public class CjTokenManager {
                 }
                 log.warn("Token request cooldown active ({} s remaining) and no cached token. Waiting is required.",
                         remaining);
-                throw new RuntimeException(
+                throw new IllegalStateException(
                         "CJ token cooldown: must wait " + remaining + "s before requesting a new token");
             }
         }
@@ -269,14 +269,14 @@ public class CjTokenManager {
         if (dateStr == null || dateStr.isBlank())
             return null;
         try {
-            // Try ISO offset format first: 2026-04-03T17:09:34+08:00
             return OffsetDateTime.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
-        } catch (Exception e1) {
+        } catch (Exception offsetFailure) {
+            log.trace("ISO offset parse failed for '{}': {}", dateStr, offsetFailure.getMessage());
             try {
-                // Fallback: legacy CJ format yyyy/MM/dd HH:mm:ss (assume UTC)
                 return LocalDateTime.parse(dateStr, CJ_DATE_FMT).toInstant(ZoneOffset.UTC);
-            } catch (Exception e2) {
-                log.warn("Could not parse CJ date '{}', treating as null", dateStr);
+            } catch (Exception legacyFailure) {
+                log.warn("Could not parse CJ date '{}' (ISO / legacy): {} / {}", dateStr, offsetFailure.getMessage(),
+                        legacyFailure.getMessage());
                 return null;
             }
         }

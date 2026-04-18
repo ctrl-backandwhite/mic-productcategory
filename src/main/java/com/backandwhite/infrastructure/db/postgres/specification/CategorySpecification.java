@@ -1,5 +1,11 @@
 package com.backandwhite.infrastructure.db.postgres.specification;
 
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.and;
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.equalIfNotNull;
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.joinTranslations;
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.likeIgnoreCase;
+import static com.backandwhite.infrastructure.db.postgres.specification.SpecificationHelpers.localeEqual;
+
 import com.backandwhite.domain.valueobject.CategoryStatus;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryEntity;
 import com.backandwhite.infrastructure.db.postgres.entity.CategoryTranslationEntity;
@@ -13,60 +19,42 @@ import org.springframework.data.jpa.domain.Specification;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategorySpecification {
 
+    private static final String TRANSLATIONS = "translations";
+    private static final String LEVEL = "level";
+    private static final String LOCALE_PATH = "locale";
+    private static final String ACTIVE = "active";
+
     @SuppressWarnings("unchecked")
     public static Specification<CategoryEntity> withFilters(String locale, CategoryStatus status, Boolean active) {
         return (root, query, cb) -> {
             Join<CategoryEntity, CategoryTranslationEntity> translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root
-                    .fetch("translations", JoinType.INNER);
+                    .fetch(TRANSLATIONS, JoinType.INNER);
 
             query.distinct(true);
-            query.orderBy(cb.asc(root.get("level")), cb.asc(root.get("id")));
+            query.orderBy(cb.asc(root.get(LEVEL)), cb.asc(root.get("id")));
 
-            Predicate predicate = cb.equal(translationJoin.get("id").get("locale"), locale);
-
-            if (status != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("status"), status));
-            }
-            if (active != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("active"), active));
-            }
+            Predicate predicate = cb.equal(translationJoin.get("id").get(LOCALE_PATH), locale);
+            predicate = and(cb, predicate, equalIfNotNull(cb, root.get("status"), status));
+            predicate = and(cb, predicate, equalIfNotNull(cb, root.get(ACTIVE), active));
 
             return predicate;
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static Specification<CategoryEntity> withPagedFilters(String locale, CategoryStatus status, Boolean active,
             String name, Integer level) {
         return (root, query, cb) -> {
-            Join<CategoryEntity, CategoryTranslationEntity> translationJoin;
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root.fetch("translations",
-                        JoinType.INNER);
-            } else {
-                translationJoin = root.join("translations", JoinType.INNER);
-            }
+            Join<CategoryEntity, CategoryTranslationEntity> translationJoin = joinTranslations(root, query,
+                    TRANSLATIONS);
 
             query.distinct(true);
 
             Predicate predicate = cb.conjunction();
-
-            if (locale != null && !locale.isBlank()) {
-                predicate = cb.and(predicate, cb.equal(translationJoin.get("id").get("locale"), locale));
-            }
-            if (status != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("status"), status));
-            }
-            if (active != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("active"), active));
-            }
-            if (name != null && !name.isBlank()) {
-                predicate = cb.and(predicate,
-                        cb.like(cb.lower(translationJoin.get("name")), "%" + name.toLowerCase() + "%"));
-            }
-            if (level != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("level"), level));
-            }
+            predicate = and(cb, predicate, localeEqual(cb, translationJoin, locale));
+            predicate = and(cb, predicate, equalIfNotNull(cb, root.get("status"), status));
+            predicate = and(cb, predicate, equalIfNotNull(cb, root.get(ACTIVE), active));
+            predicate = and(cb, predicate, likeIgnoreCase(cb, translationJoin.get("name"), name));
+            predicate = and(cb, predicate, equalIfNotNull(cb, root.get(LEVEL), level));
 
             return predicate;
         };
@@ -77,23 +65,17 @@ public final class CategorySpecification {
      * Replaces the @Query in
      * CategoryJpaRepository#findByTranslationNameAndLocaleAndLevelAndParent.
      */
-    @SuppressWarnings("unchecked")
     public static Specification<CategoryEntity> byTranslationNameAndLocaleAndLevelAndParent(String name, String locale,
             Integer level, String parentId) {
         return (root, query, cb) -> {
-            Join<CategoryEntity, CategoryTranslationEntity> translationJoin;
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root.fetch("translations",
-                        JoinType.INNER);
-            } else {
-                translationJoin = root.join("translations", JoinType.INNER);
-            }
+            Join<CategoryEntity, CategoryTranslationEntity> translationJoin = joinTranslations(root, query,
+                    TRANSLATIONS);
 
             query.distinct(true);
 
             Predicate predicate = cb.equal(translationJoin.get("name"), name);
-            predicate = cb.and(predicate, cb.equal(translationJoin.get("id").get("locale"), locale));
-            predicate = cb.and(predicate, cb.equal(root.get("level"), level));
+            predicate = cb.and(predicate, cb.equal(translationJoin.get("id").get(LOCALE_PATH), locale));
+            predicate = cb.and(predicate, cb.equal(root.get(LEVEL), level));
 
             if (parentId == null) {
                 predicate = cb.and(predicate, cb.isNull(root.get("parentId")));
@@ -105,26 +87,17 @@ public final class CategorySpecification {
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static Specification<CategoryEntity> withFeatured(String locale) {
         return (root, query, cb) -> {
-            Join<CategoryEntity, CategoryTranslationEntity> translationJoin;
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                translationJoin = (Join<CategoryEntity, CategoryTranslationEntity>) (Object) root.fetch("translations",
-                        JoinType.INNER);
-            } else {
-                translationJoin = root.join("translations", JoinType.INNER);
-            }
+            Join<CategoryEntity, CategoryTranslationEntity> translationJoin = joinTranslations(root, query,
+                    TRANSLATIONS);
 
             query.distinct(true);
-            query.orderBy(cb.asc(root.get("level")), cb.asc(root.get("id")));
+            query.orderBy(cb.asc(root.get(LEVEL)), cb.asc(root.get("id")));
 
             Predicate predicate = cb.equal(root.get("featured"), true);
-            predicate = cb.and(predicate, cb.equal(root.get("active"), true));
-
-            if (locale != null && !locale.isBlank()) {
-                predicate = cb.and(predicate, cb.equal(translationJoin.get("id").get("locale"), locale));
-            }
+            predicate = cb.and(predicate, cb.equal(root.get(ACTIVE), true));
+            predicate = and(cb, predicate, localeEqual(cb, translationJoin, locale));
 
             return predicate;
         };

@@ -100,7 +100,7 @@ class InventoryUseCaseImplTest {
 
         inventoryUseCase.reserveStock("v1", "ord-1", 1, null);
 
-        verify(catalogEventPort).publishStockLowAlert(eq("p1"), eq("v1"), eq("Red Shirt"), eq(5), eq(10));
+        verify(catalogEventPort).publishStockLowAlert("p1", "v1", "Red Shirt", 5, 10);
     }
 
     // ── deductStock ──────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ class InventoryUseCaseImplTest {
 
         inventoryUseCase.deductStock("v1", "ord-1", 1, null);
 
-        verify(catalogEventPort).publishStockDepleted(eq("p1"), eq("v1"), eq("Blue Shoe"));
+        verify(catalogEventPort).publishStockDepleted("p1", "v1", "Blue Shoe");
     }
 
     @Test

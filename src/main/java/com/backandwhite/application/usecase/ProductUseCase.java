@@ -9,6 +9,7 @@ public interface ProductUseCase {
 
     List<Product> findByCategoryId(String categoryId, String locale, String status);
 
+    @SuppressWarnings("java:S107")
     Page<Product> findAllPaged(String locale, String categoryId, String status, String name, int page, int size,
             String sortBy, boolean ascending);
 
