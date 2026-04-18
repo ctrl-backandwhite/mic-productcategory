@@ -549,5 +549,347 @@ class PricingServiceTest {
             assertThat(product.getCurrencyCode()).isEqualTo("EUR");
             assertThat(product.getSellPrice()).isEqualTo("92.00");
         }
+
+        @Test
+        void unknownCurrency_defaultsToUsd() {
+            CurrencyHolder.set("XYZ");
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of());
+
+            Product product = new Product();
+            product.setId("p1");
+            product.setCategoryId("c1");
+            product.setSellPrice("10.00");
+            product.setVariants(null);
+
+            pricingService.applyMarginsToProduct(product);
+
+            assertThat(product.getCurrencyCode()).isEqualTo("USD");
+            assertThat(product.getCurrencySymbol()).isEqualTo("$");
+        }
+
+        @Test
+        void productWithVariantsInUsd_setsVariantCurrencyCode() {
+            CurrencyHolder.set("USD");
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of());
+
+            ProductDetailVariant v1 = new ProductDetailVariant();
+            v1.setVid("v1");
+            v1.setVariantSellPrice(Money.of(new BigDecimal("10.00")));
+
+            Product product = new Product();
+            product.setId("p1");
+            product.setCategoryId("c1");
+            product.setSellPrice("10.00");
+            product.setVariants(new ArrayList<>(List.of(v1)));
+
+            pricingService.applyMarginsToProduct(product);
+
+            assertThat(v1.getCurrencyCode()).isEqualTo("USD");
+        }
+
+        @Test
+        void productWithVariantsInEur_convertsVariantPrices() {
+            CurrencyHolder.set("EUR");
+            when(currencyRateCache.getRate("EUR")).thenReturn(new BigDecimal("0.50"));
+
+            PriceRule rule = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null).marginType(MarginType.FIXED)
+                    .marginValue(new BigDecimal("0.00")).priority(0).active(true).build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(rule));
+
+            ProductDetailVariant v1 = new ProductDetailVariant();
+            v1.setVid("v1");
+            v1.setVariantSellPrice(Money.of(new BigDecimal("100.00")));
+            v1.setVariantSugSellPrice(Money.of(new BigDecimal("120.00")));
+
+            Product product = new Product();
+            product.setId("p1");
+            product.setCategoryId("c1");
+            product.setSellPrice("100.00");
+            product.setVariants(new ArrayList<>(List.of(v1)));
+
+            pricingService.applyMarginsToProduct(product);
+
+            assertThat(v1.getCurrencyCode()).isEqualTo("EUR");
+            assertThat(v1.getVariantSellPrice().getAmount()).isEqualByComparingTo("50.00");
+            assertThat(v1.getVariantSugSellPrice().getAmount()).isEqualByComparingTo("60.00");
+            assertThat(v1.getRetailPrice()).isNotNull();
+        }
+
+        @Test
+        void productDetailWithVariantsInEur_convertsAllPrices() {
+            CurrencyHolder.set("EUR");
+            when(currencyRateCache.getRate("EUR")).thenReturn(new BigDecimal("0.80"));
+
+            PriceRule rule = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null).marginType(MarginType.FIXED)
+                    .marginValue(new BigDecimal("0.00")).priority(0).active(true).build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(rule));
+
+            ProductDetailVariant v1 = new ProductDetailVariant();
+            v1.setVid("v1");
+            v1.setVariantSellPrice(Money.of(new BigDecimal("50.00")));
+            v1.setVariantSugSellPrice(Money.of(new BigDecimal("80.00")));
+
+            ProductDetail detail = new ProductDetail();
+            detail.setPid("p1");
+            detail.setCategoryId("c1");
+            detail.setSellPrice("50.00");
+            detail.setSuggestSellPrice("80.00");
+            detail.setVariants(new ArrayList<>(List.of(v1)));
+
+            pricingService.applyMarginsToProductDetail(detail);
+
+            assertThat(detail.getCurrencyCode()).isEqualTo("EUR");
+            assertThat(v1.getCurrencyCode()).isEqualTo("EUR");
+            assertThat(v1.getVariantSellPrice().getAmount()).isEqualByComparingTo("40.00");
+            assertThat(v1.getVariantSugSellPrice().getAmount()).isEqualByComparingTo("64.00");
+        }
+
+        @Test
+        void productDetailInUsd_setsVariantCurrencyCode() {
+            CurrencyHolder.set("USD");
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of());
+
+            ProductDetailVariant v1 = new ProductDetailVariant();
+            v1.setVid("v1");
+            v1.setVariantSellPrice(Money.of(new BigDecimal("10.00")));
+
+            ProductDetail detail = new ProductDetail();
+            detail.setPid("p1");
+            detail.setCategoryId("c1");
+            detail.setSellPrice("10.00");
+            detail.setVariants(new ArrayList<>(List.of(v1)));
+
+            pricingService.applyMarginsToProductDetail(detail);
+
+            assertThat(detail.getCurrencyCode()).isEqualTo("USD");
+            assertThat(v1.getCurrencyCode()).isEqualTo("USD");
+        }
+
+        @Test
+        void productDetailUnknownCurrency_defaultsToUsd() {
+            CurrencyHolder.set("XYZ");
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of());
+
+            ProductDetail detail = new ProductDetail();
+            detail.setPid("p1");
+            detail.setCategoryId("c1");
+            detail.setSellPrice("10.00");
+            detail.setVariants(null);
+
+            pricingService.applyMarginsToProductDetail(detail);
+
+            assertThat(detail.getCurrencyCode()).isEqualTo("USD");
+        }
+
+        @Test
+        void productDetailEurNoVariants_convertsRangeString() {
+            CurrencyHolder.set("EUR");
+            when(currencyRateCache.getRate("EUR")).thenReturn(new BigDecimal("0.50"));
+
+            PriceRule rule = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null).marginType(MarginType.FIXED)
+                    .marginValue(new BigDecimal("0.00")).priority(0).active(true).build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(rule));
+
+            ProductDetail detail = new ProductDetail();
+            detail.setPid("p1");
+            detail.setCategoryId("c1");
+            detail.setSellPrice("10.00 -- 20.00");
+            detail.setSuggestSellPrice("12.00");
+            detail.setVariants(null);
+
+            pricingService.applyMarginsToProductDetail(detail);
+
+            assertThat(detail.getCurrencyCode()).isEqualTo("EUR");
+            assertThat(detail.getSellPrice()).isEqualTo("5.00 -- 10.00");
+            assertThat(detail.getSuggestSellPrice()).isEqualTo("6.00");
+            assertThat(detail.getSellPriceRaw()).isEqualByComparingTo("5.00");
+        }
+
+        @Test
+        void productEurInvalidPriceString_preservesAsIs() {
+            CurrencyHolder.set("EUR");
+            lenient().when(currencyRateCache.getRate("EUR")).thenReturn(new BigDecimal("0.90"));
+
+            Product product = new Product();
+            product.setId("p1");
+            product.setCategoryId("c1");
+            product.setSellPrice("abc");
+            product.setVariants(null);
+
+            pricingService.applyMarginsToProduct(product);
+
+            assertThat(product.getSellPriceRaw()).isNull();
+            assertThat(product.getSellPrice()).contains("abc");
+        }
+    }
+
+    // ── Range rule without minPrice / maxPrice ───────────────────────────────
+
+    @Nested
+    class RangeMatchingEdgeCases {
+
+        @Test
+        void minPriceOnly_costAbove_matches() {
+            PriceRule rule = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("40"))
+                    .minPrice(new BigDecimal("5.00")).priority(1).active(true).build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(rule));
+
+            Optional<PriceRule> result = pricingService.resolveRule("v1", "p1", "c1", new BigDecimal("10.00"));
+
+            assertThat(result).isPresent();
+            assertThat(result.get().getMarginValue()).isEqualByComparingTo("40");
+        }
+
+        @Test
+        void maxPriceOnly_costBelow_matches() {
+            PriceRule rule = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("15"))
+                    .maxPrice(new BigDecimal("50.00")).priority(0).active(true).build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(rule));
+
+            Optional<PriceRule> result = pricingService.resolveRule("v1", "p1", "c1", new BigDecimal("25.00"));
+
+            assertThat(result).isPresent();
+            assertThat(result.get().getMarginValue()).isEqualByComparingTo("15");
+        }
+
+        @Test
+        void rangeRulesByPriority_highestWins() {
+            PriceRule low = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("10")).minPrice(new BigDecimal("1"))
+                    .maxPrice(new BigDecimal("100")).priority(1).active(true).build();
+            PriceRule high = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("30")).minPrice(new BigDecimal("1"))
+                    .maxPrice(new BigDecimal("100")).priority(5).active(true).build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(low, high));
+
+            Optional<PriceRule> result = pricingService.resolveRule("v1", "p1", "c1", new BigDecimal("50.00"));
+
+            assertThat(result).isPresent();
+            assertThat(result.get().getMarginValue()).isEqualByComparingTo("30");
+        }
+
+        @Test
+        void nullPriorityInNoRangeRule_usesZero() {
+            PriceRule rule = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("20")).priority(null).active(true)
+                    .build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(rule));
+
+            Optional<PriceRule> result = pricingService.resolveRule("v1", "p1", "c1");
+
+            assertThat(result).isPresent();
+        }
+
+        @Test
+        void rangeRuleNullPriority_usesZero() {
+            PriceRule rule = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("22")).minPrice(new BigDecimal("1"))
+                    .maxPrice(new BigDecimal("100")).priority(null).active(true).build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(rule));
+
+            Optional<PriceRule> result = pricingService.resolveRule("v1", "p1", "c1", new BigDecimal("50.00"));
+
+            assertThat(result).isPresent();
+            assertThat(result.get().getMarginValue()).isEqualByComparingTo("22");
+        }
+
+        @Test
+        void nullCostPrice_fallsBackToNoRangeRule() {
+            PriceRule withRange = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("30")).minPrice(new BigDecimal("1"))
+                    .maxPrice(new BigDecimal("100")).priority(5).active(true).build();
+            PriceRule noRange = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("10")).priority(0).active(true)
+                    .build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(withRange, noRange));
+
+            Optional<PriceRule> result = pricingService.resolveRule("v1", "p1", "c1", null);
+
+            assertThat(result).isPresent();
+            assertThat(result.get().getMarginValue()).isEqualByComparingTo("10");
+        }
+    }
+
+    // ── applyMarginToSellPriceString handles invalid number parts ────────────
+
+    @Nested
+    class InvalidPriceParsing {
+
+        @Test
+        void product_invalidNumberPart_preserved() {
+            Product product = new Product();
+            product.setId("p1");
+            product.setCategoryId("c1");
+            product.setSellPrice("abc");
+            product.setVariants(null);
+
+            pricingService.applyMarginsToProduct(product);
+
+            assertThat(product.getSellPrice()).isEqualTo("abc");
+            assertThat(product.getCostPrice()).isEqualTo("abc");
+        }
+
+        @Test
+        void product_multipartRangeWithOneInvalid_preservedAsIs() {
+            PriceRule globalRule = PriceRule.builder().scope(PriceRuleScope.GLOBAL).scopeId(null)
+                    .marginType(MarginType.PERCENTAGE).marginValue(new BigDecimal("50")).priority(0).active(true)
+                    .build();
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of(globalRule));
+
+            Product product = new Product();
+            product.setId("p1");
+            product.setCategoryId("c1");
+            product.setSellPrice("5.00 -- xyz");
+            product.setVariants(null);
+
+            pricingService.applyMarginsToProduct(product);
+
+            assertThat(product.getSellPrice()).contains("7.50");
+            assertThat(product.getSellPrice()).contains("xyz");
+        }
+
+        @Test
+        void detail_invalidNumberPart_preserved() {
+            ProductDetail detail = new ProductDetail();
+            detail.setPid("p1");
+            detail.setCategoryId("c1");
+            detail.setSellPrice("abc");
+            detail.setVariants(null);
+
+            pricingService.applyMarginsToProductDetail(detail);
+
+            assertThat(detail.getSellPrice()).isEqualTo("abc");
+        }
+
+        @Test
+        void detail_multipartRangeWithOneInvalid_preserved() {
+            when(priceRuleRepository.findAllActive()).thenReturn(List.of());
+
+            ProductDetail detail = new ProductDetail();
+            detail.setPid("p1");
+            detail.setCategoryId("c1");
+            detail.setSellPrice("5.00 -- xyz");
+            detail.setVariants(null);
+
+            pricingService.applyMarginsToProductDetail(detail);
+
+            assertThat(detail.getSellPrice()).contains("xyz");
+            assertThat(detail.getSellPrice()).contains("5.00");
+        }
+
+        @Test
+        void detail_blankSellPrice_noChange() {
+            ProductDetail detail = new ProductDetail();
+            detail.setPid("p1");
+            detail.setCategoryId("c1");
+            detail.setSellPrice("  ");
+            detail.setVariants(null);
+
+            pricingService.applyMarginsToProductDetail(detail);
+
+            assertThat(detail.getSellPrice()).isEqualTo("  ");
+        }
     }
 }
