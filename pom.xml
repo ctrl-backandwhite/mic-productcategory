@@ -47,6 +47,27 @@
         <sonar.sources>src/main/java</sonar.sources>
         <sonar.tests>src/test/java</sonar.tests>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.exclusions>
+            **/dto/**,
+            **/*DtoIn.*,
+            **/*DtoOut.*,
+            **/model/**,
+            **/*Entity.*,
+            **/MicProductcategoryApplication.*,
+            **/configuration/**,
+            **/*Config.*,
+            **/*Properties.*,
+            **/infrastructure/client/**,
+            **/infrastructure/external/**,
+            **/infrastructure/message/**,
+            **/infrastructure/db/postgres/repository/**,
+            **/infrastructure/db/postgres/entity/**,
+            **/infrastructure/db/postgres/specification/**,
+            **/infrastructure/search/elasticsearch/document/**,
+            **/infrastructure/search/elasticsearch/repository/**,
+            **/*Application.*,
+            **/valueobject/**
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencyManagement>
@@ -194,6 +215,29 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.14</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/*DtoIn.*</exclude>
+                        <exclude>**/*DtoOut.*</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/*Entity.*</exclude>
+                        <exclude>**/MicProductcategoryApplication.*</exclude>
+                        <exclude>**/configuration/**</exclude>
+                        <exclude>**/*Config.*</exclude>
+                        <exclude>**/*Properties.*</exclude>
+                        <exclude>**/infrastructure/client/**</exclude>
+                        <exclude>**/infrastructure/external/**</exclude>
+                        <exclude>**/infrastructure/message/**</exclude>
+                        <exclude>**/infrastructure/db/postgres/repository/**</exclude>
+                        <exclude>**/infrastructure/db/postgres/entity/**</exclude>
+                        <exclude>**/infrastructure/db/postgres/specification/**</exclude>
+                        <exclude>**/infrastructure/search/elasticsearch/document/**</exclude>
+                        <exclude>**/infrastructure/search/elasticsearch/repository/**</exclude>
+                        <exclude>**/*Application.*</exclude>
+                        <exclude>**/valueobject/**</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
