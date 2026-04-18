@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PricingService {
 
-    private static final String PRICE_RANGE_SEPARATOR = "\\s*+-{1,2}\\s*+";
     private static final String RANGE_JOINER = " -- ";
     private static final String USD = "USD";
     private static final long CACHE_TTL_MS = 5L * 60 * 1000;
@@ -162,7 +161,7 @@ public class PricingService {
     }
 
     private String applyMarginToRangeString(String raw, String variantId, String productId, String categoryId) {
-        String[] parts = raw.split(PRICE_RANGE_SEPARATOR);
+        String[] parts = splitPriceRange(raw);
         StringBuilder retailRange = new StringBuilder();
 
         for (int i = 0; i < parts.length; i++) {
@@ -270,7 +269,7 @@ public class PricingService {
         if (priceString == null || priceString.isBlank())
             return priceString;
 
-        String[] parts = priceString.split(PRICE_RANGE_SEPARATOR);
+        String[] parts = splitPriceRange(priceString);
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < parts.length; i++) {
@@ -290,7 +289,7 @@ public class PricingService {
     private BigDecimal parseMinPrice(String priceString) {
         if (priceString == null || priceString.isBlank())
             return null;
-        String[] parts = priceString.split(PRICE_RANGE_SEPARATOR);
+        String[] parts = splitPriceRange(priceString);
         return parseDecimal(parts[0].trim());
     }
 
@@ -301,6 +300,29 @@ public class PricingService {
             log.trace("Not a decimal: '{}' ({})", token, ex.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Splits a price-range string (e.g. {@code "9.99 -- 17.97"} or
+     * {@code "9.99-17.97"}) into its numeric parts. Uses a linear manual scan to
+     * avoid regex backtracking risk (ReDoS) and to stay O(n) in the input length.
+     * Returns a single-element array when no range separator is found.
+     */
+    private static String[] splitPriceRange(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return new String[]{""};
+        }
+        int dashStart = raw.indexOf('-');
+        if (dashStart < 0) {
+            return new String[]{raw};
+        }
+        int dashEnd = dashStart;
+        if (dashEnd + 1 < raw.length() && raw.charAt(dashEnd + 1) == '-') {
+            dashEnd++;
+        }
+        String left = raw.substring(0, dashStart).trim();
+        String right = raw.substring(dashEnd + 1).trim();
+        return new String[]{left, right};
     }
 
     private synchronized List<PriceRule> getActiveRules() {
