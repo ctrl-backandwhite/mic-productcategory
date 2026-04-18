@@ -42,7 +42,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @Provider("catalog-service")
 @PactFolder("src/test/resources/pacts")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "nx.test.pact-auth.enabled=true")
 @ActiveProfiles("test")
 @Import({TestContainersConfiguration.class, PactAuthConfiguration.class})
 class CatalogProviderPactTest {
