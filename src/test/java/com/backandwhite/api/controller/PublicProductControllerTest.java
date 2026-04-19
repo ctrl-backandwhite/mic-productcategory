@@ -17,6 +17,7 @@ import com.backandwhite.api.dto.PaginationDtoOut;
 import com.backandwhite.api.dto.out.AutocompleteSuggestion;
 import com.backandwhite.api.dto.out.BrandDtoOut;
 import com.backandwhite.api.dto.out.CategoryDtoOut;
+import com.backandwhite.api.dto.out.ProductDetailDtoOut;
 import com.backandwhite.api.dto.out.ProductDetailVariantDtoOut;
 import com.backandwhite.api.dto.out.ProductDtoOut;
 import com.backandwhite.api.dto.out.ProductSearchResponse;
@@ -39,6 +40,7 @@ import com.backandwhite.application.usecase.ReviewUseCase;
 import com.backandwhite.domain.model.Brand;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.Product;
+import com.backandwhite.domain.model.ProductDetail;
 import com.backandwhite.domain.model.ProductDetailVariant;
 import com.backandwhite.domain.model.Review;
 import com.backandwhite.domain.model.ReviewStats;
@@ -108,6 +110,18 @@ class PublicProductControllerTest {
         ResponseEntity<ProductDtoOut> response = controller.getProduct(PRODUCT_ID, "en");
         assertThat(response.getBody()).isNotNull();
         verify(pricingService).applyMarginsToProduct(p);
+    }
+
+    @Test
+    void getProductDetail_returnsCjRichDetailWithMargins() {
+        ProductDetail detail = ProductDetail.builder().pid("pid-42").build();
+        when(productDetailUseCase.getOrFetchFromCj("pid-42", "en")).thenReturn(detail);
+        when(productDetailApiMapper.toDto(detail)).thenReturn(new ProductDetailDtoOut());
+
+        ResponseEntity<ProductDetailDtoOut> response = controller.getProductDetail("pid-42", "en");
+
+        assertThat(response.getBody()).isNotNull();
+        verify(pricingService).applyMarginsToProductDetail(detail);
     }
 
     @Test

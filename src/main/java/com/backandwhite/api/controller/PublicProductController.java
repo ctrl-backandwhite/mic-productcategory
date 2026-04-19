@@ -72,6 +72,15 @@ public class PublicProductController {
         return ResponseEntity.ok(productApiMapper.toDto(product));
     }
 
+    @Operation(summary = "Get CJ-rich product detail by pid (public)", description = "Returns the full ProductDetail payload (variants, inventories, CJ metadata) used by the storefront product page. If the product is not yet in the local DB it will be fetched from CJ Dropshipping, persisted and returned.")
+    @GetMapping("/products/detail/{pid}")
+    public ResponseEntity<ProductDetailDtoOut> getProductDetail(@PathVariable String pid,
+            @RequestParam(defaultValue = "en") String locale) {
+        ProductDetail detail = productDetailUseCase.getOrFetchFromCj(pid, locale);
+        pricingService.applyMarginsToProductDetail(detail);
+        return ResponseEntity.ok(productDetailApiMapper.toDto(detail));
+    }
+
     @Operation(summary = "Get product variants (public)")
     @GetMapping("/products/{pid}/variants")
     public ResponseEntity<List<ProductDetailVariantDtoOut>> getProductVariants(@PathVariable String pid,
