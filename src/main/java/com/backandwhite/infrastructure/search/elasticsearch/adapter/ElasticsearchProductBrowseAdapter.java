@@ -6,7 +6,6 @@ import com.backandwhite.infrastructure.search.elasticsearch.repository.ProductSe
 import com.backandwhite.infrastructure.search.elasticsearch.repository.ProductSearchRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
  * only the ids so Postgres can load the full entity with the active locale's
  * translations — ES stores English only.
  */
-@Log4j2
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "spring.elasticsearch.enabled", havingValue = "true")

@@ -95,7 +95,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
             List<Product> hydrated = productRepository.findByIdsInOrder(result.ids(), locale);
             return new PageImpl<>(hydrated, PageRequest.of(result.currentPage(), Math.max(result.size(), 1)),
                     result.totalElements());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.warn("Elasticsearch browse failed, falling back to Postgres: {}", e.getMessage());
             return null;
         }
