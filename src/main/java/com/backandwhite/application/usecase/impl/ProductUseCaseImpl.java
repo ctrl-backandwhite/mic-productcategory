@@ -42,6 +42,14 @@ public class ProductUseCaseImpl implements ProductUseCase {
     public Page<Product> findAllPaged(String locale, String categoryId, String status, String name, int page, int size,
             String sortBy, boolean ascending) {
         ProductStatus ps = parseStatus(status);
+        // sortBy=random → ORDER BY random() at DB level; returns a fresh
+        // page drawn from the full matching set instead of the first N
+        // rows by createdAt. Ignores `page` and `ascending`.
+        if ("random".equalsIgnoreCase(sortBy)) {
+            List<Product> sample = productRepository.findRandomSample(locale, categoryId, ps, size);
+            return new org.springframework.data.domain.PageImpl<>(sample, PageRequest.of(0, Math.max(size, 1)),
+                    sample.size());
+        }
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         return productRepository.findAllPaged(locale, categoryId, ps, name, pageable);

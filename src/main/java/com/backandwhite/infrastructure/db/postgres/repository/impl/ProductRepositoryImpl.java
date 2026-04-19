@@ -62,6 +62,26 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public List<Product> findRandomSample(String locale, String categoryId, ProductStatus status, int size) {
+        List<String> categoryIds = null;
+        if (categoryId != null && !categoryId.isBlank()) {
+            List<String> descendants = categoryJpaRepository.findDescendantIds(categoryId);
+            categoryIds = descendants.isEmpty() ? List.of(categoryId) : descendants;
+        }
+        int capped = Math.max(1, Math.min(size, 100));
+        List<String> ids = productJpaRepository.findRandomIds(status != null ? status.name() : null, categoryIds,
+                capped);
+        if (ids.isEmpty())
+            return List.of();
+        // findAllByIdIn does not preserve order; remap it so the returned list
+        // keeps the random order from findRandomIds.
+        Map<String, ProductEntity> byId = productJpaRepository.findAllByIdIn(ids).stream()
+                .collect(Collectors.toMap(ProductEntity::getId, Function.identity()));
+        return ids.stream().map(byId::get).filter(Objects::nonNull).map(productInfraMapper::toDomain)
+                .map(product -> filterTranslations(product, locale)).toList();
+    }
+
+    @Override
     public Optional<Product> findById(String productId, String locale) {
         return productJpaRepository.findById(productId).map(productInfraMapper::toDomain)
                 .map(product -> filterTranslations(product, locale));

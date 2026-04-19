@@ -29,4 +29,20 @@ public interface ProductJpaRepository
     @Modifying
     @Query("UPDATE ProductEntity p SET p.status = :status WHERE p.id IN :ids")
     int bulkUpdateStatus(@Param("ids") List<String> ids, @Param("status") ProductStatus status);
+
+    /**
+     * Random sample across the whole matching set using PostgreSQL's ORDER BY
+     * random(). Accepts optional filters via :status (null = any) and :categoryIds
+     * (null or empty list = any category).
+     */
+    @Query(value = """
+            SELECT p.id FROM products p
+            WHERE (:status IS NULL OR p.status = :status)
+              AND (CAST(:categoryIds AS text) IS NULL
+                   OR p.category_id IN (:categoryIds))
+            ORDER BY random()
+            LIMIT :size
+            """, nativeQuery = true)
+    List<String> findRandomIds(@Param("status") String status, @Param("categoryIds") List<String> categoryIds,
+            @Param("size") int size);
 }

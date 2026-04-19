@@ -67,6 +67,17 @@ class ProductUseCaseImplTest {
     }
 
     @Test
+    void findAllPaged_sortByRandom_delegatesToRandomSample() {
+        List<Product> sample = List.of(product(CATEGORY_ID), otherProduct(CATEGORY_ID));
+        when(productRepository.findRandomSample("es", null, null, 20)).thenReturn(sample);
+
+        Page<Product> result = productUseCase.findAllPaged("es", null, null, null, 0, 20, "random", true);
+
+        assertThat(result.getContent()).hasSize(2);
+        verify(productRepository).findRandomSample("es", null, null, 20);
+    }
+
+    @Test
     void findById_existingProduct_returnsProduct() {
         Product model = product(CATEGORY_ID);
         when(productRepository.findById(PRODUCT_ID, "es")).thenReturn(Optional.of(model));

@@ -13,6 +13,13 @@ public interface ProductRepository {
 
     Page<Product> findAllPaged(String locale, String categoryId, ProductStatus status, String name, Pageable pageable);
 
+    /**
+     * Returns a random sample of products matching the filters. Uses PostgreSQL's
+     * ORDER BY random() under the hood so each call yields a different slice of the
+     * catalogue, not just the first page.
+     */
+    List<Product> findRandomSample(String locale, String categoryId, ProductStatus status, int size);
+
     Optional<Product> findById(String productId, String locale);
 
     boolean existsById(String productId);
