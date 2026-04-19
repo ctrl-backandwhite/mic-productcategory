@@ -61,10 +61,14 @@ public class ProductUseCaseImpl implements ProductUseCase {
         // page drawn from the full matching set instead of the first N
         // rows by createdAt. Ignores `page` and `ascending`.
         if ("random".equalsIgnoreCase(sortBy)) {
+            // Random sampling stays on Postgres: ORDER BY random() gives a
+            // reliable fresh shuffle every call, while Elasticsearch's
+            // function_score + random_score needs score_mode tuning to win
+            // over the bool filter's flat score and wasn't reshuffling in
+            // practice. Subsequent pages (loadMore) switch to sortBy=createdAt
+            // and go through the ES browse port, so this is the only JPA hop
+            // left on the landing.
             List<Product> sample = productRepository.findRandomSample(locale, categoryId, ps, size);
-            // Expose the real catalogue total (from ES when available) so the
-            // storefront knows there's more to load and can keep scrolling via
-            // a deterministic sort for subsequent pages.
             long total = resolveTotalCount(categoryId, sample.size());
             return new PageImpl<>(sample, PageRequest.of(0, Math.max(size, 1)), total);
         }
