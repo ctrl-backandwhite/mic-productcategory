@@ -1,6 +1,7 @@
 package com.backandwhite.application.usecase.impl;
 
 import com.backandwhite.application.port.out.CatalogEventPort;
+import com.backandwhite.application.port.out.ProductBrowsePort;
 import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import com.backandwhite.application.usecase.ProductUseCase;
 import com.backandwhite.common.exception.Message;
@@ -10,9 +11,10 @@ import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Log4j2
 @Service
-@RequiredArgsConstructor
 public class ProductUseCaseImpl implements ProductUseCase {
 
     private static final String PRODUCT_ENTITY = "Product";
@@ -29,6 +30,17 @@ public class ProductUseCaseImpl implements ProductUseCase {
     private final ProductRepository productRepository;
     private final CatalogEventPort catalogEventPort;
     private final ProductSearchIndexPort productSearchIndexPort;
+    /** Optional — only present when Elasticsearch is enabled. */
+    private final ObjectProvider<ProductBrowsePort> productBrowsePortProvider;
+
+    public ProductUseCaseImpl(ProductRepository productRepository, CatalogEventPort catalogEventPort,
+            ProductSearchIndexPort productSearchIndexPort,
+            ObjectProvider<ProductBrowsePort> productBrowsePortProvider) {
+        this.productRepository = productRepository;
+        this.catalogEventPort = catalogEventPort;
+        this.productSearchIndexPort = productSearchIndexPort;
+        this.productBrowsePortProvider = productBrowsePortProvider;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -47,12 +59,46 @@ public class ProductUseCaseImpl implements ProductUseCase {
         // rows by createdAt. Ignores `page` and `ascending`.
         if ("random".equalsIgnoreCase(sortBy)) {
             List<Product> sample = productRepository.findRandomSample(locale, categoryId, ps, size);
-            return new org.springframework.data.domain.PageImpl<>(sample, PageRequest.of(0, Math.max(size, 1)),
-                    sample.size());
+            return new PageImpl<>(sample, PageRequest.of(0, Math.max(size, 1)), sample.size());
+        }
+        // When Elasticsearch is available and the caller isn't doing a text
+        // search by name, browse via ES (fast, scales to big catalogues) and
+        // then hydrate rows from Postgres so translations for the requested
+        // locale are applied from the source of truth.
+        if ((name == null || name.isBlank())) {
+            Page<Product> fromEs = tryBrowseFromEs(locale, categoryId, ps, sortBy, page, size);
+            if (fromEs != null)
+                return fromEs;
         }
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         return productRepository.findAllPaged(locale, categoryId, ps, name, pageable);
+    }
+
+    /**
+     * Attempts to resolve the listing through the Elasticsearch browse port.
+     * Returns {@code null} when ES is not wired (so the caller falls back to
+     * Postgres) or any ES error occurs.
+     */
+    private Page<Product> tryBrowseFromEs(String locale, String categoryId, ProductStatus status, String sortBy,
+            int page, int size) {
+        ProductBrowsePort port = productBrowsePortProvider.getIfAvailable();
+        if (port == null)
+            return null;
+        // The browse index holds PUBLISHED docs only; respect that constraint.
+        if (status != null && status != ProductStatus.PUBLISHED)
+            return null;
+        try {
+            ProductBrowsePort.BrowseCriteria criteria = new ProductBrowsePort.BrowseCriteria(categoryId, null, null,
+                    null, null, null, sortBy, page, size);
+            ProductBrowsePort.BrowsePage result = port.browse(criteria);
+            List<Product> hydrated = productRepository.findByIdsInOrder(result.ids(), locale);
+            return new PageImpl<>(hydrated, PageRequest.of(result.currentPage(), Math.max(result.size(), 1)),
+                    result.totalElements());
+        } catch (Exception e) {
+            log.warn("Elasticsearch browse failed, falling back to Postgres: {}", e.getMessage());
+            return null;
+        }
     }
 
     private ProductStatus parseStatus(String status) {

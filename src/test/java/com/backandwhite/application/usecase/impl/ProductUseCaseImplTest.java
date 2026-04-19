@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.backandwhite.application.port.out.CatalogEventPort;
+import com.backandwhite.application.port.out.ProductBrowsePort;
 import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.domain.model.BulkImportResult;
@@ -19,11 +20,12 @@ import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -40,8 +42,16 @@ class ProductUseCaseImplTest {
     @Mock
     private ProductSearchIndexPort productSearchIndexPort;
 
-    @InjectMocks
+    @Mock
+    private ObjectProvider<ProductBrowsePort> productBrowsePortProvider;
+
     private ProductUseCaseImpl productUseCase;
+
+    @BeforeEach
+    void setUp() {
+        productUseCase = new ProductUseCaseImpl(productRepository, catalogEventPort, productSearchIndexPort,
+                productBrowsePortProvider);
+    }
 
     @Test
     void findByCategoryId_returnsProductList() {
@@ -75,6 +85,47 @@ class ProductUseCaseImplTest {
 
         assertThat(result.getContent()).hasSize(2);
         verify(productRepository).findRandomSample("es", null, null, 20);
+    }
+
+    @Test
+    void findAllPaged_browsesFromElasticsearch_whenPortAvailable() {
+        ProductBrowsePort browsePort = org.mockito.Mockito.mock(ProductBrowsePort.class);
+        when(productBrowsePortProvider.getIfAvailable()).thenReturn(browsePort);
+        List<String> ids = List.of(PRODUCT_ID, OTHER_PRODUCT_ID);
+        when(browsePort.browse(any())).thenReturn(new ProductBrowsePort.BrowsePage(ids, 2, 1, 0, 20));
+        List<Product> hydrated = List.of(product(CATEGORY_ID), otherProduct(CATEGORY_ID));
+        when(productRepository.findByIdsInOrder(ids, "es")).thenReturn(hydrated);
+
+        Page<Product> result = productUseCase.findAllPaged("es", null, null, null, 0, 20, "newest", false);
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        verify(productRepository).findByIdsInOrder(ids, "es");
+    }
+
+    @Test
+    void findAllPaged_fallsBackToPostgres_whenEsPortMissing() {
+        when(productBrowsePortProvider.getIfAvailable()).thenReturn(null);
+        Page<Product> page = new PageImpl<>(List.of(product(CATEGORY_ID)));
+        when(productRepository.findAllPaged(eq("es"), eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<Product> result = productUseCase.findAllPaged("es", null, null, null, 0, 20, "createdAt", true);
+
+        assertThat(result.getContent()).hasSize(1);
+        verify(productRepository).findAllPaged(eq("es"), eq(null), eq(null), eq(null), any(Pageable.class));
+    }
+
+    @Test
+    void findAllPaged_withNameFilter_bypassesEs() {
+        Page<Product> page = new PageImpl<>(List.of(product(CATEGORY_ID)));
+        when(productRepository.findAllPaged(eq("es"), eq(null), eq(null), eq("shirt"), any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<Product> result = productUseCase.findAllPaged("es", null, null, "shirt", 0, 20, "createdAt", true);
+
+        assertThat(result.getContent()).hasSize(1);
+        verify(productBrowsePortProvider, org.mockito.Mockito.never()).getIfAvailable();
     }
 
     @Test

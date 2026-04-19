@@ -218,3 +218,12 @@ databaseChangeLog:
                           - sqlFile:
                                     path: db.changelog-3.7.sql
                                     relativeToChangelogFile: "true"
+        - changeSet:
+                  id: 28
+                  author: Jesus.Finol
+                  context: local,develop
+                  runOnChange: true
+                  changes:
+                          - sqlFile:
+                                    path: db.changelog-3.8.sql
+                                    relativeToChangelogFile: "true"

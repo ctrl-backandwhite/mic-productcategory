@@ -62,6 +62,16 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public List<Product> findByIdsInOrder(List<String> ids, String locale) {
+        if (ids == null || ids.isEmpty())
+            return List.of();
+        Map<String, ProductEntity> byId = productJpaRepository.findAllByIdIn(ids).stream()
+                .collect(Collectors.toMap(ProductEntity::getId, Function.identity()));
+        return ids.stream().map(byId::get).filter(Objects::nonNull).map(productInfraMapper::toDomain)
+                .map(product -> filterTranslations(product, locale)).toList();
+    }
+
+    @Override
     public List<Product> findRandomSample(String locale, String categoryId, ProductStatus status, int size) {
         List<String> categoryIds = null;
         if (categoryId != null && !categoryId.isBlank()) {

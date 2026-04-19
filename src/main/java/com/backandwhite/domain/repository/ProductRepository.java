@@ -20,6 +20,13 @@ public interface ProductRepository {
      */
     List<Product> findRandomSample(String locale, String categoryId, ProductStatus status, int size);
 
+    /**
+     * Loads products by the given ids preserving the order of the list, with
+     * translations filtered to the requested locale. Missing ids are silently
+     * dropped. Used after the browsing engine (Elasticsearch) resolves ids.
+     */
+    List<Product> findByIdsInOrder(List<String> ids, String locale);
+
     Optional<Product> findById(String productId, String locale);
 
     boolean existsById(String productId);
