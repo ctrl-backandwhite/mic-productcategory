@@ -17,6 +17,8 @@ public class Product {
     private String id;
     private String sku;
     private String categoryId;
+    private String brandId;
+    private String warrantyId;
     private String name;
     @Builder.Default
     private ProductStatus status = ProductStatus.DRAFT;

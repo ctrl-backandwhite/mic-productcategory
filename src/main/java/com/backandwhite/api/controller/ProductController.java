@@ -8,6 +8,7 @@ import com.backandwhite.api.dto.in.BulkVariantDtoIn;
 import com.backandwhite.api.dto.in.ProductDetailVariantDtoIn;
 import com.backandwhite.api.dto.in.ProductDtoIn;
 import com.backandwhite.api.dto.in.ProductFilterDto;
+import com.backandwhite.api.dto.in.ProductLinkDtoIn;
 import com.backandwhite.api.dto.in.VariantFilterDto;
 import com.backandwhite.api.dto.out.BulkImportResultDtoOut;
 import com.backandwhite.api.dto.out.ProductDetailDtoOut;
@@ -167,6 +168,30 @@ public class ProductController {
     @Operation(summary = "Bulk status update", description = "Changes the status of multiple products to DRAFT or PUBLISHED")
     public ResponseEntity<Void> bulkUpdateStatus(@Valid @RequestBody BulkStatusUpdateDtoIn body) {
         productUseCase.bulkUpdateStatus(body.getIds(), body.getStatus());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/brand")
+    @Operation(summary = "Link brand", description = "Associates a brand with the product. Pass {\"id\":null} to detach.")
+    public ResponseEntity<Void> linkBrand(@Parameter(description = "Product ID") @PathVariable String id,
+            @Valid @RequestBody ProductLinkDtoIn body) {
+        productUseCase.linkBrand(id, body.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/warranty")
+    @Operation(summary = "Link warranty", description = "Associates a warranty with the product. Pass {\"id\":null} to detach.")
+    public ResponseEntity<Void> linkWarranty(@Parameter(description = "Product ID") @PathVariable String id,
+            @Valid @RequestBody ProductLinkDtoIn body) {
+        productUseCase.linkWarranty(id, body.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/category")
+    @Operation(summary = "Move product to another category", description = "Changes the product's category.")
+    public ResponseEntity<Void> linkCategory(@Parameter(description = "Product ID") @PathVariable String id,
+            @Valid @RequestBody ProductLinkDtoIn body) {
+        productUseCase.linkCategory(id, body.getId());
         return ResponseEntity.noContent().build();
     }
 

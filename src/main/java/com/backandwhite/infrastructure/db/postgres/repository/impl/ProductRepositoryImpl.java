@@ -129,6 +129,30 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public void updateBrand(String productId, String brandId) {
+        ProductEntity entity = productJpaRepository.findById(productId)
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, productId));
+        entity.setBrandId(brandId);
+        productJpaRepository.save(entity);
+    }
+
+    @Override
+    public void updateWarranty(String productId, String warrantyId) {
+        ProductEntity entity = productJpaRepository.findById(productId)
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, productId));
+        entity.setWarrantyId(warrantyId);
+        productJpaRepository.save(entity);
+    }
+
+    @Override
+    public void updateCategory(String productId, String categoryId) {
+        ProductEntity entity = productJpaRepository.findById(productId)
+                .orElseThrow(() -> Message.ENTITY_NOT_FOUND.toEntityNotFound(ENTITY_NAME, productId));
+        entity.setCategoryId(categoryId);
+        productJpaRepository.save(entity);
+    }
+
+    @Override
     public void bulkUpdateStatus(List<String> productIds, ProductStatus status) {
         if (productIds == null || productIds.isEmpty())
             return;

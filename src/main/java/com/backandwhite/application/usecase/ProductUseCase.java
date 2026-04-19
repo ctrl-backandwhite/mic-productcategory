@@ -21,6 +21,23 @@ public interface ProductUseCase {
 
     void publishProduct(String productId);
 
+    /**
+     * Fine-grained linking: associates a brand (or null to detach) with the given
+     * product without requiring the full ProductDtoIn payload.
+     */
+    void linkBrand(String productId, String brandId);
+
+    /**
+     * Fine-grained linking: associates a warranty (or null to detach) with the
+     * given product.
+     */
+    void linkWarranty(String productId, String warrantyId);
+
+    /**
+     * Fine-grained linking: changes the category of the given product.
+     */
+    void linkCategory(String productId, String categoryId);
+
     void bulkUpdateStatus(List<String> productIds, String status);
 
     void delete(String productId);

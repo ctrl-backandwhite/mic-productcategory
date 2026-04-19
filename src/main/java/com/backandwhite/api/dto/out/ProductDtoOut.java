@@ -24,6 +24,12 @@ public class ProductDtoOut {
     @Schema(description = "Category ID", example = "cat-001")
     private String categoryId;
 
+    @Schema(description = "Brand ID (nullable)", example = "brand-001")
+    private String brandId;
+
+    @Schema(description = "Warranty ID (nullable)", example = "war-001")
+    private String warrantyId;
+
     @Schema(description = "Publication status (DRAFT, PUBLISHED)", example = "DRAFT")
     private ProductStatus status;
 

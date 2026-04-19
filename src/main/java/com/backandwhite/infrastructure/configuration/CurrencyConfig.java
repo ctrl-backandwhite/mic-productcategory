@@ -1,5 +1,6 @@
 package com.backandwhite.infrastructure.configuration;
 
+import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.currency.CurrencyRateCache;
 import com.backandwhite.common.currency.CurrencyRequestFilter;
 import com.backandwhite.common.currency.PriceConversionService;
@@ -39,7 +40,13 @@ public class CurrencyConfig implements WebMvcConfigurer {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(3000);
         factory.setReadTimeout(5000);
-        return new RestTemplate(factory);
+        RestTemplate rt = new RestTemplate(factory);
+        // Add X-nx036-auth header required by downstream services' NxRequestFilter
+        rt.getInterceptors().add((request, body, execution) -> {
+            request.getHeaders().add(AppConstants.HEADER_NX036_AUTH, "service");
+            return execution.execute(request, body);
+        });
+        return rt;
     }
 
     @Bean

@@ -25,6 +25,21 @@ public interface ProductRepository {
 
     void updateStatus(String productId, ProductStatus status);
 
+    /**
+     * Link/unlink a brand to a product. Pass {@code null} to unlink.
+     */
+    void updateBrand(String productId, String brandId);
+
+    /**
+     * Link/unlink a warranty to a product. Pass {@code null} to unlink.
+     */
+    void updateWarranty(String productId, String warrantyId);
+
+    /**
+     * Change the category of a product.
+     */
+    void updateCategory(String productId, String categoryId);
+
     void bulkUpdateStatus(List<String> productIds, ProductStatus status);
 
     void delete(String productId);

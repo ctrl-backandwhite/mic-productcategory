@@ -100,6 +100,33 @@ public class ProductUseCaseImpl implements ProductUseCase {
 
     @Override
     @Transactional
+    public void linkBrand(String productId, String brandId) {
+        ensureExists(productId);
+        productRepository.updateBrand(productId, brandId);
+    }
+
+    @Override
+    @Transactional
+    public void linkWarranty(String productId, String warrantyId) {
+        ensureExists(productId);
+        productRepository.updateWarranty(productId, warrantyId);
+    }
+
+    @Override
+    @Transactional
+    public void linkCategory(String productId, String categoryId) {
+        ensureExists(productId);
+        productRepository.updateCategory(productId, categoryId);
+    }
+
+    private void ensureExists(String productId) {
+        if (!productRepository.existsById(productId)) {
+            throw Message.ENTITY_NOT_FOUND.toEntityNotFound(PRODUCT_ENTITY, productId);
+        }
+    }
+
+    @Override
+    @Transactional
     public void bulkUpdateStatus(List<String> productIds, String status) {
         if (productIds == null || productIds.isEmpty())
             return;
