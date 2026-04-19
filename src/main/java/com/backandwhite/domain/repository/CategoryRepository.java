@@ -49,6 +49,13 @@ public interface CategoryRepository {
 
     List<String> findAllLevel3Ids();
 
+    /**
+     * Returns the transitive descendant ids of the given category (children,
+     * grandchildren, …). Used to expand a parent category into the full set of leaf
+     * categories that actually hold products.
+     */
+    List<String> findDescendantIds(String categoryId);
+
     int publishAllDrafts();
 
     void updateLastDiscoveredAt(String categoryId);

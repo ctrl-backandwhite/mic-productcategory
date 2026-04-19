@@ -180,6 +180,11 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
+    public List<String> findDescendantIds(String categoryId) {
+        return categoryJpaRepository.findDescendantIds(categoryId);
+    }
+
+    @Override
     @Transactional
     public void updateLastDiscoveredAt(String categoryId) {
         categoryJpaRepository.updateLastDiscoveredAt(categoryId, Instant.now());

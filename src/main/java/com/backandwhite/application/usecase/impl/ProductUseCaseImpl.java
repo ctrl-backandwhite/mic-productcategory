@@ -7,6 +7,7 @@ import com.backandwhite.application.usecase.ProductUseCase;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
+import com.backandwhite.domain.repository.CategoryRepository;
 import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import java.util.ArrayList;
@@ -28,15 +29,17 @@ public class ProductUseCaseImpl implements ProductUseCase {
     private static final String PRODUCT_ENTITY = "Product";
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
     private final CatalogEventPort catalogEventPort;
     private final ProductSearchIndexPort productSearchIndexPort;
     /** Optional — only present when Elasticsearch is enabled. */
     private final ObjectProvider<ProductBrowsePort> productBrowsePortProvider;
 
-    public ProductUseCaseImpl(ProductRepository productRepository, CatalogEventPort catalogEventPort,
-            ProductSearchIndexPort productSearchIndexPort,
+    public ProductUseCaseImpl(ProductRepository productRepository, CategoryRepository categoryRepository,
+            CatalogEventPort catalogEventPort, ProductSearchIndexPort productSearchIndexPort,
             ObjectProvider<ProductBrowsePort> productBrowsePortProvider) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
         this.catalogEventPort = catalogEventPort;
         this.productSearchIndexPort = productSearchIndexPort;
         this.productBrowsePortProvider = productBrowsePortProvider;
@@ -59,7 +62,11 @@ public class ProductUseCaseImpl implements ProductUseCase {
         // rows by createdAt. Ignores `page` and `ascending`.
         if ("random".equalsIgnoreCase(sortBy)) {
             List<Product> sample = productRepository.findRandomSample(locale, categoryId, ps, size);
-            return new PageImpl<>(sample, PageRequest.of(0, Math.max(size, 1)), sample.size());
+            // Expose the real catalogue total (from ES when available) so the
+            // storefront knows there's more to load and can keep scrolling via
+            // a deterministic sort for subsequent pages.
+            long total = resolveTotalCount(categoryId, sample.size());
+            return new PageImpl<>(sample, PageRequest.of(0, Math.max(size, 1)), total);
         }
         // When Elasticsearch is available and the caller isn't doing a text
         // search by name, browse via ES (fast, scales to big catalogues) and
@@ -76,6 +83,30 @@ public class ProductUseCaseImpl implements ProductUseCase {
     }
 
     /**
+     * Returns the real number of products matching {@code categoryId} (and its
+     * descendants), using the Elasticsearch browse port when available to avoid a
+     * full scan. Falls back to {@code fallback} on any error.
+     */
+    private long resolveTotalCount(String categoryId, long fallback) {
+        ProductBrowsePort port = productBrowsePortProvider.getIfAvailable();
+        if (port == null)
+            return fallback;
+        try {
+            List<String> categoryIds = null;
+            if (categoryId != null && !categoryId.isBlank()) {
+                List<String> descendants = categoryRepository.findDescendantIds(categoryId);
+                categoryIds = descendants.isEmpty() ? List.of(categoryId) : descendants;
+            }
+            ProductBrowsePort.BrowsePage r = port.browse(
+                    new ProductBrowsePort.BrowseCriteria(null, categoryIds, null, null, null, null, null, 0, 1));
+            return r.totalElements();
+        } catch (RuntimeException e) {
+            log.warn("Count via Elasticsearch failed, returning sample size: {}", e.getMessage());
+            return fallback;
+        }
+    }
+
+    /**
      * Attempts to resolve the listing through the Elasticsearch browse port.
      * Returns {@code null} when ES is not wired (so the caller falls back to
      * Postgres) or any ES error occurs.
@@ -89,7 +120,15 @@ public class ProductUseCaseImpl implements ProductUseCase {
         if (status != null && status != ProductStatus.PUBLISHED)
             return null;
         try {
-            ProductBrowsePort.BrowseCriteria criteria = new ProductBrowsePort.BrowseCriteria(categoryId, null, null,
+            // Expand the requested category into the full descendant set so
+            // hitting a level-1 parent (e.g. "Pet Supplies") still returns
+            // products that live inside its level-3 leaves.
+            List<String> categoryIds = null;
+            if (categoryId != null && !categoryId.isBlank()) {
+                List<String> descendants = categoryRepository.findDescendantIds(categoryId);
+                categoryIds = descendants.isEmpty() ? List.of(categoryId) : descendants;
+            }
+            ProductBrowsePort.BrowseCriteria criteria = new ProductBrowsePort.BrowseCriteria(null, categoryIds, null,
                     null, null, null, sortBy, page, size);
             ProductBrowsePort.BrowsePage result = port.browse(criteria);
             List<Product> hydrated = productRepository.findByIdsInOrder(result.ids(), locale);

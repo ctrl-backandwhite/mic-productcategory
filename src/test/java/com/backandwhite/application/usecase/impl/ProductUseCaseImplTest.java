@@ -16,6 +16,7 @@ import com.backandwhite.application.port.out.ProductSearchIndexPort;
 import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
+import com.backandwhite.domain.repository.CategoryRepository;
 import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valueobject.ProductStatus;
 import java.util.List;
@@ -37,6 +38,9 @@ class ProductUseCaseImplTest {
     private ProductRepository productRepository;
 
     @Mock
+    private CategoryRepository categoryRepository;
+
+    @Mock
     private CatalogEventPort catalogEventPort;
 
     @Mock
@@ -49,8 +53,8 @@ class ProductUseCaseImplTest {
 
     @BeforeEach
     void setUp() {
-        productUseCase = new ProductUseCaseImpl(productRepository, catalogEventPort, productSearchIndexPort,
-                productBrowsePortProvider);
+        productUseCase = new ProductUseCaseImpl(productRepository, categoryRepository, catalogEventPort,
+                productSearchIndexPort, productBrowsePortProvider);
     }
 
     @Test
