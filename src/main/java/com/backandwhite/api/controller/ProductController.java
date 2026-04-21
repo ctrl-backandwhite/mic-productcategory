@@ -23,6 +23,7 @@ import com.backandwhite.application.usecase.ProductDetailUseCase;
 import com.backandwhite.application.usecase.ProductSyncUseCase;
 import com.backandwhite.application.usecase.ProductUseCase;
 import com.backandwhite.common.security.annotation.NxAdmin;
+import com.backandwhite.common.security.annotation.NxPublic;
 import com.backandwhite.domain.model.BulkImportResult;
 import com.backandwhite.domain.model.Product;
 import com.backandwhite.domain.model.ProductDetail;
@@ -40,7 +41,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@NxAdmin
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/products")
@@ -54,6 +54,7 @@ public class ProductController {
     private final ProductDetailApiMapper productDetailApiMapper;
     private final PricingService pricingService;
 
+    @NxPublic
     @GetMapping("/category/{categoryId}")
     @Operation(summary = "List products by category", description = "Returns all products of a category with their translations and variants")
     public ResponseEntity<List<ProductDtoOut>> findByCategoryId(
@@ -67,6 +68,7 @@ public class ProductController {
         return ResponseEntity.ok(result);
     }
 
+    @NxPublic
     @GetMapping
     @Operation(summary = "List paginated products", description = "Returns all products paginated, filtering by locale. Optionally filters by category.")
     public ResponseEntity<PaginationDtoOut<ProductDtoOut>> findAllPaged(
@@ -89,6 +91,7 @@ public class ProductController {
         })));
     }
 
+    @NxPublic
     @PostMapping("/search")
     @Operation(summary = "Paginated product search with dynamic filters", description = """
             Paginated product listing with dynamic filters via reflection.
@@ -120,6 +123,7 @@ public class ProductController {
         })));
     }
 
+    @NxPublic
     @GetMapping("/{id}")
     @Operation(summary = "Get product by ID", description = "Returns a product with all its translations and variants")
     public ResponseEntity<ProductDtoOut> getById(@Parameter(description = "Product ID") @PathVariable String id,
@@ -130,6 +134,7 @@ public class ProductController {
         return ResponseEntity.ok(productApiMapper.toDto(product));
     }
 
+    @NxAdmin
     @PostMapping
     @Operation(summary = "Create product", description = "Creates a new product with its translations and variants")
     public ResponseEntity<ProductDtoOut> create(@Valid @RequestBody ProductDtoIn dto) {
@@ -139,6 +144,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productApiMapper.toDto(created));
     }
 
+    @NxAdmin
     @PutMapping("/{id}")
     @Operation(summary = "Update product", description = "Updates an existing product's data, including translations and variants")
     public ResponseEntity<ProductDtoOut> update(@Parameter(description = "Product ID") @PathVariable String id,
@@ -149,14 +155,16 @@ public class ProductController {
         return ResponseEntity.ok(productApiMapper.toDto(updated));
     }
 
+    @NxAdmin
     @DeleteMapping
-    @Operation(summary = "Delete products", description = "Deletes one or more products and all their translations and variants")
+@Operation(summary = "Delete products", description = "Deletes one or more products and all their translations and variants")
     public ResponseEntity<Void> deleteAll(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "List of product IDs to delete") @RequestBody List<String> ids) {
         productUseCase.deleteAll(ids);
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/{id}/publish")
     @Operation(summary = "Publish/unpublish product", description = "Toggles a product's status between DRAFT and PUBLISHED")
     public ResponseEntity<Void> publishProduct(@Parameter(description = "Product ID") @PathVariable String id) {
@@ -164,6 +172,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/bulk-status")
     @Operation(summary = "Bulk status update", description = "Changes the status of multiple products to DRAFT or PUBLISHED")
     public ResponseEntity<Void> bulkUpdateStatus(@Valid @RequestBody BulkStatusUpdateDtoIn body) {
@@ -171,6 +180,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/{id}/brand")
     @Operation(summary = "Link brand", description = "Associates a brand with the product. Pass {\"id\":null} to detach.")
     public ResponseEntity<Void> linkBrand(@Parameter(description = "Product ID") @PathVariable String id,
@@ -179,6 +189,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/{id}/warranty")
     @Operation(summary = "Link warranty", description = "Associates a warranty with the product. Pass {\"id\":null} to detach.")
     public ResponseEntity<Void> linkWarranty(@Parameter(description = "Product ID") @PathVariable String id,
@@ -187,6 +198,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/{id}/category")
     @Operation(summary = "Move product to another category", description = "Changes the product's category.")
     public ResponseEntity<Void> linkCategory(@Parameter(description = "Product ID") @PathVariable String id,
@@ -195,6 +207,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxPublic
     @GetMapping("/detail/{pid}")
     @Operation(summary = "Product detail (CJ)", description = "Gets the complete detail of a product. If it doesn't exist in the local DB, fetches it from CJ Dropshipping, persists it and returns it from the DB.")
     public ResponseEntity<ProductDetailDtoOut> getProductDetail(
@@ -218,6 +231,7 @@ public class ProductController {
 
     // ── Variant CRUD ─────────────────────────────────────────────────────────
 
+    @NxPublic
     @GetMapping("/detail/variants")
     @Operation(summary = "List all variants (paginated)", description = "Returns all variants of all products paginated. Supports search, status filter, PID filter and sorting.")
     public ResponseEntity<PaginationDtoOut<ProductDetailVariantDtoOut>> findAllVariantsPaged(
@@ -237,6 +251,7 @@ public class ProductController {
         return ResponseEntity.ok(PageableUtils.toResponse(pagedResult.map(productDetailApiMapper::toVariantDto)));
     }
 
+    @NxPublic
     @PostMapping("/detail/variants/search")
     @Operation(summary = "Paginated variant search with dynamic filters", description = """
             Paginated variant listing with dynamic filters.
@@ -266,6 +281,7 @@ public class ProductController {
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(productDetailApiMapper::toVariantDto)));
     }
 
+    @NxPublic
     @GetMapping("/detail/{pid}/variants")
     @Operation(summary = "List variants of a product", description = "Returns all variants of a product with their translations and inventories")
     public ResponseEntity<List<ProductDetailVariantDtoOut>> findVariantsByPid(
@@ -276,6 +292,7 @@ public class ProductController {
         return ResponseEntity.ok(productDetailApiMapper.toVariantDtoList(variants));
     }
 
+    @NxPublic
     @GetMapping("/detail/variants/{vid}")
     @Operation(summary = "Get variant by VID", description = "Returns a specific variant with its translations and inventories")
     public ResponseEntity<ProductDetailVariantDtoOut> findVariantByVid(
@@ -286,6 +303,7 @@ public class ProductController {
         return ResponseEntity.ok(productDetailApiMapper.toVariantDto(variant));
     }
 
+    @NxAdmin
     @PostMapping("/detail/variants")
     @Operation(summary = "Create variant", description = "Manually creates a new variant for an existing product")
     public ResponseEntity<ProductDetailVariantDtoOut> createVariant(@Valid @RequestBody ProductDetailVariantDtoIn dto) {
@@ -295,6 +313,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productDetailApiMapper.toVariantDto(created));
     }
 
+    @NxAdmin
     @PutMapping("/detail/variants/{vid}")
     @Operation(summary = "Update variant", description = "Updates an existing variant's data, including translations and inventories")
     public ResponseEntity<ProductDetailVariantDtoOut> updateVariant(
@@ -306,6 +325,7 @@ public class ProductController {
         return ResponseEntity.ok(productDetailApiMapper.toVariantDto(updated));
     }
 
+    @NxAdmin
     @DeleteMapping("/detail/variants/{vid}")
     @Operation(summary = "Delete variant", description = "Deletes a variant and all its translations and inventories")
     public ResponseEntity<Void> deleteVariant(@Parameter(description = "Variant ID (vid)") @PathVariable String vid) {
@@ -313,6 +333,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @DeleteMapping("/detail/variants")
     @Operation(summary = "Bulk delete variants", description = "Deletes multiple variants and their translations and inventories")
     public ResponseEntity<Void> deleteVariants(
@@ -321,6 +342,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/detail/variants/{vid}/publish")
     @Operation(summary = "Publish/unpublish variant", description = "Toggles a variant's status between DRAFT and PUBLISHED")
     public ResponseEntity<Void> publishVariant(@Parameter(description = "Variant ID (vid)") @PathVariable String vid) {
@@ -328,6 +350,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @NxAdmin
     @PatchMapping("/detail/variants/bulk-status")
     @Operation(summary = "Bulk update variant status", description = "Changes the status of multiple variants to DRAFT or PUBLISHED")
     public ResponseEntity<Void> bulkUpdateVariantStatus(@Valid @RequestBody BulkStatusUpdateDtoIn body) {
@@ -337,6 +360,7 @@ public class ProductController {
 
     // ── Bulk operations ──────────────────────────────────────────────────────
 
+    @NxAdmin
     @PostMapping("/bulk")
     @Operation(summary = "Bulk product upload", description = "Creates multiple products in bulk. Individual errors do not abort the batch.")
     public ResponseEntity<BulkImportResultDtoOut> bulkCreateProducts(@Valid @RequestBody BulkProductDtoIn dto) {
@@ -348,6 +372,7 @@ public class ProductController {
         return toBulkImportResponse(result);
     }
 
+    @NxAdmin
     @PostMapping("/detail/variants/bulk")
     @Operation(summary = "Bulk variant upload", description = "Creates multiple variants in bulk. Individual errors do not abort the batch.")
     public ResponseEntity<BulkImportResultDtoOut> bulkCreateVariants(@Valid @RequestBody BulkVariantDtoIn dto) {
@@ -371,6 +396,7 @@ public class ProductController {
 
     // ── Sync ──────────────────────────────────────────────────────────────────
 
+    @NxAdmin
     @PostMapping("/sync")
     @Operation(summary = "Sync all products", description = "Syncs ALL products from CJ Dropshipping (listV2). Pages internally with 10s intervals.")
     public ResponseEntity<ProductSyncResultDtoOut> syncFromCjDropshipping(
@@ -381,6 +407,7 @@ public class ProductController {
                 .page(result.getPage()).hasMore(result.isHasMore()).build());
     }
 
+    @NxAdmin
     @PostMapping("/sync/page")
     @Operation(summary = "Sync one page of products", description = "Syncs ONE page of products from CJ Dropshipping. The frontend iterates calling with incremental page until hasMore=false. Optionally filters by comma-separated categoryIds.")
     public ResponseEntity<ProductSyncResultDtoOut> syncPageFromCjDropshipping(
@@ -394,6 +421,7 @@ public class ProductController {
                 .page(result.getPage()).hasMore(result.isHasMore()).build());
     }
 
+    @NxAdmin
     @PostMapping("/sync/discover/page")
     @Operation(summary = "Discover new products by category", description = "Iterates synced L3 categories and searches for new products in CJ "
             + "that don't yet exist in the local DB. Processes ONE category per call. "

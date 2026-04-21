@@ -14,6 +14,7 @@ import com.backandwhite.api.util.PageableUtils;
 import com.backandwhite.application.usecase.CategorySyncUseCase;
 import com.backandwhite.application.usecase.CategoryUseCase;
 import com.backandwhite.common.security.annotation.NxAdmin;
+import com.backandwhite.common.security.annotation.NxPublic;
 import com.backandwhite.common.security.annotation.NxUser;
 import com.backandwhite.domain.model.BulkCategoryResult;
 import com.backandwhite.domain.model.Category;
@@ -44,7 +45,7 @@ public class CategoryController {
 
     // ── Listados ─────────────────────────────────────────────────────────────
 
-    @NxUser
+    @NxPublic
     @GetMapping
     @Operation(summary = "List categories as tree", description = "Returns categories in hierarchical structure, with optional filters by status, active and locale")
     public ResponseEntity<List<CategoryDtoOut>> findByLocale(
@@ -56,7 +57,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryApiMapper.toDtoList(categories));
     }
 
-    @NxUser
+    @NxPublic
     @GetMapping("/paged")
     @Operation(summary = "List paginated categories", description = "Returns paginated categories with optional filters. Uses PageableUtils internally.")
     public ResponseEntity<PaginationDtoOut<CategoryDtoOut>> findPaged(
@@ -77,7 +78,7 @@ public class CategoryController {
         return ResponseEntity.ok(PageableUtils.toResponse(result.map(categoryApiMapper::toDto)));
     }
 
-    @NxUser
+    @NxPublic
     @PostMapping("/search")
     @Operation(summary = "Paginated search with dynamic filters", description = """
             Paginated category listing with dynamic filters via reflection.
@@ -109,7 +110,7 @@ public class CategoryController {
 
     // ── CRUD ─────────────────────────────────────────────────────────────────
 
-    @NxUser
+    @NxPublic
     @GetMapping("/{id}")
     @Operation(summary = "Get category by ID")
     public ResponseEntity<CategoryDtoOut> getById(@Parameter(description = "Category ID") @PathVariable String id,
