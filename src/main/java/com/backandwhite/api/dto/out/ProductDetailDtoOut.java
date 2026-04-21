@@ -119,6 +119,9 @@ public class ProductDetailDtoOut {
     @Schema(description = "Cost price (string, may be a range)")
     private String costPrice;
 
+    @Schema(description = "Associated warranty plan id (null when the product has no warranty)")
+    private String warrantyId;
+
     @Schema(description = "Detail translations")
     private List<ProductDetailTranslationDtoOut> translations;
 

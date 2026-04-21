@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
-@Import(TestContainersConfiguration.class)
+@Import({TestContainersConfiguration.class, IntegrationGatewayAuthConfiguration.class})
 public abstract class BaseIntegration extends com.backandwhite.core.test.BaseIntegration {
 
     protected static final String NX_HEADER = AppConstants.HEADER_NX036_AUTH;

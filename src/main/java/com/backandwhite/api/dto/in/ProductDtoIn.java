@@ -46,6 +46,9 @@ public class ProductDtoIn {
     @Schema(description = "Has video", example = "false")
     private Boolean isVideo;
 
+    @Schema(description = "ID of the warranty plan attached to the product (optional)", example = "wrt-001")
+    private String warrantyId;
+
     @NotNull(message = "Translations are required")
     @Size(min = 1, message = "At least one translation is required")
     @Valid

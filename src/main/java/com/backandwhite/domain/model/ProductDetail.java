@@ -54,6 +54,10 @@ public class ProductDetail {
     private BigDecimal costPriceRaw;
     private String costPrice;
 
+    // Pulled from the sibling `products` row when the detail is resolved so
+    // the storefront can show the warranty plan without a second call.
+    private String warrantyId;
+
     @Builder.Default
     private List<ProductDetailTranslation> translations = new ArrayList<>();
 

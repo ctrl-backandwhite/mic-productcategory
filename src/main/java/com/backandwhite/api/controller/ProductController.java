@@ -203,6 +203,16 @@ public class ProductController {
 
         ProductDetail detail = productDetailUseCase.getOrFetchFromCj(pid, locale);
         pricingService.applyMarginsToProductDetail(detail);
+        // Pull the warranty plan from the sibling `products` row so the
+        // storefront can show it without a second round-trip.
+        try {
+            Product sibling = productUseCase.findById(pid, locale);
+            if (sibling != null) {
+                detail.setWarrantyId(sibling.getWarrantyId());
+            }
+        } catch (RuntimeException ignored) {
+            // product row may not exist yet for CJ-only imports — leave warrantyId null
+        }
         return ResponseEntity.ok(productDetailApiMapper.toDto(detail));
     }
 
