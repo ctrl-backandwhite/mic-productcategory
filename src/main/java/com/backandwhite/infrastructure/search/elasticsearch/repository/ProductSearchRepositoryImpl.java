@@ -38,8 +38,8 @@ public class ProductSearchRepositoryImpl implements ProductSearchRepositoryCusto
         // product list (and every count that uses this query) is clamped to
         // "10000 en catálogo" even when the real total is larger or smaller.
         NativeQuery nq = NativeQuery.builder().withQuery(q -> q.bool(bool -> buildBoolQuery(bool, criteria)))
-                .withPageable(criteria.pageable()).withHighlightQuery(buildHighlightQuery())
-                .withTrackTotalHits(true).build();
+                .withPageable(criteria.pageable()).withHighlightQuery(buildHighlightQuery()).withTrackTotalHits(true)
+                .build();
 
         nq = applySort(nq, criteria);
 

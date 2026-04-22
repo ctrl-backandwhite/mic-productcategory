@@ -157,7 +157,7 @@ public class ProductController {
 
     @NxAdmin
     @DeleteMapping
-@Operation(summary = "Delete products", description = "Deletes one or more products and all their translations and variants")
+    @Operation(summary = "Delete products", description = "Deletes one or more products and all their translations and variants")
     public ResponseEntity<Void> deleteAll(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "List of product IDs to delete") @RequestBody List<String> ids) {
         productUseCase.deleteAll(ids);
