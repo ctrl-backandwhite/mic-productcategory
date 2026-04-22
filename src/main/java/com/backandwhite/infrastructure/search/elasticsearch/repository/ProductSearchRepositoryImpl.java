@@ -33,8 +33,13 @@ public class ProductSearchRepositoryImpl implements ProductSearchRepositoryCusto
 
     @Override
     public SearchPage<ProductDocument> search(ProductSearchCriteria criteria) {
+        // trackTotalHits(true) tells ES to count every matching document instead
+        // of stopping at the default 10 000 threshold. Without it the admin
+        // product list (and every count that uses this query) is clamped to
+        // "10000 en catálogo" even when the real total is larger or smaller.
         NativeQuery nq = NativeQuery.builder().withQuery(q -> q.bool(bool -> buildBoolQuery(bool, criteria)))
-                .withPageable(criteria.pageable()).withHighlightQuery(buildHighlightQuery()).build();
+                .withPageable(criteria.pageable()).withHighlightQuery(buildHighlightQuery())
+                .withTrackTotalHits(true).build();
 
         nq = applySort(nq, criteria);
 

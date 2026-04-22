@@ -81,6 +81,7 @@ public class PublicProductController {
         return ResponseEntity.ok(productDetailApiMapper.toDto(detail));
     }
 
+
     @Operation(summary = "Get product variants (public)")
     @GetMapping("/products/{pid}/variants")
     public ResponseEntity<List<ProductDetailVariantDtoOut>> getProductVariants(@PathVariable String pid,
