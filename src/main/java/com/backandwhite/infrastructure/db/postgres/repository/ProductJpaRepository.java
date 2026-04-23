@@ -30,6 +30,10 @@ public interface ProductJpaRepository
     @Query("UPDATE ProductEntity p SET p.status = :status WHERE p.id IN :ids")
     int bulkUpdateStatus(@Param("ids") List<String> ids, @Param("status") ProductStatus status);
 
+    @Modifying
+    @Query("UPDATE ProductEntity p SET p.status = com.backandwhite.domain.valueobject.ProductStatus.PUBLISHED WHERE p.status = com.backandwhite.domain.valueobject.ProductStatus.DRAFT")
+    int publishAllDrafts();
+
     /**
      * Random sample across the whole matching set using PostgreSQL's ORDER BY
      * random(). Accepts optional filters via :status (null = any) and :categoryIds

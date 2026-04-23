@@ -13,6 +13,22 @@ public interface ProductUseCase {
     Page<Product> findAllPaged(String locale, String categoryId, String status, String name, int page, int size,
             String sortBy, boolean ascending);
 
+    /**
+     * Admin-flavored variant. When {@code includeDrafts} is true, the query
+     * bypasses the Elasticsearch browse index (which only holds PUBLISHED
+     * documents) and reads straight from Postgres, so the admin panel can see
+     * products in any status including DRAFT.
+     */
+    @SuppressWarnings("java:S107")
+    Page<Product> findAllPaged(String locale, String categoryId, String status, String name, int page, int size,
+            String sortBy, boolean ascending, boolean includeDrafts);
+
+    /**
+     * Moves every DRAFT product to PUBLISHED. Returns the number of affected rows.
+     * Indexing to ES happens downstream via the catalog event pipeline.
+     */
+    int publishAllDrafts();
+
     Product findById(String productId, String locale);
 
     Product create(Product product);

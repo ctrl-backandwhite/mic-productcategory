@@ -56,6 +56,12 @@ public interface ProductRepository {
 
     void bulkUpdateStatus(List<String> productIds, ProductStatus status);
 
+    /**
+     * Moves every product currently in DRAFT to PUBLISHED. Returns the number of
+     * rows updated so the caller can surface it in the admin UI.
+     */
+    int publishAllDrafts();
+
     void delete(String productId);
 
     void deleteAll(List<String> productIds);

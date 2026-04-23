@@ -195,6 +195,11 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public int publishAllDrafts() {
+        return productJpaRepository.publishAllDrafts();
+    }
+
+    @Override
     public Page<String> findAllProductIds(int page, int size) {
         return productJpaRepository.findAllIds(PageRequest.of(page, size));
     }

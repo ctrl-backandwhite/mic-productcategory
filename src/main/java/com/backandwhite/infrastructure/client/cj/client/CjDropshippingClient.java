@@ -11,6 +11,7 @@ import com.backandwhite.infrastructure.client.cj.dto.CjProductCommentsPageDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductDetailDto;
 import com.backandwhite.infrastructure.client.cj.dto.CjProductListPageDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import java.time.Duration;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.codec.DecodingException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -41,6 +43,7 @@ public class CjDropshippingClient implements DropshippingPort {
     private final CjTokenManager cjTokenManager;
 
     @Override
+    @RateLimiter(name = RESILIENCE4J_INSTANCE)
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public List<CjCategoryFirstLevelDto> getCategories() {
@@ -59,6 +62,7 @@ public class CjDropshippingClient implements DropshippingPort {
     }
 
     @Override
+    @RateLimiter(name = RESILIENCE4J_INSTANCE)
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductDetailDto getProductDetail(String pid) {
@@ -77,6 +81,7 @@ public class CjDropshippingClient implements DropshippingPort {
     }
 
     @Override
+    @RateLimiter(name = RESILIENCE4J_INSTANCE)
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductListPageDto getProductList(int page, int size) {
@@ -101,6 +106,7 @@ public class CjDropshippingClient implements DropshippingPort {
     }
 
     @Override
+    @RateLimiter(name = RESILIENCE4J_INSTANCE)
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public List<CjInventoryByPidItemDto> getInventoryByPid(String pid) {
@@ -108,18 +114,33 @@ public class CjDropshippingClient implements DropshippingPort {
         String accessToken = cjTokenManager.getValidAccessToken();
         String ctx = CTX_INVENTORY + pid;
 
-        CjApiResponseDto<List<CjInventoryByPidItemDto>> response = invokeCj(() -> cjWebClient.get()
-                .uri(b -> b.path("/product/stock/getInventoryByPid").queryParam("pid", pid).build())
-                .header(HEADER_CJ_TOKEN, accessToken).retrieve()
-                .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<List<CjInventoryByPidItemDto>>>() {
-                }).timeout(DATA_TIMEOUT).block(), ctx);
+        // CJ's getInventoryByPid returns `data` as an object in some cases
+        // (no stock yet, legacy SKUs) instead of the expected array. Treat a
+        // shape mismatch as "no inventory" and return an empty list without
+        // throwing, otherwise every such pid counts as a CJ failure and the
+        // shared circuit breaker opens, blocking the whole product sync.
+        try {
+            CjApiResponseDto<List<CjInventoryByPidItemDto>> response = invokeCj(() -> cjWebClient.get()
+                    .uri(b -> b.path("/product/stock/getInventoryByPid").queryParam("pid", pid).build())
+                    .header(HEADER_CJ_TOKEN, accessToken).retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<CjApiResponseDto<List<CjInventoryByPidItemDto>>>() {
+                    }).timeout(DATA_TIMEOUT).block(), ctx);
 
-        List<CjInventoryByPidItemDto> data = requireData(response, ctx);
-        log.info("Fetched {} inventory items for pid={}", data.size(), pid);
-        return data;
+            List<CjInventoryByPidItemDto> data = requireData(response, ctx);
+            log.info("Fetched {} inventory items for pid={}", data.size(), pid);
+            return data;
+        } catch (ExternalServiceException e) {
+            if (e.getCause() instanceof DecodingException
+                    || (e.getMessage() != null && e.getMessage().contains("JSON decoding error"))) {
+                log.debug("Inventory shape mismatch for pid={} — returning empty list. reason={}", pid, e.getMessage());
+                return List.of();
+            }
+            throw e;
+        }
     }
 
     @Override
+    @RateLimiter(name = RESILIENCE4J_INSTANCE)
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductCommentsPageDto getProductComments(String pid, int score, int page, int size) {
@@ -140,6 +161,7 @@ public class CjDropshippingClient implements DropshippingPort {
     }
 
     @Override
+    @RateLimiter(name = RESILIENCE4J_INSTANCE)
     @Retry(name = RESILIENCE4J_INSTANCE)
     @CircuitBreaker(name = RESILIENCE4J_INSTANCE)
     public CjProductListPageDto getProductListFiltered(int page, int size, String categoryId, String keyword,

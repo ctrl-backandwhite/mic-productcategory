@@ -131,6 +131,17 @@ resilience4j:
         wait-duration-in-open-state: 60s
         permitted-number-of-calls-in-half-open-state: 3
         register-health-indicator: true
+  # CJ Dropshipping Plus plan allows 2 requests/second per account. The
+  # RateLimiter enforces this at the client level so parallel fetchers
+  # cannot collectively exceed the quota and trip the CircuitBreaker with
+  # "Too many requests" responses.
+  ratelimiter:
+    instances:
+      cjApi:
+        limit-for-period: 2
+        limit-refresh-period: 1s
+        timeout-duration: 30s
+        register-health-indicator: true
 
 # --- OAuth2 Resource Server (opt-in) ---
 # To enable JWT validation, uncomment and set OAUTH2_ISSUER_URI + OAUTH2_JWK_SET_URI env vars

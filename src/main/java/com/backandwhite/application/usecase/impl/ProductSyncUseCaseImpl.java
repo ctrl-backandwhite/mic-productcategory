@@ -30,7 +30,10 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
 
     private static final int PAGE_SIZE = 100;
     private static final long DELAY_BETWEEN_PAGES_MS = 10_000;
-    private static final int PARALLEL_FETCH_THREADS = 5;
+    // Capped at 2 to match the CJ Plus plan's 2 req/s budget. The RateLimiter
+    // on the client would block extra threads anyway, but lower parallelism
+    // keeps timeout-duration headroom on the RateLimiter during long syncs.
+    private static final int PARALLEL_FETCH_THREADS = 2;
     private static final int MAX_CJ_PAGES_PER_CATEGORY = 10;
     private static final long DETAIL_CALL_DELAY_MS = 600;
     private static final long RATE_LIMIT_BACKOFF_MS = 3_000;

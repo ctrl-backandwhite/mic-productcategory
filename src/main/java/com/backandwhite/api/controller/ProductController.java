@@ -79,11 +79,12 @@ public class ProductController {
             @Parameter(description = "Page number (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20") int size,
             @Parameter(description = "Sort field", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
-            @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending) {
+            @Parameter(description = "Ascending order", example = "true") @RequestParam(defaultValue = "true") boolean ascending,
+            @Parameter(description = "Admin-only: bypass the Elasticsearch browse index so DRAFT products are visible. Storefront callers leave this off.") @RequestParam(defaultValue = "false") boolean includeDrafts) {
 
         Pageable pageable = PageableUtils.toPageable(page, size, sortBy, ascending);
         Page<Product> pagedResult = productUseCase.findAllPaged(locale, categoryId, status, name,
-                pageable.getPageNumber(), pageable.getPageSize(), sortBy, ascending);
+                pageable.getPageNumber(), pageable.getPageSize(), sortBy, ascending, includeDrafts);
 
         return ResponseEntity.ok(PageableUtils.toResponse(pagedResult.map(p -> {
             pricingService.applyMarginsToProduct(p);
@@ -178,6 +179,14 @@ public class ProductController {
     public ResponseEntity<Void> bulkUpdateStatus(@Valid @RequestBody BulkStatusUpdateDtoIn body) {
         productUseCase.bulkUpdateStatus(body.getIds(), body.getStatus());
         return ResponseEntity.noContent().build();
+    }
+
+    @NxAdmin
+    @PatchMapping("/publish-all-drafts")
+    @Operation(summary = "Publish all DRAFT products", description = "Bulk-publish every product currently in DRAFT. Returns the number affected.")
+    public ResponseEntity<java.util.Map<String, Integer>> publishAllDrafts() {
+        int count = productUseCase.publishAllDrafts();
+        return ResponseEntity.ok(java.util.Map.of("published", count));
     }
 
     @NxAdmin

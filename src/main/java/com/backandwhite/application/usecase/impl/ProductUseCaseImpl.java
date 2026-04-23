@@ -56,6 +56,13 @@ public class ProductUseCaseImpl implements ProductUseCase {
     @Transactional(readOnly = true)
     public Page<Product> findAllPaged(String locale, String categoryId, String status, String name, int page, int size,
             String sortBy, boolean ascending) {
+        return findAllPaged(locale, categoryId, status, name, page, size, sortBy, ascending, false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Product> findAllPaged(String locale, String categoryId, String status, String name, int page, int size,
+            String sortBy, boolean ascending, boolean includeDrafts) {
         ProductStatus ps = parseStatus(status);
         // sortBy=random → ORDER BY random() at DB level; returns a fresh
         // page drawn from the full matching set instead of the first N
@@ -75,8 +82,10 @@ public class ProductUseCaseImpl implements ProductUseCase {
         // When Elasticsearch is available and the caller isn't doing a text
         // search by name, browse via ES (fast, scales to big catalogues) and
         // then hydrate rows from Postgres so translations for the requested
-        // locale are applied from the source of truth.
-        if ((name == null || name.isBlank())) {
+        // locale are applied from the source of truth. Admin callers pass
+        // includeDrafts=true to bypass ES, since the browse index only holds
+        // PUBLISHED documents and admins need to see every status.
+        if (!includeDrafts && (name == null || name.isBlank())) {
             Page<Product> fromEs = tryBrowseFromEs(locale, categoryId, ps, sortBy, page, size);
             if (fromEs != null)
                 return fromEs;
@@ -181,6 +190,14 @@ public class ProductUseCaseImpl implements ProductUseCase {
                 updated.getCategoryId(), null, updated.getStatus() == ProductStatus.PUBLISHED);
         productSearchIndexPort.indexProduct(updated);
         return updated;
+    }
+
+    @Override
+    @Transactional
+    public int publishAllDrafts() {
+        int affected = productRepository.publishAllDrafts();
+        log.info("publishAllDrafts: moved {} products from DRAFT to PUBLISHED", affected);
+        return affected;
     }
 
     @Override

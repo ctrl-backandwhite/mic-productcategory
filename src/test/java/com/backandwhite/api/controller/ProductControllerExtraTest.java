@@ -71,11 +71,11 @@ class ProductControllerExtraTest {
     void findAllPaged_returnsPaginated() {
         Page<Product> page = new PageImpl<>(List.of(product(CATEGORY_ID)));
         when(productUseCase.findAllPaged(anyString(), any(), any(), any(), anyInt(), anyInt(), anyString(),
-                anyBoolean())).thenReturn(page);
+                anyBoolean(), anyBoolean())).thenReturn(page);
         when(productApiMapper.toDto(any(Product.class))).thenReturn(productDtoOut(PRODUCT_ID, CATEGORY_ID));
 
         ResponseEntity<PaginationDtoOut<ProductDtoOut>> response = controller.findAllPaged("en", null, null, null, 0,
-                20, "createdAt", true);
+                20, "createdAt", true, false);
         assertThat(response.getBody().getContent()).hasSize(1);
     }
 
