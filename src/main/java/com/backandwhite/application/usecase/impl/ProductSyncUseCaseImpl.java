@@ -1,6 +1,7 @@
 package com.backandwhite.application.usecase.impl;
 
 import com.backandwhite.application.port.out.DropshippingPort;
+import com.backandwhite.application.usecase.CjInventorySyncUseCase;
 import com.backandwhite.application.usecase.ProductSyncUseCase;
 import com.backandwhite.domain.exception.ExternalServiceException;
 import com.backandwhite.domain.model.Product;
@@ -18,14 +19,13 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 @Log4j2
 @Service
-@RequiredArgsConstructor
 public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
 
     private static final int PAGE_SIZE = 100;
@@ -47,6 +47,22 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final CjProductDetailMapper cjProductDetailMapper;
+    /**
+     * Injected @Lazy to match the pattern in CjProductFullSyncUseCaseImpl — both
+     * sync use cases share the inventory graph and Spring would otherwise flag a
+     * potential cycle at wiring time.
+     */
+    private final CjInventorySyncUseCase cjInventorySyncUseCase;
+
+    public ProductSyncUseCaseImpl(DropshippingPort cjClient, ProductRepository productRepository,
+            CategoryRepository categoryRepository, CjProductDetailMapper cjProductDetailMapper,
+            @Lazy CjInventorySyncUseCase cjInventorySyncUseCase) {
+        this.cjClient = cjClient;
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.cjProductDetailMapper = cjProductDetailMapper;
+        this.cjInventorySyncUseCase = cjInventorySyncUseCase;
+    }
 
     @Override
     public ProductSyncResult syncFromCjDropshipping(boolean forceOverwrite) {
@@ -131,12 +147,36 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
                 int[] result = productRepository.bulkSyncProducts(productsToSync, forceOverwrite);
                 created = result[0];
                 updated = result[1];
+                chainInventorySync(productsToSync);
             } catch (Exception e) {
                 log.error("Bulk save failed on page {}: {}", page, e.getMessage(), e);
                 skipped += productsToSync.size();
             }
         }
         return new PageSyncOutcome(created, updated, skipped);
+    }
+
+    /**
+     * Trigger inventory sync for every product that was persisted. CJ's
+     * /product/query payload ships no inventory, so without this follow-up the
+     * catalog lands with warehouseInventoryNum = 0 + empty
+     * product_detail_variant_inventories and the storefront paints everything as
+     * "Out of stock" until the 4h scheduler ticks. Failures are logged and
+     * swallowed so a CJ rate-limit on a single pid never invalidates the whole page
+     * of product saves.
+     */
+    private void chainInventorySync(List<Product> products) {
+        for (Product p : products) {
+            if (p.getId() == null) {
+                continue;
+            }
+            try {
+                cjInventorySyncUseCase.syncByPid(p.getId());
+            } catch (RuntimeException e) {
+                log.warn("::> Chained inventory sync failed for pid={} — scheduler will retry. reason={}", p.getId(),
+                        e.getMessage());
+            }
+        }
     }
 
     private boolean delayBetweenPages() {
@@ -269,6 +309,7 @@ public class ProductSyncUseCaseImpl implements ProductSyncUseCase {
     private int[] flushBuffer(List<Product> buffer) {
         try {
             int[] result = productRepository.bulkSyncProducts(buffer, true);
+            chainInventorySync(buffer);
             return new int[]{result[0], result[1]};
         } catch (Exception e) {
             log.error("Bulk save failed during discover: {}", e.getMessage(), e);
