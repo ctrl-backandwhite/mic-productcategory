@@ -25,8 +25,8 @@ public interface ProductDocumentMapper {
     @Mapping(target = "originalPrice", expression = "java(parsePrice(product.getCostPrice()))")
     @Mapping(target = "hasDiscount", expression = "java(hasDiscount(product.getSellPrice(), product.getCostPrice()))")
     @Mapping(target = "discountPercent", expression = "java(calcDiscount(product.getSellPrice(), product.getCostPrice()))")
-    @Mapping(target = "totalStock", source = "warehouseInventoryNum")
-    @Mapping(target = "inStock", expression = "java(product.getWarehouseInventoryNum() != null && product.getWarehouseInventoryNum() > 0)")
+    @Mapping(target = "totalStock", expression = "java(effectiveStock(product))")
+    @Mapping(target = "inStock", expression = "java(effectiveStock(product) > 0)")
     @Mapping(target = "imageUrl", source = "bigImage")
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "variants", source = "variants")
@@ -49,8 +49,8 @@ public interface ProductDocumentMapper {
     @Mapping(target = "originalPrice", expression = "java(parsePrice(detail.getCostPrice()))")
     @Mapping(target = "hasDiscount", expression = "java(hasDiscount(detail.getSellPrice(), detail.getCostPrice()))")
     @Mapping(target = "discountPercent", expression = "java(calcDiscount(detail.getSellPrice(), detail.getCostPrice()))")
-    @Mapping(target = "totalStock", expression = "java(calcTotalStock(detail.getVariants()))")
-    @Mapping(target = "inStock", expression = "java(calcTotalStock(detail.getVariants()) > 0)")
+    @Mapping(target = "totalStock", expression = "java(effectiveDetailStock(detail))")
+    @Mapping(target = "inStock", expression = "java(effectiveDetailStock(detail) > 0)")
     @Mapping(target = "imageUrl", source = "bigImage")
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "variants", source = "variants")
@@ -113,5 +113,32 @@ public interface ProductDocumentMapper {
         if (inventories == null || inventories.isEmpty())
             return 0;
         return inventories.stream().mapToInt(i -> i.getTotalInventory() != null ? i.getTotalInventory() : 0).sum();
+    }
+
+    /**
+     * Real stock rarely lands on the CJ product payload (warehouseInventoryNum is 0
+     * for most of the catalog), but {@code listedNum} still represents an
+     * active-seller availability signal. Fall back to it so published products are
+     * indexed as {@code inStock = true} and reach the storefront. Same policy the
+     * frontend applies when the listing endpoint ships no variant inventories.
+     */
+    default Integer effectiveStock(Product product) {
+        Integer wh = product.getWarehouseInventoryNum();
+        if (wh != null && wh > 0)
+            return wh;
+        Integer listed = product.getListedNum();
+        return listed != null && listed > 0 ? listed : 0;
+    }
+
+    /**
+     * Detail counterpart: prefer aggregated variant inventories, fall back to the
+     * listedNum reported on the product detail payload.
+     */
+    default Integer effectiveDetailStock(ProductDetail detail) {
+        int variantStock = calcTotalStock(detail.getVariants());
+        if (variantStock > 0)
+            return variantStock;
+        Integer listed = detail.getListedNum();
+        return listed != null && listed > 0 ? listed : 0;
     }
 }
