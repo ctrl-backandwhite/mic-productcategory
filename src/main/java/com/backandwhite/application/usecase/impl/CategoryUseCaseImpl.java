@@ -6,6 +6,7 @@ import com.backandwhite.domain.model.BulkCategoryResult;
 import com.backandwhite.domain.model.Category;
 import com.backandwhite.domain.model.CategoryTranslation;
 import com.backandwhite.domain.repository.CategoryRepository;
+import com.backandwhite.domain.repository.ProductRepository;
 import com.backandwhite.domain.valueobject.CategoryStatus;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
     private static final String ENTITY_NAME = "Category";
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -67,6 +69,16 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
     @Override
     @Transactional
     public void delete(String categoryId) {
+        // Pre-check so we surface a helpful message instead of leaking the raw
+        // Postgres foreign-key violation from products.category_id.
+        long childCount = categoryRepository.countDirectChildren(categoryId);
+        if (childCount > 0) {
+            throw com.backandwhite.domain.exception.Message.CATEGORY_HAS_SUBCATEGORIES.toBusinessException(childCount);
+        }
+        long productCount = productRepository.countByCategoryId(categoryId);
+        if (productCount > 0) {
+            throw com.backandwhite.domain.exception.Message.CATEGORY_HAS_PRODUCTS.toBusinessException(productCount);
+        }
         categoryRepository.delete(categoryId);
     }
 
@@ -96,6 +108,19 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
     @Override
     @Transactional
     public void deleteAll(List<String> ids) {
+        // Same pre-check on the bulk path — first blocker aborts the whole batch
+        // so partial deletes never happen.
+        for (String id : ids) {
+            long childCount = categoryRepository.countDirectChildren(id);
+            if (childCount > 0) {
+                throw com.backandwhite.domain.exception.Message.CATEGORY_HAS_SUBCATEGORIES
+                        .toBusinessException(childCount);
+            }
+            long productCount = productRepository.countByCategoryId(id);
+            if (productCount > 0) {
+                throw com.backandwhite.domain.exception.Message.CATEGORY_HAS_PRODUCTS.toBusinessException(productCount);
+            }
+        }
         categoryRepository.deleteAll(ids);
     }
 

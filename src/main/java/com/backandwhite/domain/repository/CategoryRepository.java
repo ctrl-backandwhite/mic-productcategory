@@ -56,6 +56,12 @@ public interface CategoryRepository {
      */
     List<String> findDescendantIds(String categoryId);
 
+    /**
+     * Direct children count (not recursive). Used before a delete to warn the
+     * admin.
+     */
+    long countDirectChildren(String parentId);
+
     int publishAllDrafts();
 
     void updateLastDiscoveredAt(String categoryId);

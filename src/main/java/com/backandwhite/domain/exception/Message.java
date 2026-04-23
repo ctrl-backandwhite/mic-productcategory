@@ -1,5 +1,6 @@
 package com.backandwhite.domain.exception;
 
+import com.backandwhite.common.exception.BusinessException;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
@@ -14,7 +15,10 @@ public enum Message {
 
     EXTERNAL_SERVICE_TOKEN_ERROR("PR001", "Failed to obtain access token from %s"), EXTERNAL_SERVICE_DATA_ERROR("PR002",
             "Failed to fetch data from %s: %s"), EXTERNAL_SERVICE_RATE_LIMIT("PR003",
-                    "Too many requests to %s. Please try again later.");
+                    "Too many requests to %s. Please try again later."), CATEGORY_HAS_PRODUCTS("PR010",
+                            "No se puede eliminar la categoría: tiene %s producto(s) asociado(s). Reasígnalos a otra categoría o elimínalos primero."), CATEGORY_HAS_SUBCATEGORIES(
+                                    "PR011",
+                                    "No se puede eliminar la categoría: tiene %s subcategoría(s). Elimínalas primero.");
 
     private final String code;
     private final String detail;
@@ -31,5 +35,11 @@ public enum Message {
     public ExternalServiceException toExternalServiceException(Object... args) {
         log.error("External service error: {}", format(args));
         return new ExternalServiceException(this.code, format(args));
+    }
+
+    public BusinessException toBusinessException(Object... args) {
+        String formatted = format(args);
+        log.warn("[{}] {}", this.code, formatted);
+        return new BusinessException(this.code, formatted);
     }
 }

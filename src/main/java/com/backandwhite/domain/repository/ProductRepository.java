@@ -65,6 +65,13 @@ public interface ProductRepository {
     Page<String> findProductIdsByCategoryIds(List<String> categoryIds, int page, int size);
 
     /**
+     * Counts products in the given category. Used before a category delete so the
+     * API can reject with a helpful message instead of leaking a Postgres
+     * foreign-key violation.
+     */
+    long countByCategoryId(String categoryId);
+
+    /**
      * Bulk sync: receives a list of Products (already mapped from CJ). For each
      * one, if it exists it updates it; if not, it creates it. Performs a single
      * bulk read and a single saveAll.

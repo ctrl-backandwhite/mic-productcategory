@@ -49,6 +49,11 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public long countByCategoryId(String categoryId) {
+        return productJpaRepository.countByCategoryId(categoryId);
+    }
+
+    @Override
     public Page<Product> findAllPaged(String locale, String categoryId, ProductStatus status, String name,
             Pageable pageable) {
         List<String> categoryIds = null;

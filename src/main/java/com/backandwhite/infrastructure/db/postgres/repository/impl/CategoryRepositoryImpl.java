@@ -185,6 +185,11 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
+    public long countDirectChildren(String parentId) {
+        return categoryJpaRepository.countByParentId(parentId);
+    }
+
+    @Override
     @Transactional
     public void updateLastDiscoveredAt(String categoryId) {
         categoryJpaRepository.updateLastDiscoveredAt(categoryId, Instant.now());

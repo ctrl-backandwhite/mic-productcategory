@@ -45,4 +45,6 @@ public interface ProductJpaRepository
             """, nativeQuery = true)
     List<String> findRandomIds(@Param("status") String status, @Param("categoryIds") List<String> categoryIds,
             @Param("size") int size);
+
+    long countByCategoryId(String categoryId);
 }

@@ -39,6 +39,8 @@ public interface CategoryJpaRepository
     @Query("SELECT c.id FROM CategoryEntity c WHERE c.level = :level")
     List<String> findIdsByLevel(@Param("level") int level);
 
+    long countByParentId(String parentId);
+
     @Modifying
     @Query("UPDATE CategoryEntity c SET c.status = com.backandwhite.domain.valueobject.CategoryStatus.PUBLISHED WHERE c.status = com.backandwhite.domain.valueobject.CategoryStatus.DRAFT")
     int publishAllDrafts();
