@@ -61,9 +61,10 @@ public class ProductRepositoryImpl implements ProductRepository {
             List<String> descendants = categoryJpaRepository.findDescendantIds(categoryId);
             categoryIds = descendants.isEmpty() ? List.of(categoryId) : descendants;
         }
-        return productJpaRepository
+        Page<Product> page = productJpaRepository
                 .findAll(ProductSpecification.byLocaleAndCategoryIds(locale, categoryIds, status, name), pageable)
                 .map(productInfraMapper::toDomain).map(product -> filterTranslations(product, locale));
+        return populateAvailableLocales(page);
     }
 
     @Override
@@ -72,8 +73,10 @@ public class ProductRepositoryImpl implements ProductRepository {
             return List.of();
         Map<String, ProductEntity> byId = productJpaRepository.findAllByIdIn(ids).stream()
                 .collect(Collectors.toMap(ProductEntity::getId, Function.identity()));
-        return ids.stream().map(byId::get).filter(Objects::nonNull).map(productInfraMapper::toDomain)
+        List<Product> products = ids.stream().map(byId::get).filter(Objects::nonNull).map(productInfraMapper::toDomain)
                 .map(product -> filterTranslations(product, locale)).toList();
+        attachAvailableLocales(products);
+        return products;
     }
 
     @Override
@@ -394,5 +397,28 @@ public class ProductRepositoryImpl implements ProductRepository {
             return product.getTranslations().getFirst().getLocale();
         }
         return "en";
+    }
+
+    private Page<Product> populateAvailableLocales(Page<Product> page) {
+        attachAvailableLocales(page.getContent());
+        return page;
+    }
+
+    /**
+     * Side query to load every locale each product has a translation for. The main
+     * fetch-join restricts the in-memory translations collection to the requested
+     * locale, so admin badges would otherwise only ever show one.
+     */
+    private void attachAvailableLocales(List<Product> products) {
+        if (products == null || products.isEmpty())
+            return;
+        List<String> ids = products.stream().map(Product::getId).toList();
+        Map<String, List<String>> byProduct = productJpaRepository.findLocalesByProductIds(ids).stream()
+                .collect(Collectors.groupingBy(row -> (String) row[0],
+                        Collectors.mapping(row -> (String) row[1], Collectors.toList())));
+        products.forEach(p -> {
+            List<String> locales = byProduct.getOrDefault(p.getId(), List.of()).stream().distinct().sorted().toList();
+            p.setAvailableLocales(locales);
+        });
     }
 }

@@ -12,6 +12,7 @@ public interface ProductInfraMapper {
 
     @Mapping(target = "name", expression = "java(getFirstTranslationName(entity))")
     @Mapping(target = "costPrice", ignore = true)
+    @Mapping(target = "availableLocales", expression = "java(getAvailableLocales(entity))")
     Product toDomain(ProductEntity entity);
 
     List<Product> toDomainList(List<ProductEntity> entities);
@@ -33,6 +34,13 @@ public interface ProductInfraMapper {
             return null;
         }
         return entity.getTranslations().getFirst().getName();
+    }
+
+    default List<String> getAvailableLocales(ProductEntity entity) {
+        if (entity.getTranslations() == null || entity.getTranslations().isEmpty()) {
+            return List.of();
+        }
+        return entity.getTranslations().stream().map(t -> t.getId().getLocale()).distinct().sorted().toList();
     }
 
     // ── Domain → Entity ────────────────────────────────────────────────────

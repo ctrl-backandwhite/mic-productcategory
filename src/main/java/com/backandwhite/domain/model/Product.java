@@ -45,4 +45,12 @@ public class Product {
 
     @Builder.Default
     private List<ProductDetailVariant> variants = new ArrayList<>();
+
+    /**
+     * Distinct locales the product has translations for, captured before any locale
+     * filtering trims {@link #translations}. Used by the admin UI to show a
+     * translation-coverage badge per row.
+     */
+    @Builder.Default
+    private List<String> availableLocales = new ArrayList<>();
 }

@@ -86,4 +86,7 @@ public class ProductDtoOut {
 
     @Schema(description = "Product variants")
     private List<ProductDetailVariantDtoOut> variants;
+
+    @Schema(description = "Distinct locales the product has translations for", example = "[\"en\", \"es\"]")
+    private List<String> availableLocales;
 }

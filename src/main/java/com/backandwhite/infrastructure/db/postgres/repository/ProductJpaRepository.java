@@ -51,4 +51,13 @@ public interface ProductJpaRepository
             @Param("size") int size);
 
     long countByCategoryId(String categoryId);
+
+    /**
+     * Returns [productId, locale] pairs for the given product IDs across every
+     * locale they have a translation in. Used by the admin to render coverage
+     * badges; the main listing query uses a fetch-join that strips translations to
+     * the requested locale, so we need this side query to know what's there.
+     */
+    @Query("SELECT pt.id.productId, pt.id.locale FROM ProductTranslationEntity pt WHERE pt.id.productId IN :ids")
+    List<Object[]> findLocalesByProductIds(@Param("ids") List<String> ids);
 }
