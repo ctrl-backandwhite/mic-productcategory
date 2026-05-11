@@ -70,7 +70,16 @@ public final class ProductSpecification {
             query.distinct(true);
 
             Predicate predicate = cb.conjunction();
-            predicate = and(cb, predicate, localeEqual(cb, translationJoin, locale));
+
+            // When the caller is *searching by name*, drop the locale filter
+            // on the join so EN-only CJ products are still findable from a
+            // Spanish/Portuguese admin UI. For plain listing (no name filter)
+            // we keep the join pinned to the requested locale so the joined
+            // translation row is the localized one.
+            boolean searchingByName = name != null && !name.isBlank();
+            if (!searchingByName) {
+                predicate = and(cb, predicate, localeEqual(cb, translationJoin, locale));
+            }
 
             if (categoryIds != null && !categoryIds.isEmpty()) {
                 predicate = cb.and(predicate, root.get("categoryId").in(categoryIds));
